@@ -1,11 +1,18 @@
-import { hello } from "../../../src";
-
-function App() {
+const Client = () => {
   return (
-    <div className="App">
-      {hello("world2!")}
-    </div>
-  )
-}
+    <article style={{ width: "300px", margin: "8px" }}>
+      <span>Client 1</span>
+    </article>
+  );
+};
 
-export default App
+const App = () => (
+  <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
+    <Client />
+    <Client />
+    <Client />
+    <article style={{ margin: "8px", width: "300px" }}></article>
+  </div>
+);
+
+export default App;
