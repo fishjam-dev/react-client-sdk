@@ -1,8 +1,9 @@
+import { hello } from "../../../src";
 
 function App() {
   return (
     <div className="App">
-      Hello world!
+      {hello("world2!")}
     </div>
   )
 }
