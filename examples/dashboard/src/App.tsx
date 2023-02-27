@@ -32,7 +32,7 @@ export const useMockStream = (emoji: string) => {
 
   return {
     start,
-    stop: result?.stop,
+    stop: stop,
     stream: result?.stream,
   };
 };
@@ -54,49 +54,59 @@ const Client = ({ id, name, emoji }: ClientProps) => {
   const mockStream = useMockStream(emoji);
   const [trackId, setTrackId] = useState<null | string>(null);
 
+  useEffect(() => {
+    mockStream.start();
+  }, []);
+
   return (
     <article style={{ width: "500px", margin: "8px" }}>
-      <span>
-        Client {id}: {emoji}
-        {name}
-      </span>
-      {disconnect ? (
-        <button
-          onClick={() => {
-            disconnect();
-            setDisconnect(() => null);
-          }}
-        >
-          Disconnect
-        </button>
-      ) : (
-        <button
-          onClick={() => {
-            const disconnect = connect(
-              `room:${roomId}`,
-              { name: emoji + name },
-              true
-            );
-            setDisconnect(() => disconnect);
-          }}
-        >
-          Connect
-        </button>
-      )}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: "4px",
+        }}
+        className="grid"
+      >
+        <span>
+          Client {id}: {emoji}
+          {name}
+        </span>
+        {disconnect ? (
+          <button
+            onClick={() => {
+              disconnect();
+              setDisconnect(() => null);
+            }}
+          >
+            Disconnect
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              const disconnect = connect(
+                `room:${roomId}`,
+                { name: emoji + name },
+                true
+              );
+              setDisconnect(() => disconnect);
+            }}
+          >
+            Connect
+          </button>
+        )}
+
+        {mockStream.stream && (
+          <VideoPlayer
+            stream={mockStream.stream}
+            innerStyles={{ objectFit: "fill" }}
+          />
+        )}
+      </div>
       <div className="grid">
         <button
-          onClick={() => {
-            mockStream.start();
-          }}
-          style={{
-            display: "inline",
-            width: "initial",
-          }}
-        >
-          Create canvas
-        </button>
-        <button
-          disabled={!mockStream.stream && fullState.status === "connected"}
+          disabled={!mockStream.stream || fullState.status !== "connected"}
           onClick={() => {
             const track = mockStream.stream?.getVideoTracks()?.[0];
             const stream = mockStream.stream;
@@ -114,7 +124,7 @@ const Client = ({ id, name, emoji }: ClientProps) => {
             width: "initial",
           }}
         >
-          Add canvas track
+          Add track
         </button>
         <button
           disabled={fullState.status !== "connected" || trackId === null}
@@ -128,14 +138,8 @@ const Client = ({ id, name, emoji }: ClientProps) => {
             width: "initial",
           }}
         >
-          Remove canvas track
+          Remove track
         </button>
-        {mockStream.stream && (
-          <VideoPlayer
-            stream={mockStream.stream}
-            innerStyles={{ width: "80px", height: "80px" }}
-          />
-        )}
       </div>
       <small>
         <pre>
@@ -184,7 +188,6 @@ const ThemeSelector = () => {
   );
 
   const setTheme = (theme: Theme) => {
-    console.log(`setting ${theme}`);
     setCurrentTheme(theme);
     localStorage.setItem("theme", theme);
   };
