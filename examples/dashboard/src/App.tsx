@@ -3,6 +3,9 @@ import { createNoContextMembraneClient } from "../../../src/externalState";
 import { PeerMetadata, TrackMetadata } from "./setup";
 import { createStream } from "./createMockStream";
 import VideoPlayer from "./VideoPlayer";
+import TypedEmitter from "typed-emitter";
+import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
+import { EventEmitter } from "events";
 
 type ClientProps = {
   id: number;
@@ -88,7 +91,8 @@ const Client = ({ id, name, emoji }: ClientProps) => {
               const disconnect = connect(
                 `room:${roomId}`,
                 { name: emoji + name },
-                true
+                true,
+                { websocketUrl: "ws://localhost:4000/socket" }
               );
               setDisconnect(() => disconnect);
             }}

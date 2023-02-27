@@ -163,6 +163,7 @@ export const onTrackUpdated = <PeerMetadata, TrackMetadata>(ctx: TrackContext) =
     };
   };
 
+// todo handle state
 export const onTracksPriorityChanged = <PeerMetadata, TrackMetadata>(enabledTracks: TrackContext[], disabledTracks: TrackContext[]) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return prevState;
