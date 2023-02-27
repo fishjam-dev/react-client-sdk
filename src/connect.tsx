@@ -1,31 +1,48 @@
-import type { Peer, SerializedMediaEvent, TrackContext } from "@jellyfish-dev/membrane-webrtc-js";
+import type {
+  Peer,
+  SerializedMediaEvent,
+  TrackContext,
+} from "@jellyfish-dev/membrane-webrtc-js";
 import { MembraneWebRTC } from "@jellyfish-dev/membrane-webrtc-js";
 import type { Channel } from "phoenix";
 import { Socket } from "phoenix";
 import { DEFAULT_STORE } from "./externalState/externalState";
 import type { SetStore, State } from "./state.types";
 import {
-  onBandwidthEstimationChanged, onEncodingChanged, onJoinError,
+  onBandwidthEstimationChanged,
+  onEncodingChanged,
+  onJoinError,
   onJoinSuccess,
   onPeerJoined,
-  onPeerLeft, onPeerRemoved, onPeerUpdated,
+  onPeerLeft,
+  onPeerRemoved,
+  onPeerUpdated,
   onTrackAdded,
   onTrackEncodingChanged,
   onTrackReady,
-  onTrackRemoved, onTracksPriorityChanged,
-  onTrackUpdated, onVoiceActivityChanged,
+  onTrackRemoved,
+  onTracksPriorityChanged,
+  onTrackUpdated,
+  onVoiceActivityChanged,
 } from "./stateMappers";
 import type { Api } from "./api";
 import { createApiWrapper } from "./api";
 
-type ConnectConfig = {
-  disableOnTrackEncodingChanged?: boolean
-}
+export type ConnectConfig = {
+  disableOnTrackEncodingChanged?: boolean;
+};
 
-export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMetadata, TrackMetadata>) =>
-  (roomId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean, config?: ConnectConfig): (() => void) => {
-
-    const socket = new Socket("/socket");
+export const connect =
+  <PeerMetadata, TrackMetadata>(
+    setStore: SetStore<PeerMetadata, TrackMetadata>
+  ) =>
+  (
+    roomId: string,
+    peerMetadata: PeerMetadata,
+    isSimulcastOn: boolean,
+    config?: ConnectConfig
+  ): (() => void) => {
+    const socket = new Socket("ws://localhost:4000/socket");
     socket.connect();
     const socketOnCloseRef = socket.onClose(() => cleanUp());
     const socketOnErrorRef = socket.onError(() => cleanUp());
@@ -34,7 +51,7 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
       isSimulcastOn: isSimulcastOn,
     });
 
-    signaling.onError((reason) => {
+    signaling.onError((reason: any) => {
       console.error("WebrtcChannel error occurred");
       console.error(reason);
       // setErrorMessage("WebrtcChannel error occurred");
@@ -43,7 +60,8 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
       return;
     });
 
-    const includeOnTrackEncodingChanged = !config?.disableOnTrackEncodingChanged
+    const includeOnTrackEncodingChanged =
+      !config?.disableOnTrackEncodingChanged;
 
     const webrtc = new MembraneWebRTC({
       callbacks: {
@@ -64,7 +82,7 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         onRemoved: (reason) => {
           // todo handle reason
           console.log({ name: "onRemoved", reason });
-          onPeerRemoved(reason)
+          onPeerRemoved(reason);
         },
 
         onPeerJoined: (peer) => {
@@ -92,12 +110,12 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
           setStore(onTrackAdded(ctx));
           ctx.onEncodingChanged = () => {
             console.log({ name: "onEncodingChanged", ctx });
-            setStore(onEncodingChanged(ctx))
-          }
+            setStore(onEncodingChanged(ctx));
+          };
           ctx.onVoiceActivityChanged = () => {
             console.log({ name: "onVoiceActivityChanged", ctx });
-            setStore(onVoiceActivityChanged(ctx))
-          }
+            setStore(onVoiceActivityChanged(ctx));
+          };
         },
 
         onTrackRemoved: (ctx) => {
@@ -111,8 +129,15 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         },
 
         // todo handle state
-        onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
-          console.log({ name: "onTracksPriorityChanged", enabledTracks, disabledTracks });
+        onTracksPriorityChanged: (
+          enabledTracks: TrackContext[],
+          disabledTracks: TrackContext[]
+        ) => {
+          console.log({
+            name: "onTracksPriorityChanged",
+            enabledTracks,
+            disabledTracks,
+          });
           setStore(onTracksPriorityChanged(enabledTracks, disabledTracks));
         },
 
@@ -129,10 +154,15 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
 
         ...(includeOnTrackEncodingChanged && {
           onTrackEncodingChanged: (peerId, trackId, encoding) => {
-            console.log({ name: "onTrackEncodingChanged", peerId, trackId, encoding });
+            console.log({
+              name: "onTrackEncodingChanged",
+              peerId,
+              trackId,
+              encoding,
+            });
             setStore(onTrackEncodingChanged(peerId, trackId, encoding));
           },
-        })
+        }),
       },
     });
 
@@ -146,26 +176,30 @@ export const connect = <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
       return;
     });
 
-    setStore((prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-      return {
-        ...prevState,
-        status: "connecting",
-        connectivity: {
-          ...prevState.connectivity,
-          socket: socket,
-          api: api,
-          webrtc: webrtc,
-          signaling: signaling,
-        },
-      };
-    });
+    setStore(
+      (
+        prevState: State<PeerMetadata, TrackMetadata>
+      ): State<PeerMetadata, TrackMetadata> => {
+        return {
+          ...prevState,
+          status: "connecting",
+          connectivity: {
+            ...prevState.connectivity,
+            socket: socket,
+            api: api,
+            webrtc: webrtc,
+            signaling: signaling,
+          },
+        };
+      }
+    );
 
     signaling
       .join()
       .receive("ok", () => {
         webrtc.join(peerMetadata);
       })
-      .receive("error", (response) => {
+      .receive("error", (response: any) => {
         // setErrorMessage("Connecting error");
         console.error("Received error status");
         console.error(response);

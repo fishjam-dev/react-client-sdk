@@ -3,9 +3,24 @@ import { createStore } from "./externalState";
 import { useSelector } from "./useSelector";
 import type { Selector } from "../state.types";
 import { useMemo } from "react";
-import { connect } from "../connect";
+import { connect, ConnectConfig } from "../connect";
 
-export const createNoContextMembraneClient = <PeerMetadata, TrackMetadata>() => {
+export type CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> = {
+  useConnect: () => <TrackMetadata>(
+    roomId: string,
+    peerMetadata: PeerMetadata,
+    isSimulcastOn: boolean,
+    config?: ConnectConfig
+  ) => () => void;
+  useSelector: <Result>(
+    selector: Selector<PeerMetadata, TrackMetadata, Result>
+  ) => Result;
+};
+
+export const createNoContextMembraneClient = <
+  PeerMetadata,
+  TrackMetadata
+>(): CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> => {
   const store: ExternalState<PeerMetadata, TrackMetadata> = createStore<
     PeerMetadata,
     TrackMetadata
@@ -15,7 +30,9 @@ export const createNoContextMembraneClient = <PeerMetadata, TrackMetadata>() => 
     useConnect: () => {
       return useMemo(() => connect(store.setStore), []);
     },
-    useSelector: <Result, >(selector: Selector<PeerMetadata, TrackMetadata, Result>): Result => {
+    useSelector: <Result,>(
+      selector: Selector<PeerMetadata, TrackMetadata, Result>
+    ): Result => {
       return useSelector(store, selector);
     },
   };

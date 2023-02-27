@@ -10,4 +10,5 @@
 "@types/phoenix": "^1.5.5",
 "@types/react": "^18.0.28",
 "lodash.isequal": "^4.5.0",
+"phoenix"
 ```
