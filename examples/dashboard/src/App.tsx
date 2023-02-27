@@ -6,6 +6,7 @@ import VideoPlayer from "./VideoPlayer";
 import TypedEmitter from "typed-emitter";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 import { EventEmitter } from "events";
+import { getBooleanValue } from "../../../src/jellyfish/addLogging";
 
 type ClientProps = {
   id: number;
@@ -218,6 +219,19 @@ const ThemeSelector = () => {
   );
 };
 
+const useLocalStorageState = (
+  name: string
+): [boolean, (newValue: boolean) => void] => {
+  const [value, setValueState] = useState<boolean>(getBooleanValue(name));
+
+  const setValue = (newValue: boolean) => {
+    setValueState(newValue);
+    localStorage.setItem(name, newValue.toString());
+  };
+
+  return [value, setValue];
+};
+
 const App = () => {
   const [clients] = useState<ClientProps[]>([
     { id: 1, name: "apple", emoji: "🍎" },
@@ -228,6 +242,7 @@ const App = () => {
   return (
     <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
       <ThemeSelector />
+      <LogSelector />
       {clients.map(({ id, name, emoji }) => {
         return <Client key={id} id={id} name={name} emoji={emoji} />;
       })}
@@ -237,3 +252,41 @@ const App = () => {
 };
 
 export default App;
+
+const LogSelector = () => {
+  return (
+    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
+      <PersistentInput name="onJoinSuccess" />
+      <PersistentInput name="onJoinError" />
+      <PersistentInput name="onRemoved" />
+      <PersistentInput name="onPeerJoined" />
+      <PersistentInput name="onPeerLeft" />
+      <PersistentInput name="onPeerUpdated" />
+      <PersistentInput name="onTrackReady" />
+      <PersistentInput name="onTrackAdded" />
+      <PersistentInput name="onTrackRemoved" />
+      <PersistentInput name="onTrackUpdated" />
+      <PersistentInput name="onTrackEncodingChanged" />
+      <PersistentInput name="onTracksPriorityChanged" />
+      <PersistentInput name="onBandwidthEstimationChanged" />
+    </div>
+  );
+};
+
+const PersistentInput = ({ name }: { name: string }) => {
+  const [value, setValue] = useLocalStorageState(name);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
+      <input
+        id={name}
+        type="checkbox"
+        checked={value}
+        onChange={() => {
+          setValue(!value);
+        }}
+      />
+      <label htmlFor={name}>{name}</label>
+    </div>
+  );
+};

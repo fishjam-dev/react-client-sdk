@@ -193,6 +193,7 @@ export const onJoinSuccess = <PeerMetadata, TrackMetadata>(peersInRoom: [WebRtcP
     return { ...prevState, local, remote, status: "connected" };
   };
 
+// todo handle state and handle callback
 export const onJoinError = <PeerMetadata, TrackMetadata>(metadata: any) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return prevState

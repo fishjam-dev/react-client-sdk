@@ -1,6 +1,6 @@
 import type { SetStore } from "../state.types";
 
-import { JellyfishClient } from "./JellyfishClient";
+import { ConnectConfig, JellyfishClient } from "./JellyfishClient";
 import {
   onBandwidthEstimationChanged,
   onEncodingChanged,
@@ -19,11 +19,9 @@ import {
   onVoiceActivityChanged,
 } from "../stateMappers";
 import { addLogging } from "./addLogging";
-
-export type ConnectConfig = {
-  websocketUrl?: string;
-  disableDeprecated?: boolean;
-};
+import { DEFAULT_STORE } from "../externalState/externalState";
+import { State } from "../state.types";
+import { createApiWrapper } from "../api";
 
 export function connect<PeerMetadata, TrackMetadata>(
   setStore: SetStore<PeerMetadata, TrackMetadata>
@@ -34,9 +32,9 @@ export function connect<PeerMetadata, TrackMetadata>(
     isSimulcastOn: boolean,
     config?: ConnectConfig
   ): (() => void) => {
-    const client = new JellyfishClient();
+    const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
-    addLogging(client);
+    addLogging<PeerMetadata, TrackMetadata>(client);
 
     client.messageEmitter.on("onJoinSuccess", (peerId, peersInRoom) => {
       setStore(onJoinSuccess(peersInRoom, peerId, peerMetadata));
@@ -63,6 +61,7 @@ export function connect<PeerMetadata, TrackMetadata>(
     client.messageEmitter.on("onTrackAdded", (ctx) => {
       setStore(onTrackAdded(ctx));
 
+      // temporary solution. Add events emitters to TrackContext
       const prevOnEncodingChanged = ctx.onEncodingChanged;
       const prevOnVoiceActivityChanged = ctx.onVoiceActivityChanged;
 
@@ -101,14 +100,30 @@ export function connect<PeerMetadata, TrackMetadata>(
       }
     );
 
-    const cleanUp = client.connect<PeerMetadata, TrackMetadata>(setStore)(
-      roomId,
-      peerMetadata,
-      isSimulcastOn,
-      config
+    client.connect(roomId, peerMetadata, isSimulcastOn, config);
+
+    setStore(
+      (
+        prevState: State<PeerMetadata, TrackMetadata>
+      ): State<PeerMetadata, TrackMetadata> => {
+        return {
+          ...prevState,
+          status: "connecting",
+          connectivity: {
+            ...prevState.connectivity,
+            socket: client.socket,
+            api: client.webrtc
+              ? createApiWrapper(client.webrtc, setStore)
+              : null,
+            webrtc: client.webrtc,
+            signaling: client.signaling,
+          },
+        };
+      }
     );
     return () => {
-      cleanUp();
+      setStore(() => DEFAULT_STORE);
+      client.cleanUp();
     };
   };
 }
