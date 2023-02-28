@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createNoContextMembraneClient } from "../../../src/externalState";
 import { PeerMetadata, TrackMetadata } from "./setup";
-import { createStream } from "./createMockStream";
 import VideoPlayer from "./VideoPlayer";
-import TypedEmitter from "typed-emitter";
-import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
-import { EventEmitter } from "events";
-import { getBooleanValue } from "../../../src/jellyfish/addLogging";
+import { ThemeSelector } from "./ThemeSelector";
+import { LogSelector } from "./LogSelector";
+import { useMockStream } from "./UseMockStream";
 
 type ClientProps = {
   id: number;
@@ -17,29 +15,6 @@ type ClientProps = {
 const roomId = "1";
 
 type Disconnect = null | (() => void);
-
-export const useMockStream = (emoji: string) => {
-  const [result, setResult] = useState<{
-    stop: () => void;
-    stream: MediaStream;
-  } | null>(null);
-
-  const start = useCallback(() => {
-    const result = createStream(emoji, "black", 24);
-    setResult(result);
-  }, []);
-
-  const stop = useCallback(() => {
-    result?.stop();
-    setResult(null);
-  }, [result]);
-
-  return {
-    start,
-    stop: stop,
-    stream: result?.stream,
-  };
-};
 
 const Client = ({ id, name, emoji }: ClientProps) => {
   const [client] = useState(
@@ -179,58 +154,6 @@ const Client = ({ id, name, emoji }: ClientProps) => {
     </article>
   );
 };
-type Theme = "dark" | "light";
-export const isThemeType = (value: string | undefined | null): value is Theme =>
-  value === "dark" || value === "white";
-
-const getLastSelectedTheme = (): Theme => {
-  const theme = localStorage.getItem("theme");
-  return isThemeType(theme) ? theme : "light";
-};
-const ThemeSelector = () => {
-  const [currentTheme, setCurrentTheme] = useState<Theme>(
-    getLastSelectedTheme()
-  );
-
-  const setTheme = (theme: Theme) => {
-    setCurrentTheme(theme);
-    localStorage.setItem("theme", theme);
-  };
-
-  useEffect(() => {
-    const html = document.getElementsByTagName("html")?.[0];
-    if (!html) return;
-    html.setAttribute("data-theme", currentTheme);
-  }, [currentTheme]);
-
-  return (
-    <button
-      style={{
-        position: "fixed",
-        bottom: "8px",
-        right: "8px",
-        display: "inline",
-        width: "initial",
-      }}
-      onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
-    >
-      Toggle theme
-    </button>
-  );
-};
-
-const useLocalStorageState = (
-  name: string
-): [boolean, (newValue: boolean) => void] => {
-  const [value, setValueState] = useState<boolean>(getBooleanValue(name));
-
-  const setValue = (newValue: boolean) => {
-    setValueState(newValue);
-    localStorage.setItem(name, newValue.toString());
-  };
-
-  return [value, setValue];
-};
 
 const App = () => {
   const [clients] = useState<ClientProps[]>([
@@ -252,41 +175,3 @@ const App = () => {
 };
 
 export default App;
-
-const LogSelector = () => {
-  return (
-    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      <PersistentInput name="onJoinSuccess" />
-      <PersistentInput name="onJoinError" />
-      <PersistentInput name="onRemoved" />
-      <PersistentInput name="onPeerJoined" />
-      <PersistentInput name="onPeerLeft" />
-      <PersistentInput name="onPeerUpdated" />
-      <PersistentInput name="onTrackReady" />
-      <PersistentInput name="onTrackAdded" />
-      <PersistentInput name="onTrackRemoved" />
-      <PersistentInput name="onTrackUpdated" />
-      <PersistentInput name="onTrackEncodingChanged" />
-      <PersistentInput name="onTracksPriorityChanged" />
-      <PersistentInput name="onBandwidthEstimationChanged" />
-    </div>
-  );
-};
-
-const PersistentInput = ({ name }: { name: string }) => {
-  const [value, setValue] = useLocalStorageState(name);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      <input
-        id={name}
-        type="checkbox"
-        checked={value}
-        onChange={() => {
-          setValue(!value);
-        }}
-      />
-      <label htmlFor={name}>{name}</label>
-    </div>
-  );
-};
