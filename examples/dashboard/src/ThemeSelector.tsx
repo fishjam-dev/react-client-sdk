@@ -28,13 +28,7 @@ export const ThemeSelector = () => {
 
   return (
     <button
-      style={{
-        position: "fixed",
-        bottom: "8px",
-        right: "8px",
-        display: "inline",
-        width: "initial",
-      }}
+      className="w-[initial] mb-0"
       onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
     >
       Toggle theme

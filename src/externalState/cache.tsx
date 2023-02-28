@@ -1,9 +1,7 @@
 import type { State } from "../state.types";
 
-// todo extract equality function and remove lodash
-import isEqual from "lodash.isequal";
-
 export const cache = <Result, PeerMetadata, TrackMetadata>(
+  isEqual: (value: any, other: any) => boolean,
   callbackFunction: (snapshot: State<PeerMetadata, TrackMetadata>) => Result
 ): ((snapshot: State<PeerMetadata, TrackMetadata>) => Result) => {
   // console.log("%c Create cache", "color: orange");

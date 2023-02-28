@@ -38,7 +38,7 @@ const Client = ({ id, name, emoji }: ClientProps) => {
   }, []);
 
   return (
-    <article style={{ width: "500px", margin: "8px" }}>
+    <article className="m-2 w-[400px]">
       <div
         style={{
           display: "flex",
@@ -155,6 +155,9 @@ const Client = ({ id, name, emoji }: ClientProps) => {
   );
 };
 
+// peerId
+// roomId
+
 const App = () => {
   const [clients] = useState<ClientProps[]>([
     { id: 1, name: "apple", emoji: "🍎" },
@@ -163,14 +166,16 @@ const App = () => {
   ]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      <ThemeSelector />
-      <LogSelector />
-      {clients.map(({ id, name, emoji }) => {
-        return <Client key={id} id={id} name={name} emoji={emoji} />;
-      })}
-      <article style={{ margin: "8px", width: "500px" }}></article>
-    </div>
+    <>
+      <div className="flex flex-col fixed bottom-4 right-4">
+        <LogSelector />
+      </div>
+      <div className="flex flex-row flex-wrap">
+        {clients.map(({ id, name, emoji }) => {
+          return <Client key={id} id={id} name={name} emoji={emoji} />;
+        })}
+      </div>
+    </>
   );
 };
 

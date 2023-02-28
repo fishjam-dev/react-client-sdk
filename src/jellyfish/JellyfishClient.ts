@@ -30,6 +30,7 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
 
   connect(
     roomId: string,
+    // add PeerId: uuid
     peerMetadata: PeerMetadata,
     isSimulcastOn: boolean,
     config?: ConnectConfig

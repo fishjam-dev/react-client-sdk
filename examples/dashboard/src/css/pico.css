@@ -1,3 +1,7 @@
+/*@tailwind base;*/
+/*@tailwind components;*/
+@tailwind utilities;
+
 :root {
     --form-element-spacing-vertical: 0.5rem;
 }

@@ -2,6 +2,8 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { cache } from "./cache";
 import type { Selector } from "../state.types";
 import type { ExternalState, Listener, Subscribe } from "./externalState";
+// todo extract isEqual as dependency
+import isEqual from "lodash.isequal";
 
 const EMPTY_FUNCTION = () => undefined;
 
@@ -10,7 +12,7 @@ export const useSelector = <Result, PeerMetadata, TrackMetadata>(
   selector: Selector<PeerMetadata, TrackMetadata, Result>
 ): Result => {
   const cachedSelector: Selector<PeerMetadata, TrackMetadata, Result> = useMemo(
-    () => cache(selector),
+    () => cache(isEqual, selector),
     [selector]
   );
 
