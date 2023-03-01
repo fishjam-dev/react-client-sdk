@@ -15,6 +15,7 @@ const VideoPlayer = ({ stream, innerStyles }: Props) => {
 
   return (
     <video
+      className="w-full"
       style={innerStyles}
       autoPlay
       playsInline

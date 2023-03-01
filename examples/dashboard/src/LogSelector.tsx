@@ -51,7 +51,8 @@ export const LogSelector = () => {
     </article>
   );
 };
-const PersistentInput = ({ name }: { name: string }) => {
+
+export const PersistentInput = ({ name }: { name: string }) => {
   const [value, setValue] = useLocalStorageState(name);
 
   return (

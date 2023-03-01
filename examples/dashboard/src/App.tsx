@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { createNoContextMembraneClient } from "../../../src/externalState";
 import { PeerMetadata, TrackMetadata } from "./setup";
 import VideoPlayer from "./VideoPlayer";
-import { ThemeSelector } from "./ThemeSelector";
 import { LogSelector } from "./LogSelector";
 import { useMockStream } from "./UseMockStream";
+import { Server } from "./Server";
 
 type ClientProps = {
   id: number;
@@ -39,50 +39,39 @@ const Client = ({ id, name, emoji }: ClientProps) => {
 
   return (
     <article className="m-2 w-[400px]">
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginBottom: "4px",
-        }}
-        className="grid"
-      >
-        <span>
-          Client {id}: {emoji}
-          {name}
-        </span>
-        {disconnect ? (
-          <button
-            onClick={() => {
-              disconnect();
-              setDisconnect(() => null);
-            }}
-          >
-            Disconnect
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              const disconnect = connect(
-                `room:${roomId}`,
-                { name: emoji + name },
-                true,
-                { websocketUrl: "ws://localhost:4000/socket" }
-              );
-              setDisconnect(() => disconnect);
-            }}
-          >
-            Connect
-          </button>
-        )}
+      <div className="grid grid-cols-2">
+        <div>
+          <span>
+            Client {id}: {emoji}
+            {name}
+          </span>
+          {disconnect ? (
+            <button
+              onClick={() => {
+                disconnect();
+                setDisconnect(() => null);
+              }}
+            >
+              Disconnect
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                const disconnect = connect(
+                  `room:${roomId}`,
+                  { name: emoji + name },
+                  true,
+                  { websocketUrl: "ws://localhost:4000/socket" }
+                );
+                setDisconnect(() => disconnect);
+              }}
+            >
+              Connect
+            </button>
+          )}
+        </div>
 
-        {mockStream.stream && (
-          <VideoPlayer
-            stream={mockStream.stream}
-            innerStyles={{ objectFit: "fill" }}
-          />
-        )}
+        {mockStream.stream && <VideoPlayer stream={mockStream.stream} />}
       </div>
       <div className="grid">
         <button
@@ -170,6 +159,7 @@ const App = () => {
       <div className="flex flex-col fixed bottom-4 right-4">
         <LogSelector />
       </div>
+      <Server />
       <div className="flex flex-row flex-wrap">
         {clients.map(({ id, name, emoji }) => {
           return <Client key={id} id={id} name={name} emoji={emoji} />;
