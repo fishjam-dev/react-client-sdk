@@ -2,7 +2,7 @@ import { useState } from "react";
 import { getBooleanValue } from "../../../src/jellyfish/addLogging";
 import { ThemeSelector } from "./ThemeSelector";
 
-const useLocalStorageState = (
+export const useLocalStorageState = (
   name: string
 ): [boolean, (newValue: boolean) => void] => {
   const [value, setValueState] = useState<boolean>(getBooleanValue(name));
@@ -56,7 +56,7 @@ export const PersistentInput = ({ name }: { name: string }) => {
   const [value, setValue] = useLocalStorageState(name);
 
   return (
-    <div className="flex flex-row">
+    <div className="flex flex-row flex-wrap content-center">
       <input
         id={name}
         type="checkbox"

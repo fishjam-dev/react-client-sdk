@@ -20,6 +20,7 @@ export const DEFAULT_STORE = {
     signaling: null,
     socket: null,
     connect: null,
+    websocket: null,
   },
 };
 

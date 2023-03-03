@@ -1,40 +1,17 @@
 import { ServerRoomSdk } from "./ServerSdk";
 import React, { useEffect, useState } from "react";
-import { PersistentInput } from "./LogSelector";
+import { PersistentInput, useLocalStorageState } from "./LogSelector";
 import { getBooleanValue } from "../../../src/jellyfish/addLogging";
+import { Room, RoomType } from "./Room";
+import { JsonComponent } from "./JsonComponent";
 
 export const client = new ServerRoomSdk("http://localhost:4000");
 
-const JsonComponent = ({ state }: { state: any }) => (
-  <small>
-    <pre>
-      {JSON.stringify(
-        state,
-        (key, value) => {
-          if (typeof value === "bigint") return value.toString();
-          return value;
-        },
-        2
-      )}
-    </pre>
-  </small>
-);
-
-type RoomConfig = {
-  maxPeers: number;
-};
-
-type RoomType = {
-  components: any;
-  config: RoomConfig;
-  id: string;
-  peers: any[];
-};
-
-const refetchOnSuccess = "refetch on success";
+export const REFETH_ON_SUCCESS = "refetch on success";
 
 export const Server = () => {
   const [state, setState] = useState<RoomType[] | null>(null);
+  const [show, setShow] = useLocalStorageState(`show-json-fullstate`);
 
   const refetchAll = () => {
     client.get().then((response) => {
@@ -43,92 +20,69 @@ export const Server = () => {
     });
   };
 
+  useEffect(() => {
+    refetchAll();
+  }, []);
+
   const refetchIfNeeded = () => {
-    if (getBooleanValue(refetchOnSuccess)) {
+    if (getBooleanValue(REFETH_ON_SUCCESS)) {
       refetchAll();
     }
   };
 
   return (
-    <div className="flex flex-row flex-wrap">
-      <article className="w-[400px] m-2">
+    <div className="flex flex-col w-full h-full">
+      <article className="flex flex-row justify-start m-1 p-2">
         <PersistentInput name="refetch on success" />
-        <div className="flex flex-row justify-start">
-          <button
-            className="w-[initial]"
-            onClick={() => {
-              refetchAll();
-            }}
-          >
-            Get all
-          </button>
-          <button
-            className="w-[initial]"
-            onClick={() => {
-              client
-                .create(10)
-                .then((response) => {
-                  console.log({ name: "createRoom", response });
-                })
-                .then(() => {
-                  refetchIfNeeded();
-                });
-            }}
-          >
-            Create room
-          </button>
-        </div>
-        <JsonComponent state={state} />
+        <button
+          className="w-[initial] mx-1 my-0"
+          onClick={() => {
+            refetchAll();
+          }}
+        >
+          Get all
+        </button>
+        <button
+          className="w-[initial] mx-1 my-0"
+          onClick={() => {
+            client
+              .create(10)
+              .then((response) => {
+                console.log({ name: "createRoom", response });
+              })
+              .then(() => {
+                refetchIfNeeded();
+              });
+          }}
+        >
+          Create room
+        </button>
+        <button
+          className="w-[initial] mx-1 my-0"
+          onClick={() => {
+            setShow(!show);
+          }}
+        >
+          {show ? "Hide server state" : "Show server state"}
+        </button>
       </article>
-      {state?.map((room) => (
-        <Room
-          key={room.id}
-          id={room.id}
-          initial={room}
-          refetchIfNeeded={refetchIfNeeded}
-        ></Room>
-      ))}
-    </div>
-  );
-};
 
-type RoomProps = {
-  id: string;
-  initial: RoomType;
-  refetchIfNeeded: () => void;
-};
-
-export const Room = ({ id, initial, refetchIfNeeded }: RoomProps) => {
-  const [room, setRoom] = useState<RoomType | null>(initial);
-
-  return (
-    <article className="">
-      <div className="flex flex-row justify-start">
-        <button
-          className="w-[initial]"
-          onClick={() => {
-            client.get(id).then((response) => {
-              console.log({ name: "refetchRoom", response });
-              setRoom(response.data.data);
-            });
-          }}
-        >
-          Refetch
-        </button>
-        <button
-          className="w-[initial]"
-          onClick={() => {
-            client.remove(id).then((response) => {
-              console.log({ name: "removeRoom", response });
-              refetchIfNeeded()
-            });
-          }}
-        >
-          Remove
-        </button>
+      <div className="flex flex-row w-full h-full m-1 p-2">
+        {show && (
+          <article className="w-[400px] m-1 p-2">
+            <h2 className="mb-0">Server state:</h2>
+            <JsonComponent state={state} />
+          </article>
+        )}
+        {state?.map((room) => (
+          <Room
+            key={room.id}
+            roomId={room.id}
+            initial={room}
+            refetchIfNeeded={refetchIfNeeded}
+          ></Room>
+        ))}
       </div>
-
-      <JsonComponent state={room} />
-    </article>
+    </div>
   );
 };

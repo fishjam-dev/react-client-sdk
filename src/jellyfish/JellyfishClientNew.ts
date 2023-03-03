@@ -18,9 +18,9 @@ export type ConnectConfig = {
 
 export class JellyfishClient<PeerMetadata, TrackMetadata> {
   socket: Socket | null = null;
+  websocket: WebSocket | null = null;
   signaling: Channel | null = null;
   webrtc: MembraneWebRTC | null = null;
-  websocket: WebSocket | null = null;
   socketOnCloseRef: MessageRef | null = null;
   socketOnErrorRef: MessageRef | null = null;
   messageEmitter: TypedEmitter<MessageEvents>;
@@ -36,40 +36,60 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
     isSimulcastOn: boolean,
     config?: ConnectConfig
   ) {
-    const websocketUrl = config?.websocketUrl ?? "/socket";
-    // const websocketUrl = "ws://localhost:4000/socket";
+    // const websocketUrl = config?.websocketUrl ?? "/socket";
+
+    console.log("start");
+    this.websocket = new WebSocket(
+      `ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`
+    );
+    this.websocket.addEventListener("error", (event) =>
+      console.log("blad", event)
+    );
+    this.websocket.addEventListener("close", (event) =>
+      console.log("close", event)
+    );
 
     // client
-    this.socket = new Socket(websocketUrl);
-    this.socket.connect();
-    console.log("Connected!");
-    this.socketOnCloseRef = this.socket.onClose(() => this.cleanUp());
-    this.socketOnErrorRef = this.socket.onError(() => this.cleanUp());
+    // this.socket = new Socket(websocketUrl);
+    // this.socket.connect();
+    // this.socketOnCloseRef = this.socket.onClose(() => this.cleanUp());
+    // this.socketOnErrorRef = this.socket.onError(() => this.cleanUp());
 
-    this.signaling = this.socket.channel(`room:${roomId}`, {
-      isSimulcastOn: isSimulcastOn,
-    });
+    // this.signaling = this.socket.channel(roomId, {
+    //   isSimulcastOn: isSimulcastOn,
+    // });
 
-    this.signaling.onError((reason: any) => {
-      console.error("WebrtcChannel error occurred");
-      console.error(reason);
-      // setErrorMessage("WebrtcChannel error occurred");
-    });
-    this.signaling.onClose(() => {
-      return;
-    });
+    // this.signaling.onError((reason: any) => {
+    //   console.error("WebrtcChannel error occurred");
+    //   console.error(reason);
+    //   // setErrorMessage("WebrtcChannel error occurred");
+    // });
+    // this.signaling.onClose(() => {
+    //   return;
+    // });
 
     const includeOnTrackEncodingChanged = !config?.disableDeprecated;
 
     this.webrtc = new MembraneWebRTC({
       callbacks: {
         onSendMediaEvent: (mediaEvent: SerializedMediaEvent) => {
-          console.log("%cTO SERVER->", "color: green");
-          console.log(JSON.parse(mediaEvent));
-          this.signaling?.push("mediaEvent", { data: mediaEvent });
+          const messageJS = {
+            type: "mediaEvent",
+            data: mediaEvent,
+          };
+          const message = JSON.stringify(messageJS);
+          // console.log("%cTO_ENGINE", "color: blue");
+          console.log({
+            mediaEvent: JSON.parse(mediaEvent),
+            message: messageJS,
+            toSend: message,
+          });
+          this.websocket?.send(message);
+          // this.signaling?.push("mediaEvent", { data: mediaEvent });
         },
 
         onConnectionError: (message) => {
+          console.log("%conConnectionError", "color: pink")
           return;
         },
 
@@ -142,37 +162,53 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
       },
     });
 
-    this.signaling.on("mediaEvent", (event) => {
-      console.log("%c<-TO CLIENT", "color: orange");
-      console.log(event);
-      console.log(JSON.parse(event["data"]));
-      this.webrtc?.receiveMediaEvent(event.data);
+
+    // this.signaling.on("mediaEvent", (event) => {
+    //   this.webrtc?.receiveMediaEvent(event.data);
+    // });
+
+    this.websocket.addEventListener("message", (event) => {
+      const data = JSON.parse(event.data);
+      // console.log("%cTO_CLIENT", "color: red");
+      const toSend = data["data"];
+      // console.log({
+      //   event: event,
+      //   data1: data,
+      //   data2: JSON.parse(toSend),
+      //   toSend: toSend,
+      // });
+      this.webrtc?.receiveMediaEvent(toSend);
     });
 
-    this.signaling.on("simulcastConfig", () => {
-      return;
+    // this.signaling.on("simulcastConfig", () => {
+    //   return;
+    // });
+
+    this.websocket.addEventListener("open", (event) => {
+      this.webrtc?.join(peerMetadata);
     });
 
-    this.signaling
-      .join()
-      .receive("ok", () => {
-        this.webrtc?.join(peerMetadata);
-      })
-      .receive("error", (response: any) => {
-        // setErrorMessage("Connecting error");
-        console.error("Received error status");
-        console.error(response);
-      });
+    // this.signaling
+    //   .join()
+    //   .receive("ok", () => {
+    //     this.webrtc?.join(peerMetadata);
+    //   })
+    //   .receive("error", (response: any) => {
+    //     // setErrorMessage("Connecting error");
+    //     console.error("Received error status");
+    //     console.error(response);
+    //   });
   }
 
   cleanUp() {
     this.webrtc?.leave();
-    this.signaling?.leave();
-    if (this.socketOnCloseRef) {
-      this.socket?.off([this.socketOnCloseRef]);
-    }
-    if (this.socketOnErrorRef) {
-      this.socket?.off([this.socketOnErrorRef]);
-    }
+    // this.websocket?.
+    // this.signaling?.leave();
+    // if (this.socketOnCloseRef) {
+    //   this.socket?.off([this.socketOnCloseRef]);
+    // }
+    // if (this.socketOnErrorRef) {
+    //   this.socket?.off([this.socketOnErrorRef]);
+    // }
   }
 }

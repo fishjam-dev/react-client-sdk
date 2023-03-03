@@ -1,6 +1,7 @@
 import type { SetStore } from "../state.types";
 
-import { ConnectConfig, JellyfishClient } from "./JellyfishClient";
+import { ConnectConfig, JellyfishClient } from "./JellyfishClientNew";
+// import { ConnectConfig, JellyfishClient } from "./JellyfishClient";
 import {
   onBandwidthEstimationChanged,
   onEncodingChanged,
@@ -28,6 +29,7 @@ export function connect<PeerMetadata, TrackMetadata>(
 ) {
   return (
     roomId: string,
+    peerId: string,
     peerMetadata: PeerMetadata,
     isSimulcastOn: boolean,
     config?: ConnectConfig
@@ -37,6 +39,7 @@ export function connect<PeerMetadata, TrackMetadata>(
     addLogging<PeerMetadata, TrackMetadata>(client);
 
     client.messageEmitter.on("onJoinSuccess", (peerId, peersInRoom) => {
+      console.log("Join success!")
       setStore(onJoinSuccess(peersInRoom, peerId, peerMetadata));
     });
     // todo handle state and handle callback
@@ -100,7 +103,7 @@ export function connect<PeerMetadata, TrackMetadata>(
       }
     );
 
-    client.connect(roomId, peerMetadata, isSimulcastOn, config);
+    client.connect(roomId, peerId, peerMetadata, isSimulcastOn, config);
 
     setStore(
       (
@@ -116,6 +119,7 @@ export function connect<PeerMetadata, TrackMetadata>(
               ? createApiWrapper(client.webrtc, setStore)
               : null,
             webrtc: client.webrtc,
+            websocket: client.websocket,
             signaling: client.signaling,
           },
         };

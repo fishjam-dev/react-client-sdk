@@ -10,6 +10,7 @@ import { ConnectConfig } from "../jellyfish/JellyfishClient";
 export type CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> = {
   useConnect: () => <TrackMetadata>(
     roomId: string,
+    peerId: string,
     peerMetadata: PeerMetadata,
     isSimulcastOn: boolean,
     config?: ConnectConfig
