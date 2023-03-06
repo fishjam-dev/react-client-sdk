@@ -38,7 +38,6 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
   ) {
     // const websocketUrl = config?.websocketUrl ?? "/socket";
 
-    console.log("start");
     this.websocket = new WebSocket(
       `ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`
     );
@@ -202,8 +201,8 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
 
   cleanUp() {
     this.webrtc?.leave();
-    // this.websocket?.
-    // this.signaling?.leave();
+    this.websocket?.close()
+    this.signaling?.leave();
     // if (this.socketOnCloseRef) {
     //   this.socket?.off([this.socketOnCloseRef]);
     // }

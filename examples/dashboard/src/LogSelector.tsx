@@ -38,13 +38,13 @@ export const LogSelector = () => {
           </div>
           <div className="flex flex-row justify-between">
             <ThemeSelector />
-            <button className="w-[initial] mb-0" onClick={() => setShow(!show)}>
+            <button className="btn btn-sm mb-0" onClick={() => setShow(!show)}>
               Hide
             </button>
           </div>
         </>
       ) : (
-        <button className="w-[initial] mb-0" onClick={() => setShow(!show)}>
+        <button className="btn btn-sm mb-0" onClick={() => setShow(!show)}>
           Options
         </button>
       )}
@@ -56,16 +56,19 @@ export const PersistentInput = ({ name }: { name: string }) => {
   const [value, setValue] = useLocalStorageState(name);
 
   return (
-    <div className="flex flex-row flex-wrap content-center">
-      <input
-        id={name}
-        type="checkbox"
-        checked={value}
-        onChange={() => {
-          setValue(!value);
-        }}
-      />
-      <label htmlFor={name}>{name}</label>
+    <div className="form-control flex flex-row flex-wrap content-center">
+      <label className="label cursor-pointer">
+        <input
+          className="checkbox"
+          id={name}
+          type="checkbox"
+          checked={value}
+          onChange={() => {
+            setValue(!value);
+          }}
+        />
+        <span className="label-text ml-2">{name}</span>
+      </label>
     </div>
   );
 };

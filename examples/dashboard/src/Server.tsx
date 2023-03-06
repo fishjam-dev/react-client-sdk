@@ -31,11 +31,11 @@ export const Server = () => {
   };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <article className="flex flex-row justify-start m-1 p-2">
+    <div className="flex flex-col w-full h-full ">
+      <div className="flex flex-row justify-start m-1 p-2">
         <PersistentInput name="refetch on success" />
         <button
-          className="w-[initial] mx-1 my-0"
+          className="btn btn-sm btn-info mx-1 my-0"
           onClick={() => {
             refetchAll();
           }}
@@ -43,7 +43,7 @@ export const Server = () => {
           Get all
         </button>
         <button
-          className="w-[initial] mx-1 my-0"
+          className="btn btn-sm btn-success mx-1 my-0"
           onClick={() => {
             client
               .create(10)
@@ -58,21 +58,23 @@ export const Server = () => {
           Create room
         </button>
         <button
-          className="w-[initial] mx-1 my-0"
+          className="btn btn-sm mx-1 my-0"
           onClick={() => {
             setShow(!show);
           }}
         >
           {show ? "Hide server state" : "Show server state"}
         </button>
-      </article>
+      </div>
 
-      <div className="flex flex-row w-full h-full m-1 p-2">
+      <div className="flex flex-row w-full h-full m-1 p-2 items-start">
         {show && (
-          <article className="w-[400px] m-1 p-2">
-            <h2 className="mb-0">Server state:</h2>
-            <JsonComponent state={state} />
-          </article>
+          <div className="w-[600px] m-1 card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title">Server state:</h2>
+              <JsonComponent state={state} />
+            </div>
+          </div>
         )}
         {state?.map((room) => (
           <Room

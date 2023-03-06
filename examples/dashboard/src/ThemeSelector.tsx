@@ -28,7 +28,7 @@ export const ThemeSelector = () => {
 
   return (
     <button
-      className="w-[initial] mb-0"
+      className="btn btn-sm mb-0"
       onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
     >
       Toggle theme

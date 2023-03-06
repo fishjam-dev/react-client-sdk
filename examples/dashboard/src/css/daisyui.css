@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mockup-code pre:before {
+    display: none;
+}
+
+.mockup-code:before {
+    display: none;
+}
+
+.mockup-code pre {
+    padding-left: 1.25rem;
+}
+
+/*[data-theme="light"] .html {*/
+/*}*/
+
+/*:root {*/
+/*    --form-element-spacing-vertical: 0.5rem;*/
+/*}*/
+
+/*@media (min-width: 576px) {*/
+/*    :root {*/
+/*        --font-size: 16px;*/
+/*    }*/
+/*}*/
+/*@media (min-width: 768px) {*/
+/*    :root {*/
+/*        --font-size: 16px;*/
+/*    }*/
+/*}*/
+/*@media (min-width: 992px) {*/
+/*    :root {*/
+/*        --font-size: 16px;*/
+/*    }*/
+/*}*/
+/*@media (min-width: 1200px) {*/
+/*    :root {*/
+/*        --font-size: 16px;*/
+/*    }*/
+/*}*/
+

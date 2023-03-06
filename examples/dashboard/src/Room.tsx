@@ -21,7 +21,7 @@ type RoomProps = {
   refetchIfNeeded: () => void;
 };
 
-const emojiList = ["🐙","🐸","🐶", "🍎", "🍌", "🍒"];
+const emojiList = ["🐙", "🐸", "🐶", "🍎", "🍌", "🍒"];
 
 export const Room = ({ roomId, initial, refetchIfNeeded }: RoomProps) => {
   const [room, setRoom] = useState<RoomType | null>(initial);
@@ -42,61 +42,81 @@ export const Room = ({ roomId, initial, refetchIfNeeded }: RoomProps) => {
   };
 
   return (
-    <div className="h-full">
-      <article className="m-2 p-4 w-[500px]">
-        <div className="flex flex-row justify-start">
-          <button
-            className="w-[initial] mx-1 my-0"
-            onClick={() => {
-              refetch();
-            }}
-          >
-            Refetch
-          </button>
-          <button
-            className="w-[initial] mx-1 my-0"
-            onClick={() => {
-              client.remove(roomId).then((response) => {
-                console.log({ name: "removeRoom", response });
-                refetchIfNeededInner();
-              });
-            }}
-          >
-            Remove
-          </button>
-          <button
-            className="w-[initial] mx-1 my-0"
-            onClick={() => {
-              client
-                .addPeer(roomId, "webrtc")
-                .then((response) => {
-                  console.log({ name: "createRoom", response });
-                })
-                .then(() => {
-                  refetchIfNeededInner();
-                });
-            }}
-          >
-            Create peer
-          </button>
-          <button
-            className="w-[initial] mx-1 my-0"
-            onClick={() => {
-              setShow(!show);
-            }}
-          >
-            {show ? "Hide" : "Show"}
-          </button>
+    <div className="flex flex-row items-start">
+      <div className="w-120 m-1 card bg-base-100 shadow-xl">
+        <div className="card-body">
+          <div className="flex flex-col">
+            <div className="flex flex-row justify-between">
+              <span className="font-bold">Room</span>
+              <div>
+                <button
+                  className="btn btn-sm btn-info mx-1 my-0"
+                  onClick={() => {
+                    refetch();
+                  }}
+                >
+                  Refetch
+                </button>
+                <button
+                  className="btn btn-sm btn-error mx-1 my-0"
+                  onClick={() => {
+                    client.remove(roomId).then((response) => {
+                      console.log({ name: "removeRoom", response });
+                      refetchIfNeededInner();
+                    });
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+            <span>{roomId}</span>
+          </div>
+          <div className="h-full">
+            <div className="flex flex-row justify-start">
+              <button
+                className="btn btn-sm btn-success mx-1 my-0"
+                onClick={() => {
+                  client
+                    .addPeer(roomId, "webrtc")
+                    .then((response) => {
+                      console.log({ name: "createRoom", response });
+                    })
+                    .then(() => {
+                      refetchIfNeededInner();
+                    });
+                }}
+              >
+                Create peer
+              </button>
+              <button
+                className="btn btn-sm mx-1 my-0"
+                onClick={() => {
+                  setShow(!show);
+                }}
+              >
+                {show ? "Hide" : "Show"}
+              </button>
+            </div>
+
+            <div className="mt-2">{show && <JsonComponent state={room} />}</div>
+          </div>
         </div>
-
-        <div className="mt-2">{show && <JsonComponent state={room} />}</div>
-
+      </div>
+      <div className="flex flex-col">
         {room?.peers.map(({ id }: Peer, idx: number) => {
           return (
-            <Client key={id} roomId={roomId} peerId={id} name={id} emoji={emojiList[idx] ?? "🐛"} />
+            <Client
+              key={id}
+              roomId={roomId}
+              peerId={id}
+              name={id}
+              emoji={emojiList[idx] ?? "🐛"}
+              refetchIfNeeded={refetchIfNeededInner}
+            />
           );
         })}
-      </article>
+      </div>
     </div>
   );
 };
