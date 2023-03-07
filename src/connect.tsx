@@ -32,6 +32,7 @@ export type ConnectConfig = {
   disableOnTrackEncodingChanged?: boolean;
 };
 
+// todo remove. This is connect function that works with current videoroom implementation
 export const connect =
   <PeerMetadata, TrackMetadata>(
     setStore: SetStore<PeerMetadata, TrackMetadata>

@@ -1,7 +1,6 @@
 import type { SetStore } from "../state.types";
 
-import { ConnectConfig, JellyfishClient } from "./JellyfishClientNew";
-// import { ConnectConfig, JellyfishClient } from "./JellyfishClient";
+import { ConnectConfig, JellyfishClient } from "./JellyfishClient";
 import {
   onBandwidthEstimationChanged,
   onEncodingChanged,
@@ -39,7 +38,7 @@ export function connect<PeerMetadata, TrackMetadata>(
     addLogging<PeerMetadata, TrackMetadata>(client);
 
     client.messageEmitter.on("onJoinSuccess", (peerId, peersInRoom) => {
-      console.log("Join success!")
+      console.log("Join success!");
       setStore(onJoinSuccess(peersInRoom, peerId, peerMetadata));
     });
     // todo handle state and handle callback

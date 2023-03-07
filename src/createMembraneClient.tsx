@@ -1,7 +1,8 @@
 import React, { useContext, useMemo, useState } from "react";
 import type { State, Selector } from "./state.types";
 import { DEFAULT_STORE } from "./externalState/externalState";
-import { connect } from "./connect";
+import { connect } from "./jellyfish/jellyfishConnect";
+import { ConnectConfig } from "./jellyfish/JellyfishClient";
 
 type Props = {
   children: React.ReactNode;
@@ -29,24 +30,43 @@ export const createMembraneClient = <PeerMetadata, TrackMetadata>() => {
   >(undefined);
 
   const MembraneContextProvider = ({ children }: Props) => {
-    const [state, setState] = useState<State<PeerMetadata, TrackMetadata>>(DEFAULT_STORE);
+    const [state, setState] =
+      useState<State<PeerMetadata, TrackMetadata>>(DEFAULT_STORE);
 
-    return <MembraneContext.Provider value={{ state, setState }}>{children}</MembraneContext.Provider>;
+    return (
+      <MembraneContext.Provider value={{ state, setState }}>
+        {children}
+      </MembraneContext.Provider>
+    );
   };
 
-  const useMembraneContext = (): MembraneContextType<PeerMetadata, TrackMetadata> => {
+  const useMembraneContext = (): MembraneContextType<
+    PeerMetadata,
+    TrackMetadata
+  > => {
     const context = useContext(MembraneContext);
-    if (!context) throw new Error("useMembraneContext must be used within a MembraneContextProvider");
+    if (!context)
+      throw new Error(
+        "useMembraneContext must be used within a MembraneContextProvider"
+      );
     return context;
   };
 
-  const useSelector = <Result, >(selector: Selector<PeerMetadata, TrackMetadata, Result>): Result => {
+  const useSelector = <Result,>(
+    selector: Selector<PeerMetadata, TrackMetadata, Result>
+  ): Result => {
     const { state } = useMembraneContext();
 
     return useMemo(() => selector(state), [selector, state]);
   };
 
-  type UseConnect = (roomId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean) => () => void;
+  type UseConnect = (
+    roomId: string,
+    peerId: string,
+    peerMetadata: PeerMetadata,
+    isSimulcastOn: boolean,
+    config?: ConnectConfig
+  ) => () => void;
 
   const useConnect = (): UseConnect => {
     const { setState }: MembraneContextType<PeerMetadata, TrackMetadata> = useMembraneContext();

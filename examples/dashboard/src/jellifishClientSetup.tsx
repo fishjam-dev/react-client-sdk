@@ -17,5 +17,5 @@ export const { useConnect, useSelector } = createNoContextMembraneClient<
   TrackMetadata
 >();
 
-// export const { MembraneContextProvider } = createMembraneClient<PeerMetadata, TrackMetadata>();
+// Remember to use MembraneContextProvider in main.tsx
 // export const { MembraneContextProvider, useSelector, useConnect } = createMembraneClient<PeerMetadata, TrackMetadata>();

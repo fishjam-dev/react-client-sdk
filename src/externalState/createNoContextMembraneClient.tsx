@@ -5,7 +5,6 @@ import type { Selector } from "../state.types";
 import { useMemo } from "react";
 import { connect } from "../jellyfish/jellyfishConnect";
 import { ConnectConfig } from "../jellyfish/JellyfishClient";
-// import { connect, ConnectConfig } from "../connect";
 
 export type CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> = {
   useConnect: () => <TrackMetadata>(
