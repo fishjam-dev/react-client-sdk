@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { createStream } from "./createMockStream";
+import { createStream } from "../utils/createMockStream";
 
 export const useMockStream = (emoji: string) => {
   const [result, setResult] = useState<{

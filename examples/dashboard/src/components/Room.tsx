@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
-import { getBooleanValue } from "../../../src/jellyfish/addLogging";
+import { getBooleanValue } from "../../../../src/jellyfish/addLogging";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
-import { client, REFETH_ON_SUCCESS } from "./Server";
+import { client, REFETH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
 import { Client } from "./Client";
 
@@ -43,6 +43,8 @@ export const Room = ({ roomId, initial, refetchIfNeeded }: RoomProps) => {
 
   return (
     <div className="flex flex-row items-start">
+      <div className="divider h-max "></div>
+
       <div className="w-120 m-1 card bg-base-100 shadow-xl">
         <div className="card-body">
           <div className="flex flex-col">
@@ -80,7 +82,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded }: RoomProps) => {
                   client
                     .addPeer(roomId, "webrtc")
                     .then((response) => {
-                      console.log({ name: "createRoom", response });
+                      console.log({ name: "createPeer", response });
                     })
                     .then(() => {
                       refetchIfNeededInner();
