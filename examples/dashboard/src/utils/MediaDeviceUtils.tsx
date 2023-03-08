@@ -21,7 +21,10 @@ export const isGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
 export const isNotGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
   mediaDeviceInfo.label === "" || mediaDeviceInfo.deviceId === "";
 
-type DeviceReturnType = "Permission denied" | MediaDeviceInfo[] | null;
+type DeviceReturnType =
+  | "Permission denied"
+  | MediaDeviceInfo[]
+  | "Not requested";
 
 export type EnumerateDevices = {
   audio: DeviceReturnType;
@@ -49,10 +52,11 @@ export const enumerateDevices = async (
     audio: audio && audioNotGranted,
   };
 
-  console.log({ constraints });
-
   let videosToReturn: DeviceReturnType = videoDevices;
   let audiosToReturn: DeviceReturnType = audioDevices;
+
+  let audioError: boolean = false;
+  let videoError: boolean = false;
 
   try {
     if (constraints.audio || constraints.video) {
@@ -71,31 +75,36 @@ export const enumerateDevices = async (
 
       const mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
 
-      videoDevices = mediaDeviceInfos.filter((it) => it.kind === "videoinput");
-      audioDevices = mediaDeviceInfos.filter((it) => it.kind === "audioinput");
+      videosToReturn = mediaDeviceInfos.filter(
+        (it) => it.kind === "videoinput"
+      );
+      audiosToReturn = mediaDeviceInfos.filter(
+        (it) => it.kind === "audioinput"
+      );
 
       requestedDevices.getTracks().forEach((track) => {
         track.stop();
       });
     }
-
-    videosToReturn = videoDevices.filter(isGranted);
-    audiosToReturn = audioDevices.filter(isGranted);
   } catch (error) {
     console.log("Error caught in function" + error);
 
-    videosToReturn =
-      videoDevices.filter(isGranted).length === 0
-        ? "Permission denied"
-        : videoDevices.filter(isGranted);
-    audiosToReturn =
-      audioDevices.filter(isGranted).length === 0
-        ? "Permission denied"
-        : audioDevices.filter(isGranted);
+    videoError = constraints.video;
+    audioError = constraints.audio;
   }
 
   return {
-    video: video ? videosToReturn : null,
-    audio: audio ? audiosToReturn : null,
+    video: prepareReturn(video, videosToReturn, videoError),
+    audio: prepareReturn(audio, audiosToReturn, audioError),
   };
+};
+
+const prepareReturn = (
+  isInterested: boolean,
+  mediaDeviceInfo: MediaDeviceInfo[],
+  permissionError: boolean
+): DeviceReturnType => {
+  if (!isInterested) return "Not requested";
+  if (permissionError) return "Permission denied";
+  return mediaDeviceInfo.filter(isGranted);
 };
