@@ -20,29 +20,23 @@ export const isGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
   mediaDeviceInfo.label !== "" && mediaDeviceInfo.deviceId !== "";
 export const isNotGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
   mediaDeviceInfo.label === "" || mediaDeviceInfo.deviceId === "";
+const isVideo = (it: MediaDeviceInfo) => it.kind === "videoinput";
+const isAudio = (it: MediaDeviceInfo) => it.kind === "audioinput";
 
-type DeviceReturnType =
-  | "Permission denied"
-  | MediaDeviceInfo[]
-  | "Not requested";
+type DeviceReturnType = "Permission denied" | MediaDeviceInfo[] | "Not requested";
 
 export type EnumerateDevices = {
   audio: DeviceReturnType;
   video: DeviceReturnType;
 };
 
-export const enumerateDevices = async (
-  video: boolean,
-  audio: boolean
-): Promise<EnumerateDevices> => {
-  if (!navigator?.mediaDevices)
-    throw Error("Navigator is available only in secure contexts");
+export const enumerateDevices = async (video: boolean, audio: boolean): Promise<EnumerateDevices> => {
+  if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
-  const mediaDeviceInfos: MediaDeviceInfo[] =
-    await navigator.mediaDevices.enumerateDevices();
+  let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
 
-  let videoDevices = mediaDeviceInfos.filter((it) => it.kind === "videoinput");
-  let audioDevices = mediaDeviceInfos.filter((it) => it.kind === "audioinput");
+  let videoDevices = mediaDeviceInfos.filter(isVideo);
+  let audioDevices = mediaDeviceInfos.filter(isAudio);
 
   const videoNotGranted = videoDevices.some(isNotGranted);
   const audioNotGranted = audioDevices.some(isNotGranted);
@@ -52,8 +46,8 @@ export const enumerateDevices = async (
     audio: audio && audioNotGranted,
   };
 
-  let videosToReturn: DeviceReturnType = videoDevices;
-  let audiosToReturn: DeviceReturnType = audioDevices;
+  let videoDeviceList: DeviceReturnType = videoDevices;
+  let audioDeviceList: DeviceReturnType = audioDevices;
 
   let audioError: boolean = false;
   let videoError: boolean = false;
@@ -73,15 +67,7 @@ export const enumerateDevices = async (
           return Promise.reject(error);
         });
 
-      const mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
-
-      videosToReturn = mediaDeviceInfos.filter(
-        (it) => it.kind === "videoinput"
-      );
-      audiosToReturn = mediaDeviceInfos.filter(
-        (it) => it.kind === "audioinput"
-      );
-
+      mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
       requestedDevices.getTracks().forEach((track) => {
         track.stop();
       });
@@ -94,8 +80,8 @@ export const enumerateDevices = async (
   }
 
   return {
-    video: prepareReturn(video, videosToReturn, videoError),
-    audio: prepareReturn(audio, audiosToReturn, audioError),
+    video: prepareReturn(video, mediaDeviceInfos.filter(isVideo), videoError),
+    audio: prepareReturn(audio, mediaDeviceInfos.filter(isAudio), audioError),
   };
 };
 
