@@ -79,25 +79,23 @@ export const enumerateDevices = async (
       });
     }
 
-    videosToReturn = video ? videoDevices.filter(isGranted) : null;
-    audiosToReturn = audio ? audioDevices.filter(isGranted) : null;
+    videosToReturn = videoDevices.filter(isGranted);
+    audiosToReturn = audioDevices.filter(isGranted);
   } catch (error) {
     console.log("Error caught in function" + error);
 
-    videosToReturn = video
-      ? videoDevices.filter(isGranted).length === 0
+    videosToReturn =
+      videoDevices.filter(isGranted).length === 0
         ? "Permission denied"
-        : videoDevices.filter(isGranted)
-      : null;
-    audiosToReturn = audio
-      ? audioDevices.filter(isGranted).length === 0
+        : videoDevices.filter(isGranted);
+    audiosToReturn =
+      audioDevices.filter(isGranted).length === 0
         ? "Permission denied"
-        : audioDevices.filter(isGranted)
-      : null;
+        : audioDevices.filter(isGranted);
   }
 
   return {
-    video: videosToReturn,
-    audio: audiosToReturn,
+    video: video ? videosToReturn : null,
+    audio: audio ? audiosToReturn : null,
   };
 };
