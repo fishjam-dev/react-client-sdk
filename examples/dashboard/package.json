@@ -17,7 +17,8 @@
     "lodash.isequal": "^4.5.0",
     "phoenix": "^1.6.16",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "vite-plugin-mkcert": "^1.13.3"
   },
   "devDependencies": {
     "@types/events": "^3.0.0",
