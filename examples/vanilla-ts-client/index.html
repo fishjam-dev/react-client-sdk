@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Simples Jellyfish Client</title>
+</head>
+<body>
+
+<div class="flex flex-col items-start p-2">
+
+    <div class="flex flex-col my-1">
+        <div class="form-control w-full max-w-xs">
+            <label class="label" for="room-id-input">
+                <span class="label-text">Room Id</span>
+            </label>
+            <input type="text" id="room-id-input" placeholder="" class="input input-bordered w-96 input-info"/>
+        </div>
+
+        <div class="form-control w-full max-w-xs">
+            <label class="label" for="peer-id-input">
+                <span class="label-text">Peer Id</span>
+            </label>
+            <input type="text" id="peer-id-input" placeholder="" class="input input-bordered w-96 input-info"/>
+        </div>
+
+        <div class="form-control w-full max-w-xs">
+            <label class="label" for="peer-name-input">
+                <span class="label-text">Peer name</span>
+            </label>
+            <input type="text" id="peer-name-input" placeholder="" class="input input-bordered w-96 input-success"/>
+        </div>
+    </div>
+
+    <div class="flex flex-row my-1">
+        <button id="connect-btn" class="btn btn-success m-1">Connect</button>
+        <button id="disconnect-btn" class="btn btn-error m-1 hidden">Disconnect</button>
+    </div>
+
+    <div class="flex flex-row my-1">
+        <button id="add-track-btn" class="btn btn-success m-1 btn-disabled">Add track</button>
+        <button id="remove-track-btn" class="btn btn-error m-1 hidden">Remove track</button>
+    </div>
+
+    <video id="local-track-video" class="" playsInline muted></video>
+
+<!--    <button id="refresh-code-btn" class="btn btn-error m-1">Refresh</button>-->
+<!--    <div class="mockup-code m-1">-->
+<!--        <pre>-->
+<!--        <small>-->
+<!--          <code id="client-state-id">-->
+<!--          </code>-->
+<!--        </small>-->
+<!--        </pre>-->
+<!--    </div>-->
+
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
