@@ -30,7 +30,11 @@ export const createNoContextMembraneClient = <
 
   return {
     useConnect: () => {
-      return useMemo(() => connect(store.setStore), []);
+      return useMemo(() => {
+        console.log("Rerender useMemol")
+        const a = connect(store.setStore);
+        return a;
+      }, []);
     },
     useSelector: <Result,>(
       selector: Selector<PeerMetadata, TrackMetadata, Result>

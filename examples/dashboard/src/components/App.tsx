@@ -1,15 +1,12 @@
 import { ServerRoomSdk } from "../utils/ServerSdk";
 import React, { useEffect, useState } from "react";
-import {
-  LogSelector,
-  PersistentInput,
-  useLocalStorageState,
-} from "./LogSelector";
+import { LogSelector, PersistentInput, useLocalStorageState } from "./LogSelector";
 import { getBooleanValue } from "../../../../src/jellyfish/addLogging";
 import { Room, RoomType } from "./Room";
 import { JsonComponent } from "./JsonComponent";
 import { ThemeSelector } from "./ThemeSelector";
 import { enumerateDevices } from "../utils/MediaDeviceUtils";
+import { DeviceIdToStream, StreamInfo, VideoDeviceSelector } from "./VideoDeviceSelector";
 
 export const client = new ServerRoomSdk("http://localhost:4000");
 
@@ -19,12 +16,12 @@ export const App = () => {
   const [state, setState] = useState<RoomType[] | null>(null);
   const [show, setShow] = useLocalStorageState(`show-json-fullstate`);
   const [enumerateDevicesState, setEnumerateDevicesState] = useState<any>(null);
-  const [showLogSelector, setShowLogSelector] =
-    useLocalStorageState("show-log-selector");
+  const [showLogSelector, setShowLogSelector] = useLocalStorageState("show-log-selector");
+  const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
+  const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
 
   const refetchAll = () => {
     client.get().then((response) => {
-      console.log({ name: "refetchAll", response });
       setState(response.data.data);
     });
   };
@@ -139,6 +136,18 @@ export const App = () => {
 
       <div className="flex flex-row w-full h-full m-1 p-2 items-start">
         <div>
+          {selectedVideoStream?.id}
+          {enumerateDevicesState?.video.type === "OK" && (
+            <VideoDeviceSelector
+              allDevices={enumerateDevicesState.video?.devices}
+              activeVideoStreams={activeVideoStreams}
+              setActiveVideoStreams={setActiveVideoStreams}
+              selectedVideoStream={selectedVideoStream}
+              setSelectedVideoStream={setSelectedVideoStream}
+            />
+          )}
+
+          {/*<SelectVideo />*/}
           <JsonComponent state={enumerateDevicesState} />
           {showLogSelector && <LogSelector />}
           {show && (
@@ -156,6 +165,7 @@ export const App = () => {
             roomId={room.id}
             initial={room}
             refetchIfNeeded={refetchIfNeeded}
+            selectedVideoStream={selectedVideoStream}
           />
         ))}
       </div>

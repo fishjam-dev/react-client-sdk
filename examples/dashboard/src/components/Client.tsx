@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { createNoContextMembraneClient } from "../../../../src/externalState";
 import { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
-import { useMockStream } from "./UseMockStream";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
 import { useLocalStorageState } from "./LogSelector";
+import { StreamInfo } from "./VideoDeviceSelector";
 
 type ClientProps = {
   roomId: string;
@@ -12,20 +12,13 @@ type ClientProps = {
   name: string;
   emoji: string;
   refetchIfNeeded: () => void;
+  selectedVideoStream: StreamInfo | null;
 };
 
 type Disconnect = null | (() => void);
 
-export const Client = ({
-  roomId,
-  peerId,
-  name,
-  emoji,
-  refetchIfNeeded,
-}: ClientProps) => {
-  const [client] = useState(
-    createNoContextMembraneClient<PeerMetadata, TrackMetadata>()
-  );
+export const Client = ({ roomId, peerId, name, emoji, refetchIfNeeded, selectedVideoStream }: ClientProps) => {
+  const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>());
   const connect = client.useConnect();
   const [disconnect, setDisconnect] = useState<Disconnect>(() => null);
   const fullState = client.useSelector((snapshot) => ({
@@ -37,16 +30,16 @@ export const Client = ({
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
 
-  const mockStream = useMockStream(emoji);
+  // const mockStream = useMockStream(emoji);
+  const mockStream = selectedVideoStream;
   const [trackId, setTrackId] = useState<null | string>(null);
 
-  useEffect(() => {
-    mockStream.start();
-  }, []);
+  // useEffect(() => {
+  //   mockStream.start();
+  // }, []);
 
-  const isThereAnyTrack = Object.values(fullState?.remote || {}).flatMap(
-    ({ tracks }) => Object.values(tracks)
-  ).length > 0;
+  const isThereAnyTrack =
+    Object.values(fullState?.remote || {}).flatMap(({ tracks }) => Object.values(tracks)).length > 0;
 
   return (
     <div className="card w-140 bg-base-100 shadow-xl m-1">
@@ -72,13 +65,9 @@ export const Client = ({
               <button
                 className="btn btn-sm btn-success m-1"
                 onClick={() => {
-                  const disconnect = connect(
-                    roomId,
-                    peerId,
-                    { name: name },
-                    true,
-                    { websocketUrl: "ws://localhost:4005/socket" }
-                  );
+                  const disconnect = connect(roomId, peerId, { name: name }, true, {
+                    websocketUrl: "ws://localhost:4005/socket",
+                  });
                   setTimeout(() => {
                     refetchIfNeeded();
                   }, 500);
@@ -93,8 +82,8 @@ export const Client = ({
                 className="btn btn-sm btn-success m-1"
                 disabled={fullState.status !== "connected"}
                 onClick={() => {
-                  const track = mockStream.stream?.getVideoTracks()?.[0];
-                  const stream = mockStream.stream;
+                  const track = mockStream?.stream?.getVideoTracks()?.[0];
+                  const stream = mockStream?.stream;
                   if (!stream || !track) return;
                   const trackId = api?.addTrack(track, stream, {
                     type: "camera",
@@ -129,34 +118,31 @@ export const Client = ({
               {show ? "Hide" : "Show"}
             </button>
           </div>
-          <div className="w-40">
-            {mockStream.stream && <VideoPlayer stream={mockStream.stream} />}
-          </div>
+          {/*<div className="w-40">{mockStream?.stream && <VideoPlayer stream={mockStream?.stream} />}</div>*/}
+          {Object.values(fullState.local?.tracks || {}).map(({trackId, stream}) => (
+            <div className="w-40">{mockStream?.stream && <VideoPlayer stream={mockStream?.stream} />}</div>
+          ))}
         </div>
         {show && <JsonComponent state={fullState} />}
-        {isThereAnyTrack &&
+        {isThereAnyTrack && (
           <div>
             Remote tracks:
-            {Object.values(fullState?.remote || {}).map(
-              ({ id, metadata, tracks }) => {
-                return (
-                  <div key={id}>
-                    <h4>
-                      {id}: {metadata?.name}
-                    </h4>
-                    <div>
-                      {Object.values(tracks || {}).map(
-                        ({ stream, trackId }) => (
-                          <VideoPlayer key={trackId} stream={stream} />
-                        )
-                      )}
-                    </div>
+            {Object.values(fullState?.remote || {}).map(({ id, metadata, tracks }) => {
+              return (
+                <div key={id}>
+                  <h4>
+                    {id}: {metadata?.name}
+                  </h4>
+                  <div>
+                    {Object.values(tracks || {}).map(({ stream, trackId }) => (
+                      <VideoPlayer key={trackId} stream={stream} />
+                    ))}
                   </div>
-                );
-              }
-            )}
+                </div>
+              );
+            })}
           </div>
-        }
+        )}
       </div>
     </div>
   );

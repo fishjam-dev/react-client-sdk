@@ -1,13 +1,6 @@
 import React from "react";
 
 /*
- * Plan działania:
- * - pobrać wszystkie urządzenia spełniające warunki
- * - z tych urządzeń wybrać domyslne i pobrać z niego ID
- * - poprosić o to urządzenie i wyciągnąć z niego stream
- */
-
-/*
  * enumerateDevices (permissions not granted)
  * chrome:     {deviceId: '',            kind: 'videoinput',   label: '',     groupId: 'something'}
  * firefox:    {deviceId: 'something',   kind: 'videoinput',   label: '',     groupId: 'something'}
@@ -23,7 +16,10 @@ export const isNotGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
 const isVideo = (it: MediaDeviceInfo) => it.kind === "videoinput";
 const isAudio = (it: MediaDeviceInfo) => it.kind === "audioinput";
 
-type DeviceReturnType = "Permission denied" | MediaDeviceInfo[] | "Not requested";
+type DeviceReturnType =
+  | { type: "OK"; devices: MediaDeviceInfo[] }
+  | { type: "Permission denied" }
+  | { type: "Not requested" };
 
 export type EnumerateDevices = {
   audio: DeviceReturnType;
@@ -35,46 +31,25 @@ export const enumerateDevices = async (video: boolean, audio: boolean): Promise<
 
   let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
 
-  let videoDevices = mediaDeviceInfos.filter(isVideo);
-  let audioDevices = mediaDeviceInfos.filter(isAudio);
-
-  const videoNotGranted = videoDevices.some(isNotGranted);
-  const audioNotGranted = audioDevices.some(isNotGranted);
-
   const constraints = {
-    video: video && videoNotGranted,
-    audio: audio && audioNotGranted,
+    video: video && mediaDeviceInfos.filter(isVideo).some(isNotGranted),
+    audio: audio && mediaDeviceInfos.filter(isAudio).some(isNotGranted),
   };
-
-  let videoDeviceList: DeviceReturnType = videoDevices;
-  let audioDeviceList: DeviceReturnType = audioDevices;
 
   let audioError: boolean = false;
   let videoError: boolean = false;
 
   try {
     if (constraints.audio || constraints.video) {
-      console.log("%cPermissions not granted. Asking...", "color: orange");
-
-      const requestedDevices = await navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then((result) => {
-          console.log(result);
-          return result;
-        })
-        .catch((error) => {
-          console.log(error);
-          return Promise.reject(error);
-        });
+      const requestedDevices = await navigator.mediaDevices.getUserMedia(constraints);
 
       mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
+
       requestedDevices.getTracks().forEach((track) => {
         track.stop();
       });
     }
   } catch (error) {
-    console.log("Error caught in function" + error);
-
     videoError = constraints.video;
     audioError = constraints.audio;
   }
@@ -90,7 +65,7 @@ const prepareReturn = (
   mediaDeviceInfo: MediaDeviceInfo[],
   permissionError: boolean
 ): DeviceReturnType => {
-  if (!isInterested) return "Not requested";
-  if (permissionError) return "Permission denied";
-  return mediaDeviceInfo.filter(isGranted);
+  if (!isInterested) return { type: "Not requested" };
+  if (permissionError) return { type: "Permission denied" };
+  return { type: "OK", devices: mediaDeviceInfo.filter(isGranted) };
 };
