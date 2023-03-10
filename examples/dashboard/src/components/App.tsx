@@ -125,7 +125,7 @@ export const App = () => {
               setShowLogSelector(!showLogSelector);
             }}
           >
-            {show ? "Hide log selector" : "Show log selector"}
+            {showLogSelector ? "Hide log selector" : "Show log selector"}
           </button>
           <PersistentInput name="refetch on success" />
         </div>
@@ -134,19 +134,18 @@ export const App = () => {
         </div>
       </div>
 
+      {enumerateDevicesState?.video.type === "OK" && (
+        <VideoDeviceSelector
+          allDevices={enumerateDevicesState.video?.devices}
+          activeVideoStreams={activeVideoStreams}
+          setActiveVideoStreams={setActiveVideoStreams}
+          selectedVideoStream={selectedVideoStream}
+          setSelectedVideoStream={setSelectedVideoStream}
+        />
+      )}
+
       <div className="flex flex-row w-full h-full m-1 p-2 items-start">
         <div>
-          {selectedVideoStream?.id}
-          {enumerateDevicesState?.video.type === "OK" && (
-            <VideoDeviceSelector
-              allDevices={enumerateDevicesState.video?.devices}
-              activeVideoStreams={activeVideoStreams}
-              setActiveVideoStreams={setActiveVideoStreams}
-              selectedVideoStream={selectedVideoStream}
-              setSelectedVideoStream={setSelectedVideoStream}
-            />
-          )}
-
           {/*<SelectVideo />*/}
           <JsonComponent state={enumerateDevicesState} />
           {showLogSelector && <LogSelector />}
