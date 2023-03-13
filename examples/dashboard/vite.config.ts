@@ -17,6 +17,6 @@ export default defineConfig({
     checker({
       typescript: true,
     }),
-    mkcert(),
+    // mkcert(),
   ],
 });

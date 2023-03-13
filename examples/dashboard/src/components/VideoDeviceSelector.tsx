@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { createStream } from "../utils/createMockStream";
 import { JsonComponent } from "./JsonComponent";
-import { EnumerateDevices, enumerateDevices } from "../utils/MediaDeviceUtils";
+import {
+  EnumerateDevices,
+  enumerateDevices,
+  VIDEO_TRACK_CONSTRAINTS,
+  VIDEO_TRACK_CONSTRAINTS2
+} from "../utils/MediaDeviceUtils";
 import { useLocalStorageState } from "./LogSelector";
 
 export type StreamInfo = {
@@ -186,6 +191,24 @@ export const VideoDeviceSelector = ({
         >
           Enumerate audio devices
         </button>
+
+        <button
+          className="btn btn-sm btn-info mx-1 my-0"
+          onClick={() => {
+            enumerateDevices(VIDEO_TRACK_CONSTRAINTS2, false)
+              .then((result) => {
+                console.log({ "OK: ": result });
+                setEnumerateDevicesState(result);
+              })
+              .catch((error) => {
+                console.log("Error caught " + error);
+                setEnumerateDevicesState(error);
+              });
+          }}
+        >
+          Enumerate video with constraints devices
+        </button>
+
         <button
           className="btn btn-sm mx-1 my-0"
           onClick={() => {

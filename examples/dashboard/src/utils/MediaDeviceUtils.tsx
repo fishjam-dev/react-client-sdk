@@ -9,6 +9,46 @@ import React from "react";
  * chrome IOS: {deviceId: '',            kind: 'videoinput',   label: '',     groupId: ''}
  */
 
+export const AUDIO_TRACK_CONSTRAINTS: MediaStreamConstraints = {
+  audio: {
+    advanced: [{ autoGainControl: true }, { noiseSuppression: true }, { echoCancellation: true }],
+  },
+};
+
+export const VIDEO_TRACK_CONSTRAINTS: MediaTrackConstraints = {
+  width: {
+    max: 1280,
+    ideal: 1280,
+    min: 640,
+  },
+  height: {
+    max: 720,
+    ideal: 720,
+    min: 320,
+  },
+  frameRate: {
+    max: 30,
+    ideal: 24,
+  },
+};
+
+export const VIDEO_TRACK_CONSTRAINTS2: MediaTrackConstraints = {
+  width: {
+    min: 1280,
+  },
+  height: {
+    min: 720,
+  },
+  frameRate: {
+    max: 30,
+    ideal: 24,
+  },
+};
+
+export const VIDEO_STREAM_CONSTRAINTS: MediaStreamConstraints = {
+  video: VIDEO_TRACK_CONSTRAINTS,
+};
+
 export const isGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
   mediaDeviceInfo.label !== "" && mediaDeviceInfo.deviceId !== "";
 export const isNotGranted = (mediaDeviceInfo: MediaDeviceInfo) =>
@@ -18,7 +58,7 @@ const isAudio = (it: MediaDeviceInfo) => it.kind === "audioinput";
 
 type DeviceReturnType =
   | { type: "OK"; devices: MediaDeviceInfo[] }
-  | { type: "Permission denied" }
+  | { type: "Error"; message: string | null }
   | { type: "Not requested" };
 
 export type EnumerateDevices = {
@@ -34,8 +74,8 @@ const toMediaTrackConstraints = (constraint?: boolean | MediaTrackConstraints): 
 };
 
 export const enumerateDevices = async (
-  videoParam?: boolean | MediaTrackConstraints,
-  audioParam?: boolean | MediaTrackConstraints
+  videoParam: boolean | MediaTrackConstraints,
+  audioParam: boolean | MediaTrackConstraints
 ): Promise<EnumerateDevices> => {
   if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
@@ -46,18 +86,21 @@ export const enumerateDevices = async (
   const booleanVideo = !!videoParam;
 
   let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
+  console.log({ mediaDeviceInfos });
 
   const constraints = {
     video: booleanVideo && mediaDeviceInfos.filter(isVideo).some(isNotGranted) && objVideo,
     audio: booleanAudio && mediaDeviceInfos.filter(isAudio).some(isNotGranted) && objAudio,
   };
 
-  let audioError: boolean = false;
-  let videoError: boolean = false;
+  let audioError: string | null = null;
+  let videoError: string | null = null;
 
   try {
     if (constraints.audio || constraints.video) {
+      console.log("Before!");
       const requestedDevices = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("After!");
 
       mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
 
@@ -65,9 +108,10 @@ export const enumerateDevices = async (
         track.stop();
       });
     }
-  } catch (error) {
-    videoError = booleanVideo;
-    audioError = booleanAudio;
+  } catch (error: any) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
+    videoError = booleanVideo ? error.name : null;
+    audioError = booleanAudio ? error.name : null;
   }
 
   return {
@@ -79,9 +123,9 @@ export const enumerateDevices = async (
 const prepareReturn = (
   isInterested: boolean,
   mediaDeviceInfo: MediaDeviceInfo[],
-  permissionError: boolean
+  permissionError: string | null
 ): DeviceReturnType => {
   if (!isInterested) return { type: "Not requested" };
-  if (permissionError) return { type: "Permission denied" };
+  if (permissionError) return { type: "Error", message: permissionError };
   return { type: "OK", devices: mediaDeviceInfo.filter(isGranted) };
 };
