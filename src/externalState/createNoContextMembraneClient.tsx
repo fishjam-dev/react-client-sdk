@@ -31,9 +31,7 @@ export const createNoContextMembraneClient = <
   return {
     useConnect: () => {
       return useMemo(() => {
-        console.log("Rerender useMemol")
-        const a = connect(store.setStore);
-        return a;
+        return connect(store.setStore);
       }, []);
     },
     useSelector: <Result,>(

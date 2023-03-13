@@ -9,7 +9,7 @@ export default defineConfig({
     // https://vitejs.dev/config/server-options.html#server-host
     // true - listen on all addresses, including LAN and public addresses
     host: true,
-    https: true,
+    // https: true,
     port: 3001,
   },
   plugins: [

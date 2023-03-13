@@ -15,7 +15,7 @@ export const useLocalStorageState = (
 };
 export const LogSelector = () => {
   return (
-    <div className="card w-96 bg-base-100 shadow-xl flex flex-col m-1 p-4">
+    <div className="card w-96 bg-base-100 shadow-xl flex flex-col m-2">
       <div className="card-body mt-4">
         <PersistentInput name="onJoinSuccess" />
         <PersistentInput name="onJoinError" />

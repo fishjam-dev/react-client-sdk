@@ -13,11 +13,11 @@ export const SelectVideo = () => {
   const [cameraStreams, setCameraStreams] = useState<IdToStream | null>(null);
 
   return (
-    <div className="p-1">
+    <div className="">
       <div className="flex flex-row">
         <button
           type="button"
-          className="btn btn-info btn-sm m-1"
+          className="btn btn-info btn-sm m-2"
           onClick={() =>
             enumerateDevices(true, true).then((result) => {
               setEnumerateDevicesState(result);
@@ -37,7 +37,7 @@ export const SelectVideo = () => {
                 <div>
                   <button
                     type="button"
-                    className="btn btn-success btn-sm m-1"
+                    className="btn btn-success btn-sm m-2"
                     onClick={() => {
                       navigator.mediaDevices
                         .getUserMedia({
@@ -59,7 +59,7 @@ export const SelectVideo = () => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-error btn-sm m-1"
+                    className="btn btn-error btn-sm m-2"
                     onClick={() => {
                       setCameraStreams((prev) => {
                         setButtonCameraId(null);
@@ -84,7 +84,7 @@ export const SelectVideo = () => {
                     <VideoPlayer stream={cameraStreams[deviceId]} />
                     <button
                       type="button"
-                      className="btn btn-success btn-sm m-1"
+                      className="btn btn-success btn-sm m-2"
                       onClick={() => {
                         setButtonCameraId(deviceId);
                       }}
@@ -99,7 +99,7 @@ export const SelectVideo = () => {
         <div className="flex flex-col w-96">
           <h3>Microphone</h3>
           <select
-            className="select select-bordered w-full max-w-xs m-1"
+            className="select select-bordered w-full max-w-xs m-2"
             onChange={(event) => {
               setMicrophoneId(event.target.value);
             }}
@@ -117,7 +117,7 @@ export const SelectVideo = () => {
         <div className="flex flex-col w-96">
           <h3>Camera</h3>
           <select
-            className="select select-bordered w-full max-w-xs m-1"
+            className="select select-bordered w-full max-w-xs m-2"
             onChange={(event) => {
               setCameraId(event.target.value);
             }}

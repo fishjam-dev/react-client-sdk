@@ -6,6 +6,7 @@ import { client, REFETH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
 import { Client } from "./Client";
 import { StreamInfo } from "./VideoDeviceSelector";
+import { CloseButton } from "./CloseButton";
 
 type RoomConfig = {
   maxPeers: number;
@@ -22,8 +23,6 @@ type RoomProps = {
   refetchIfNeeded: () => void;
   selectedVideoStream: StreamInfo | null;
 };
-
-const emojiList = ["🐙", "🐸", "🐶", "🍎", "🍌", "🍒"];
 
 export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: RoomProps) => {
   const [room, setRoom] = useState<RoomType | null>(initial);
@@ -44,13 +43,21 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
   };
 
   return (
-    <div className="flex flex-col items-start p-1">
-      <div className="flex flex-col w-full border-opacity-50 m-1">
+    <div className="flex flex-col items-start">
+      <div className="flex flex-col w-full border-opacity-50 m-2">
         <div className="divider">Room: {roomId}</div>
       </div>
 
-      <div className="flex flex-row">
-        <div className="w-120 m-1 card bg-base-100 shadow-xl">
+      <div className="flex flex-row items-start">
+        <div className="w-120 m-2 card bg-base-100 shadow-xl indicator">
+          <CloseButton
+            onClick={() => {
+              client.remove(roomId).then((response) => {
+                console.log({ name: "removeRoom", response });
+                refetchIfNeededInner();
+              });
+            }}
+          />
           <div className="card-body">
             <div className="flex flex-col">
               <div className="flex flex-row justify-between">
@@ -63,17 +70,6 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     }}
                   >
                     Refetch
-                  </button>
-                  <button
-                    className="btn btn-sm btn-error mx-1 my-0"
-                    onClick={() => {
-                      client.remove(roomId).then((response) => {
-                        console.log({ name: "removeRoom", response });
-                        refetchIfNeededInner();
-                      });
-                    }}
-                  >
-                    Remove
                   </button>
                 </div>
               </div>
@@ -117,9 +113,9 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                 roomId={roomId}
                 peerId={id}
                 name={id}
-                emoji={emojiList[idx] ?? "🐛"}
                 refetchIfNeeded={refetchIfNeededInner}
                 selectedVideoStream={selectedVideoStream}
+                remove={() => client.removePeer(roomId, id)}
               />
             );
           })}

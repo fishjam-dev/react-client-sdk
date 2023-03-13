@@ -1,7 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { useMockStream } from "./UseMockStream";
 import { createStream } from "../utils/createMockStream";
+import { JsonComponent } from "./JsonComponent";
+import { EnumerateDevices, enumerateDevices } from "../utils/MediaDeviceUtils";
+import { useLocalStorageState } from "./LogSelector";
 
 export type StreamInfo = {
   stream: MediaStream;
@@ -10,7 +13,6 @@ export type StreamInfo = {
 export type DeviceIdToStream = Record<string, StreamInfo>;
 
 type Props = {
-  allDevices: MediaDeviceInfo[];
   selectedVideoStream: StreamInfo | null;
   setSelectedVideoStream: (cameraId: StreamInfo | null) => void;
   activeVideoStreams: DeviceIdToStream | null;
@@ -39,13 +41,13 @@ const VideoTile = ({
   selected,
   streamInfo,
 }: VideoTileProps) => (
-  <div className="flex flex-col card bg-base-100 shadow-xl m-1 w-60">
+  <div className="flex flex-col card bg-base-100 shadow-xl m-2 w-60">
     <div className="card-body">
       <div>{label}</div>
       <div className="flex flex-row flex-wrap justify-between">
         <button
           type="button"
-          className="btn btn-success btn-sm m-1"
+          className="btn btn-success btn-sm m-2"
           onClick={() => {
             navigator.mediaDevices
               .getUserMedia({
@@ -70,7 +72,7 @@ const VideoTile = ({
         </button>
         <button
           type="button"
-          className="btn btn-error btn-sm m-1"
+          className="btn btn-error btn-sm m-2"
           onClick={() => {
             setActiveVideoStreams((prev) => {
               setSelectedVideoStream(null);
@@ -93,7 +95,7 @@ const VideoTile = ({
           <VideoPlayer stream={streamInfo.stream} />
           <button
             type="button"
-            className="btn btn-success btn-sm m-1"
+            className="btn btn-success btn-sm m-2"
             onClick={() => {
               setSelectedVideoStream(streamInfo);
             }}
@@ -126,36 +128,100 @@ const octopusStream: StreamInfo = {
 const mockStreams = [octopusStream, elixirStream, frogStream, heartStream];
 
 export const VideoDeviceSelector = ({
-  allDevices,
   selectedVideoStream,
   setSelectedVideoStream,
   activeVideoStreams,
   setActiveVideoStreams,
 }: Props) => {
+  const [enumerateDevicesState, setEnumerateDevicesState] = useState<EnumerateDevices | null>(null);
+  const [show, setShow] = useLocalStorageState("show-media-device-state");
+
   return (
-    <div className="flex w-full flex-row m-1 p-1">
-      {allDevices?.map(({ deviceId, label }) => (
-        <VideoTile
-          key={deviceId}
-          deviceId={deviceId}
-          label={label}
-          setActiveVideoStreams={setActiveVideoStreams}
-          setSelectedVideoStream={setSelectedVideoStream}
-          selected={selectedVideoStream?.id === deviceId}
-          streamInfo={(activeVideoStreams && activeVideoStreams[deviceId]) || null}
-        />
-      ))}
-      {mockStreams?.map((stream) => (
-        <VideoTile
-          key={stream.id}
-          deviceId={stream.id}
-          label={stream.id}
-          setActiveVideoStreams={setActiveVideoStreams}
-          setSelectedVideoStream={setSelectedVideoStream}
-          selected={selectedVideoStream?.id === stream.id}
-          streamInfo={stream}
-        />
-      ))}
-    </div>
+    <>
+      <div className="m-2">
+        <button
+          className="btn btn-sm btn-info mx-1 my-0"
+          onClick={() => {
+            enumerateDevices(true, true)
+              .then((result) => {
+                console.log({ "OK: ": result });
+                setEnumerateDevicesState(result);
+              })
+              .catch((error) => {
+                console.log("Error caught " + error);
+                setEnumerateDevicesState(error);
+              });
+          }}
+        >
+          Enumerate all devices
+        </button>
+        <button
+          className="btn btn-sm btn-info mx-1 my-0"
+          onClick={() => {
+            enumerateDevices(true, false)
+              .then((result) => {
+                console.log({ "OK: ": result });
+                setEnumerateDevicesState(result);
+              })
+              .catch((error) => {
+                console.log("Error caught " + error);
+                setEnumerateDevicesState(error);
+              });
+          }}
+        >
+          Enumerate video devices
+        </button>
+        <button
+          className="btn btn-sm btn-info mx-1 my-0"
+          onClick={() => {
+            enumerateDevices(false, true)
+              .then((result) => {
+                console.log({ "OK: ": result });
+                setEnumerateDevicesState(result);
+              })
+              .catch((error) => {
+                console.log("Error caught " + error);
+                setEnumerateDevicesState(error);
+              });
+          }}
+        >
+          Enumerate audio devices
+        </button>
+        <button
+          className="btn btn-sm mx-1 my-0"
+          onClick={() => {
+            setShow(!show);
+          }}
+        >
+          {show ? "Hide" : "Show"}
+        </button>
+      </div>
+      <div className="flex w-full flex-row m-2">
+        {enumerateDevicesState?.video.type === "OK" &&
+          enumerateDevicesState.video.devices.map(({ deviceId, label }) => (
+            <VideoTile
+              key={deviceId}
+              deviceId={deviceId}
+              label={label}
+              setActiveVideoStreams={setActiveVideoStreams}
+              setSelectedVideoStream={setSelectedVideoStream}
+              selected={selectedVideoStream?.id === deviceId}
+              streamInfo={(activeVideoStreams && activeVideoStreams[deviceId]) || null}
+            />
+          ))}
+        {mockStreams?.map((stream) => (
+          <VideoTile
+            key={stream.id}
+            deviceId={stream.id}
+            label={stream.id}
+            setActiveVideoStreams={setActiveVideoStreams}
+            setSelectedVideoStream={setSelectedVideoStream}
+            selected={selectedVideoStream?.id === stream.id}
+            streamInfo={stream}
+          />
+        ))}
+      </div>
+      {show && <JsonComponent state={enumerateDevicesState} />}
+    </>
   );
 };
