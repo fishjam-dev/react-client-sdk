@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import VideoPlayer from "./VideoPlayer";
-import { useMockStream } from "./UseMockStream";
 import { createStream } from "../utils/createMockStream";
 import { JsonComponent } from "./JsonComponent";
 import { EnumerateDevices, enumerateDevices } from "../utils/MediaDeviceUtils";
@@ -142,7 +141,7 @@ export const VideoDeviceSelector = ({
         <button
           className="btn btn-sm btn-info mx-1 my-0"
           onClick={() => {
-            enumerateDevices(true, true)
+            enumerateDevices({}, {})
               .then((result) => {
                 console.log({ "OK: ": result });
                 setEnumerateDevicesState(result);
@@ -158,7 +157,7 @@ export const VideoDeviceSelector = ({
         <button
           className="btn btn-sm btn-info mx-1 my-0"
           onClick={() => {
-            enumerateDevices(true, false)
+            enumerateDevices({}, false)
               .then((result) => {
                 console.log({ "OK: ": result });
                 setEnumerateDevicesState(result);
@@ -174,7 +173,7 @@ export const VideoDeviceSelector = ({
         <button
           className="btn btn-sm btn-info mx-1 my-0"
           onClick={() => {
-            enumerateDevices(false, true)
+            enumerateDevices(false, {})
               .then((result) => {
                 console.log({ "OK: ": result });
                 setEnumerateDevicesState(result);

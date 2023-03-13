@@ -26,14 +26,30 @@ export type EnumerateDevices = {
   video: DeviceReturnType;
 };
 
-export const enumerateDevices = async (video: boolean, audio: boolean): Promise<EnumerateDevices> => {
+const toMediaTrackConstraints = (constraint?: boolean | MediaTrackConstraints): MediaTrackConstraints | undefined => {
+  if (typeof constraint === "boolean") {
+    return constraint ? {} : undefined;
+  }
+  return constraint;
+};
+
+export const enumerateDevices = async (
+  videoParam?: boolean | MediaTrackConstraints,
+  audioParam?: boolean | MediaTrackConstraints
+): Promise<EnumerateDevices> => {
   if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
+
+  const objAudio = toMediaTrackConstraints(audioParam);
+  const objVideo = toMediaTrackConstraints(videoParam);
+
+  const booleanAudio = !!audioParam;
+  const booleanVideo = !!videoParam;
 
   let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
 
   const constraints = {
-    video: video && mediaDeviceInfos.filter(isVideo).some(isNotGranted),
-    audio: audio && mediaDeviceInfos.filter(isAudio).some(isNotGranted),
+    video: booleanVideo && mediaDeviceInfos.filter(isVideo).some(isNotGranted) && objVideo,
+    audio: booleanAudio && mediaDeviceInfos.filter(isAudio).some(isNotGranted) && objAudio,
   };
 
   let audioError: boolean = false;
@@ -50,13 +66,13 @@ export const enumerateDevices = async (video: boolean, audio: boolean): Promise<
       });
     }
   } catch (error) {
-    videoError = constraints.video;
-    audioError = constraints.audio;
+    videoError = booleanVideo;
+    audioError = booleanAudio;
   }
 
   return {
-    video: prepareReturn(video, mediaDeviceInfos.filter(isVideo), videoError),
-    audio: prepareReturn(audio, mediaDeviceInfos.filter(isAudio), audioError),
+    video: prepareReturn(booleanVideo, mediaDeviceInfos.filter(isVideo), videoError),
+    audio: prepareReturn(booleanAudio, mediaDeviceInfos.filter(isAudio), audioError),
   };
 };
 
