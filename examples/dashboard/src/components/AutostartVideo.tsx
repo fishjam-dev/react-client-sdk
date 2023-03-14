@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { EnumerateDevices, enumerateDevices, useUserMedia } from "../utils/MediaDeviceUtils";
 import VideoPlayer from "./VideoPlayer";
-import { useLocalStorageState } from "./LogSelector";
+import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 import { JsonComponent } from "./JsonComponent";
 
 type IdToStream = Record<string, MediaStream>;
 
 // todo automayczne wybieranie poprzenio wybranego urządzenia
+
+const getDefaultValue = (lastSelectedDeviceId: string | null, devices: any) => {
+  const result = lastSelectedDeviceId && devices?.video?.devices ? lastSelectedDeviceId : "Select camera";
+  console.log(result);
+  return result;
+};
 
 export const AutostartVideo = () => {
   const [autostartDeviceManager, setAutostartDeviceManager] = useLocalStorageState("AUTOSTART-DEVICE-MANAGER");
@@ -15,12 +21,23 @@ export const AutostartVideo = () => {
   const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
   const [cameraId, setCameraId] = useState<string | null>(null);
   const [show, setShow] = useLocalStorageState("show-autostart-media-device-state");
-
+  const [useLastSelectedDevice, setUseLastSelectedDevice] = useLocalStorageState("use-last-selected-device");
+  const [lastSelectedDeviceId, setLastSelectedDeviceId] = useLocalStorageStateString("last-selected-device-id");
 
   useEffect(() => {
     if (!autostartVideo) return;
     setCameraId(selectedCameraId);
   }, [selectedCameraId, autostartVideo]);
+
+  useEffect(() => {
+    if (!useLastSelectedDevice || !selectedCameraId) return;
+    setLastSelectedDeviceId(selectedCameraId);
+  }, [selectedCameraId, useLastSelectedDevice]);
+
+  useEffect(() => {
+    if (!useLastSelectedDevice) return;
+    setSelectedCameraId(lastSelectedDeviceId);
+  }, []);
 
   const cameraState = useUserMedia("video", cameraId);
 
@@ -36,9 +53,9 @@ export const AutostartVideo = () => {
   }, []);
 
   return (
-    <div className="card card bg-base-100 shadow-xl">
+    <div className={cameraState.isLoading ? "card bg-warning shadow-xl" : "card bg-base-100 shadow-xl"}>
       <div className="card-body">
-        <div className="flex flex-row">
+        <div className="flex flex-row flex-wrap">
           <div className="form-control flex flex-row flex-wrap content-center">
             <label className="label cursor-pointer">
               <input
@@ -68,6 +85,19 @@ export const AutostartVideo = () => {
               <span className="label-text ml-2">Autostart video</span>
             </label>
           </div>
+          <div className="form-control flex flex-row flex-wrap content-center">
+            <label className="label cursor-pointer">
+              <input
+                className="checkbox"
+                type="checkbox"
+                checked={useLastSelectedDevice}
+                onChange={() => {
+                  setUseLastSelectedDevice(!useLastSelectedDevice);
+                }}
+              />
+              <span className="label-text ml-2">Select last selected device</span>
+            </label>
+          </div>
           <button
             className="btn btn-sm m-2"
             onClick={() => {
@@ -86,7 +116,8 @@ export const AutostartVideo = () => {
                 setCameraId(null);
                 setSelectedCameraId(event.target.value);
               }}
-              defaultValue="Select camera"
+              // defaultValue={getDefaultValue(lastSelectedDeviceId, enumerateDevicesState)}
+              value={selectedCameraId || "Select camera"}
             >
               <option disabled>Select camera</option>
               {enumerateDevicesState?.video.type === "OK" &&
