@@ -4,6 +4,7 @@ import { JellyfishClient } from "../../../src/jellyfish/JellyfishClient";
 import { createStream } from "./createMockStream";
 import { enumerateDevices } from "../../../src/navigator/enumerateDevices";
 import { getUserMedia } from "../../../src/navigator/getUserMedia";
+import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 
 const roomIdInput = document.querySelector<HTMLInputElement>("#room-id-input")!;
 const peerIdInput = document.querySelector<HTMLInputElement>("#peer-id-input")!;
@@ -54,15 +55,52 @@ export const { useConnect, useSelector } = createNoContextMembraneClient<PeerMet
 
 const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
-client.messageEmitter.on("onJoinSuccess", (_peerId, _peersInRoom) => {
+client.messageEmitter.on("onJoinSuccess", (_peerId, peersInRoom) => {
   console.log("Join success!");
+  const template = document.querySelector("#remote-peer-template-card")!;
+  const remotePeers = document.querySelector("#remote-peers")!;
+
+  (peersInRoom || []).forEach((peer: Peer) => {
+    // @ts-ignore
+    const clone = template.content.cloneNode(true);
+    const card = clone.querySelector(".card");
+    card.dataset.peerId = peer.id;
+
+    const peerId = clone.querySelector(".remote-peer-template-id");
+    peerId.innerHTML = peer.id;
+
+    remotePeers.appendChild(clone);
+  });
 });
 client.messageEmitter.on("onJoinError", (_metadata) => {});
 client.messageEmitter.on("onRemoved", (_reason) => {});
-client.messageEmitter.on("onPeerJoined", (_peer) => {});
+client.messageEmitter.on("onPeerJoined", (peer) => {
+  console.log("Join success!");
+  const template = document.querySelector("#remote-peer-template-card")!;
+  const remotePeers = document.querySelector("#remote-peers")!;
+
+  // @ts-ignore
+  const clone = template.content.cloneNode(true);
+  const card = clone.querySelector(".card");
+  card.dataset.peerId = peer.id;
+
+  const peerId = clone.querySelector(".remote-peer-template-id");
+  peerId.innerHTML = peer.id;
+
+  remotePeers.appendChild(clone);
+});
 client.messageEmitter.on("onPeerUpdated", (_peer) => {});
 client.messageEmitter.on("onPeerLeft", (_peer) => {});
-client.messageEmitter.on("onTrackReady", (_ctx) => {});
+client.messageEmitter.on("onTrackReady", (ctx) => {
+  console.log("On track ready");
+  const peerId = ctx.peer.id;
+  const peerComponent = document.querySelector(`div[data-peer-id="${peerId}"`)!;
+  const videoPlayer: HTMLVideoElement = peerComponent.querySelector(".remote-peer-template-video")!;
+
+  videoPlayer.srcObject = ctx.stream;
+  videoPlayer.play();
+  console.log(peerComponent);
+});
 client.messageEmitter.on("onTrackAdded", (ctx) => {
   const prevOnEncodingChanged = ctx.onEncodingChanged;
   const prevOnVoiceActivityChanged = ctx.onVoiceActivityChanged;
@@ -113,7 +151,7 @@ enumerateDevicesButton.addEventListener("click", () => {
     if (result.video.type !== "OK") return;
     const template = document.querySelector("#video-player-template")!;
     const videoPlayers = document.querySelector("#video-players")!;
-    videoPlayers.innerHTML = ""
+    videoPlayers.innerHTML = "";
     result.video.devices.forEach((device) => {
       // @ts-ignore
       const clone = template.content.cloneNode(true);

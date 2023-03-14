@@ -9,6 +9,23 @@
 <body>
 
 <div class="flex flex-row flex-wrap items-start p-2">
+    <template id="remote-peer-template-card">
+        <div class="w-[600px] card bg-base-100 shadow-xl m-1" data-peer-id="">
+            <div class="card-body">
+                <h2 class="remote-peer-template-id">Remote peers</h2>
+            </div>
+            <video class="w-[200px] remote-peer-template-video" playsInline muted></video>
+        </div>
+    </template>
+
+    <div class="m-1">
+        <div class="card-body">
+            <h2 class="card-title">Remote peers</h2>
+        </div>
+        <div id="remote-peers"></div>
+    </div>
+
+
     <div class="flex flex-col">
         <div class="w-[500px] card bg-base-100 shadow-xl m-1">
             <div class="card-body">
@@ -87,6 +104,7 @@
             </div>
         </div>
     </div>
+
 
 
     <!--    <button id="refresh-code-btn" class="btn btn-error m-1">Refresh</button>-->
