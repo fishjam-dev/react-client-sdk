@@ -2,14 +2,11 @@ import React, { useState } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { createStream } from "../utils/createMockStream";
 import { JsonComponent } from "./JsonComponent";
-import {
-  EnumerateDevices,
-  enumerateDevices,
-  getUserMedia,
-  VIDEO_TRACK_CONSTRAINTS,
-  VIDEO_TRACK_CONSTRAINTS2,
-} from "../utils/MediaDeviceUtils";
 import { useLocalStorageState } from "./LogSelector";
+import { VIDEO_TRACK_CONSTRAINTS2 } from "../../../../src/navigator/constraints";
+import { enumerateDevices } from "../../../../src/navigator/enumerateDevices";
+import { getUserMedia } from "../../../../src/navigator/getUserMedia";
+import { EnumerateDevices } from "../../../../src/navigator/types";
 
 export type StreamInfo = {
   stream: MediaStream;

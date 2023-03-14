@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { EnumerateDevices, enumerateDevices, useUserMedia } from "../utils/MediaDeviceUtils";
 import VideoPlayer from "./VideoPlayer";
 import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 import { JsonComponent } from "./JsonComponent";
+import { enumerateDevices } from "../../../../src/navigator/enumerateDevices";
+import { useUserMedia } from "../../../../src/navigator/useUserMedia";
+import { EnumerateDevices } from "../../../../src/navigator/types";
 
 type IdToStream = Record<string, MediaStream>;
 
