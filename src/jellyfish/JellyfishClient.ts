@@ -80,11 +80,11 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
           };
           const message = JSON.stringify(messageJS);
           // console.log("%cTO_ENGINE", "color: blue");
-          console.log({
-            mediaEvent: JSON.parse(mediaEvent),
-            message: messageJS,
-            toSend: message,
-          });
+          // console.log({
+          //   mediaEvent: JSON.parse(mediaEvent),
+          //   message: messageJS,
+          //   toSend: message,
+          // });
           this.websocket?.send(message);
           // this.signaling?.push("mediaEvent", { data: mediaEvent });
         },

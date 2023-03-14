@@ -34,4 +34,11 @@ export class ServerRoomSdk {
   removePeer(roomId: string, peerId: string) {
     return axios.delete(`${this.url}/${roomId}/peer/${peerId}`);
   }
+
+  getPeer(roomId: string, peerId: string) {
+    return axios.get(
+      `${this.url}/${roomId}/peer/${peerId}`,
+      { headers }
+    );
+  }
 }

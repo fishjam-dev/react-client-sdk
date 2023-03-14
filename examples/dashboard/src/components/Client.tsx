@@ -6,6 +6,7 @@ import { JsonComponent } from "./JsonComponent";
 import { useLocalStorageState } from "./LogSelector";
 import { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
+import { ServerRoomSdk } from "../utils/ServerSdk";
 
 type ClientProps = {
   roomId: string;
@@ -80,6 +81,16 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
                 Connect
               </button>
             )}
+            {/*<button*/}
+            {/*  className="btn btn-sm btn-success m-2"*/}
+            {/*  onClick={() => {*/}
+            {/*    new ServerRoomSdk().getPeer(roomId, peerId).then((data) => {*/}
+            {/*      console.log(data);*/}
+            {/*    });*/}
+            {/*  }}*/}
+            {/*>*/}
+            {/*  Fetch*/}
+            {/*</button>*/}
             {trackId === null ? (
               <button
                 className="btn btn-sm btn-success m-2"
