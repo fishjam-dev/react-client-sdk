@@ -22,16 +22,3 @@ export const AUDIO_TRACK_CONSTRAINS: MediaTrackConstraints = {
     { echoCancellation: true },
   ],
 };
-
-export const VIDEO_TRACK_CONSTRAINTS2: MediaTrackConstraints = {
-  width: {
-    min: 1280,
-  },
-  height: {
-    min: 720,
-  },
-  frameRate: {
-    max: 30,
-    ideal: 24,
-  },
-};

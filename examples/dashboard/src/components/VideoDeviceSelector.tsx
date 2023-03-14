@@ -3,7 +3,7 @@ import VideoPlayer from "./VideoPlayer";
 import { createStream } from "../utils/createMockStream";
 import { JsonComponent } from "./JsonComponent";
 import { useLocalStorageState } from "./LogSelector";
-import { VIDEO_TRACK_CONSTRAINTS2 } from "../../../../src/navigator/constraints";
+import { VIDEO_TRACK_CONSTRAINTS } from "../../../../src/navigator/constraints";
 import { enumerateDevices } from "../../../../src/navigator/enumerateDevices";
 import { getUserMedia } from "../../../../src/navigator/getUserMedia";
 import { EnumerateDevices } from "../../../../src/navigator/types";
@@ -187,7 +187,7 @@ export const VideoDeviceSelector = ({
         <button
           className="btn btn-sm btn-info mx-1 my-0"
           onClick={() => {
-            enumerateDevices(VIDEO_TRACK_CONSTRAINTS2, false)
+            enumerateDevices(VIDEO_TRACK_CONSTRAINTS, false)
               .then((result) => {
                 console.log({ "OK: ": result });
                 setEnumerateDevicesState(result);
