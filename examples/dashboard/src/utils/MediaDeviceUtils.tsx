@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 /*
  * enumerateDevices (permissions not granted)
@@ -86,7 +86,6 @@ export const enumerateDevices = async (
   const booleanVideo = !!videoParam;
 
   let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
-  console.log({ mediaDeviceInfos });
 
   const constraints = {
     video: booleanVideo && mediaDeviceInfos.filter(isVideo).some(isNotGranted) && objVideo,
@@ -98,9 +97,7 @@ export const enumerateDevices = async (
 
   try {
     if (constraints.audio || constraints.video) {
-      console.log("Before!");
       const requestedDevices = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log("After!");
 
       mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
 
@@ -128,4 +125,108 @@ const prepareReturn = (
   if (!isInterested) return { type: "Not requested" };
   if (permissionError) return { type: "Error", message: permissionError };
   return { type: "OK", devices: mediaDeviceInfo.filter(isGranted) };
+};
+
+// const createConstraints = (id: string, type: MediaType): MediaStreamConstraints => {
+//   return type === "video" ? { video: { deviceId: id } } : { audio: { deviceId: id } };
+// };
+//
+// const createConstraints2 = (id: string, type: MediaType): MediaStreamConstraints => {
+//   return { [type]: { deviceId: id } };
+// };
+
+export type MediaType = "audio" | "video";
+export type MediaTypeException = { name: any; message: any };
+
+// todo handle navigator is undefined
+export const getUserMedia = async (deviceId: string, type: MediaType): Promise<MediaStream> =>
+  await navigator.mediaDevices.getUserMedia({ [type]: { deviceId } });
+
+export type UseMediaResult = MediaState & MediaApi;
+
+const NOOP = () => {};
+
+type MediaState = {
+  isError: boolean;
+  stream: MediaStream | null;
+  // isEnabled?: boolean;
+  isLoading: boolean;
+};
+
+export type MediaApi = {
+  start: () => void;
+  stop: () => void;
+  // enable: () => void;
+  // disable: () => void;
+};
+
+const defaultState: UseMediaResult = {
+  isError: false,
+  stream: null,
+  // isEnabled: false,
+  isLoading: false,
+  start: NOOP,
+  stop: NOOP,
+  // enable: NOOP,
+  // disable: NOOP,
+};
+
+const stopTracks = (stream: MediaStream) => {
+  stream.getTracks().forEach((track) => {
+    track.stop();
+  });
+};
+
+export const useUserMedia = (type: MediaType, deviceId: string | null): UseMediaResult => {
+  const [state, setState] = useState<UseMediaResult>(defaultState);
+
+  const startInner: (deviceId: string, type: MediaType) => Promise<MediaStream> = useCallback(
+    (deviceId: string, type: MediaType) => {
+
+      setState((prevState) => ({ ...prevState, isLoading: true }));
+
+      return getUserMedia(deviceId, type)
+        .then((mediasStream) => {
+          const stop = () => {
+            stopTracks(mediasStream);
+            setState((prevState) => ({
+              ...prevState,
+              stop: NOOP,
+              start: () => startInner(deviceId, type),
+              stream: null,
+            }));
+          };
+
+          setState((prevState) => {
+            return {
+              ...prevState,
+              isLoading: false,
+              stream: mediasStream,
+              start: NOOP,
+              stop: stop,
+            };
+          });
+          return mediasStream;
+        })
+        .catch((e) => {
+          setState((prevState) => ({ ...prevState, isLoading: false, isError: true }));
+          return Promise.reject(e);
+        });
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!deviceId) return;
+    const result: Promise<MediaStream> = startInner(deviceId, type);
+
+    return () => {
+      result.then((mediaStream) => {
+        stopTracks(mediaStream);
+        setState((prevState) => ({ ...prevState, stop: NOOP, start: () => startInner(deviceId, type), stream: null }));
+      });
+    };
+  }, [type, deviceId]);
+
+  return state;
 };

@@ -5,8 +5,9 @@ import { JsonComponent } from "./JsonComponent";
 import {
   EnumerateDevices,
   enumerateDevices,
+  getUserMedia,
   VIDEO_TRACK_CONSTRAINTS,
-  VIDEO_TRACK_CONSTRAINTS2
+  VIDEO_TRACK_CONSTRAINTS2,
 } from "../utils/MediaDeviceUtils";
 import { useLocalStorageState } from "./LogSelector";
 
@@ -53,23 +54,17 @@ const VideoTile = ({
           type="button"
           className="btn btn-success btn-sm m-2"
           onClick={() => {
-            navigator.mediaDevices
-              .getUserMedia({
-                video: {
-                  deviceId: deviceId,
-                },
-              })
-              .then((stream) => {
-                setActiveVideoStreams((prev) => {
-                  return {
-                    ...prev,
-                    [deviceId]: {
-                      stream,
-                      id: deviceId,
-                    },
-                  };
-                });
+            getUserMedia(deviceId, "video").then((stream) => {
+              setActiveVideoStreams((prev) => {
+                return {
+                  ...prev,
+                  [deviceId]: {
+                    stream,
+                    id: deviceId,
+                  },
+                };
               });
+            });
           }}
         >
           Start

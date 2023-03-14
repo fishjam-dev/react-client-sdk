@@ -6,6 +6,7 @@ import { Room, RoomType } from "./Room";
 import { JsonComponent } from "./JsonComponent";
 import { ThemeSelector } from "./ThemeSelector";
 import { DeviceIdToStream, StreamInfo, VideoDeviceSelector } from "./VideoDeviceSelector";
+import { AutostartVideo } from "./AutostartVideo";
 
 export const client = new ServerRoomSdk("http://localhost:4000");
 
@@ -104,7 +105,7 @@ export const App = () => {
 
       <div className="flex flex-row w-full h-full m-2 items-start">
         <div>
-          {/*<SelectVideo />*/}
+          <AutostartVideo />
           {showLogSelector && <LogSelector />}
           {show && (
             <div className="w-[600px] m-2 card bg-base-100 shadow-xl">
