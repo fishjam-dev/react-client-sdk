@@ -27,7 +27,7 @@
   },
   "typesVersions": {
     "*": {
-      "navigator": ["dist/index.d.ts"]
+      "navigator": ["./dist/navigator/index.d.ts"]
     }
   },
   "scripts": {
