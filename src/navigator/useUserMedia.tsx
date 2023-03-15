@@ -9,6 +9,9 @@ export type UseUserMedia = {
   isLoading: boolean;
   start: () => void;
   stop: () => void;
+  isEnabled: boolean;
+  disable: () => void;
+  enable: () => void;
 };
 
 const defaultState: UseUserMedia = {
@@ -17,6 +20,9 @@ const defaultState: UseUserMedia = {
   isLoading: false,
   start: NOOP,
   stop: NOOP,
+  isEnabled: true,
+  disable: NOOP,
+  enable: NOOP,
 };
 
 const stopTracks = (stream: MediaStream) => {
@@ -29,6 +35,21 @@ export const useUserMedia = (
   deviceId: string | null
 ): UseUserMedia => {
   const [state, setState] = useState<UseUserMedia>(defaultState);
+
+  const setEnable = useCallback(
+    (status: boolean) => {
+      state.stream?.getTracks().forEach((track: MediaStreamTrack) => {
+        track.enabled = status;
+      });
+      setState(
+        (prevState: UseUserMedia): UseUserMedia => ({
+          ...prevState,
+          isEnabled: status,
+        })
+      );
+    },
+    [state.stream, setState]
+  );
 
   const startInner: (
     deviceId: string,
@@ -46,16 +67,22 @@ export const useUserMedia = (
               stop: NOOP,
               start: () => startInner(deviceId, type),
               stream: null,
+              isEnabled: false,
+              disable: NOOP,
+              enable: NOOP,
             }));
           };
 
-          setState((prevState) => {
+          setState((prevState: UseUserMedia) => {
             return {
               ...prevState,
               isLoading: false,
               stream: mediasStream,
               start: NOOP,
               stop: stop,
+              disable: () => setEnable(false),
+              enable: () => setEnable(false),
+              isEnabled: true,
             };
           });
           return mediasStream;
@@ -65,6 +92,9 @@ export const useUserMedia = (
             ...prevState,
             isLoading: false,
             isError: true,
+            isEnabled: false,
+            disable: NOOP,
+            enable: NOOP,
           }));
           return Promise.reject(e);
         });
