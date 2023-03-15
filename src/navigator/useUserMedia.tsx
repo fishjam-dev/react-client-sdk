@@ -3,29 +3,22 @@ import { getUserMedia } from "./getUserMedia";
 import { NOOP } from "./utils";
 import { MediaType } from "./types";
 
-export type UseMediaResult = MediaState & MediaApi;
-type MediaState = {
+export type UseUserMedia = {
   isError: boolean;
   stream: MediaStream | null;
-  // isEnabled?: boolean;
   isLoading: boolean;
-};
-export type MediaApi = {
   start: () => void;
   stop: () => void;
-  // enable: () => void;
-  // disable: () => void;
 };
-const defaultState: UseMediaResult = {
+
+const defaultState: UseUserMedia = {
   isError: false,
   stream: null,
-  // isEnabled: false,
   isLoading: false,
   start: NOOP,
   stop: NOOP,
-  // enable: NOOP,
-  // disable: NOOP,
 };
+
 const stopTracks = (stream: MediaStream) => {
   stream.getTracks().forEach((track) => {
     track.stop();
@@ -34,8 +27,8 @@ const stopTracks = (stream: MediaStream) => {
 export const useUserMedia = (
   type: MediaType,
   deviceId: string | null
-): UseMediaResult => {
-  const [state, setState] = useState<UseMediaResult>(defaultState);
+): UseUserMedia => {
+  const [state, setState] = useState<UseUserMedia>(defaultState);
 
   const startInner: (
     deviceId: string,
