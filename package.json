@@ -23,7 +23,7 @@
     "url": "git://github.com/jellyfish-dev/jellyfish-react-client.git"
   },
   "exports": {
-    "./*": "./dist/*"
+    "./navigator/*": "./dist/navigator/*.js"
   },
   "scripts": {
     "build": "rimraf dist && tsc",
