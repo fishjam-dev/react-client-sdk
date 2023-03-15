@@ -22,10 +22,6 @@
     "type": "git",
     "url": "git://github.com/jellyfish-dev/jellyfish-react-client.git"
   },
-  "exports": {
-    ".": "./dist/index.js",
-    "./navigator": "./dist/navigator/index.js"
-  },
   "scripts": {
     "build": "rimraf dist && tsc",
     "docs": "typedoc src/index.ts",
