@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { getUserMedia } from "./getUserMedia";
 import { NOOP } from "./utils";
 import { MediaType } from "./types";
 
@@ -30,10 +29,22 @@ const stopTracks = (stream: MediaStream) => {
     track.stop();
   });
 };
-export const useUserMedia = (
-  type: MediaType,
-  deviceId: string | null
-): UseUserMedia => {
+
+type Config =
+  | {
+      type: MediaType;
+      deviceId: string | null;
+    }
+  | {
+      type: "DisplayMedia";
+      constraints: DisplayMediaStreamOptions | null;
+    }
+  | {
+      type: "UserMedia";
+      constraints: MediaStreamConstraints | null;
+    };
+
+export const useUserMedia = (config: Config): UseUserMedia => {
   const [state, setState] = useState<UseUserMedia>(defaultState);
 
   const setEnable = useCallback(
@@ -51,21 +62,18 @@ export const useUserMedia = (
     [state.stream, setState]
   );
 
-  const startInner: (
-    deviceId: string,
-    type: MediaType
-  ) => Promise<MediaStream> = useCallback(
-    (deviceId: string, type: MediaType) => {
+  const start: (getMedia: () => Promise<MediaStream>) => Promise<MediaStream> = useCallback(
+    (getMedia: () => Promise<MediaStream>) => {
       setState((prevState) => ({ ...prevState, isLoading: true }));
 
-      return getUserMedia(deviceId, type)
+      return getMedia()
         .then((mediasStream) => {
           const stop = () => {
             stopTracks(mediasStream);
             setState((prevState) => ({
               ...prevState,
               stop: NOOP,
-              start: () => startInner(deviceId, type),
+              start: () => start(getMedia),
               stream: null,
               isEnabled: false,
               disable: NOOP,
@@ -81,7 +89,7 @@ export const useUserMedia = (
               start: NOOP,
               stop: stop,
               disable: () => setEnable(false),
-              enable: () => setEnable(false),
+              enable: () => setEnable(true),
               isEnabled: true,
             };
           });
@@ -103,8 +111,20 @@ export const useUserMedia = (
   );
 
   useEffect(() => {
-    if (!deviceId) return;
-    const result: Promise<MediaStream> = startInner(deviceId, type);
+    const constraints =
+      config.type === "DisplayMedia" || config.type === "UserMedia"
+        ? config.constraints || undefined
+        : { [config.type]: { deviceId: config.deviceId } };
+
+    const getMedia =
+      config.type === "DisplayMedia"
+        ? () => navigator.mediaDevices.getDisplayMedia(constraints)
+        : () => navigator.mediaDevices.getUserMedia(constraints);
+
+    // if (!deviceId) return;
+
+    // const getMedia = () => navigator.mediaDevices.getUserMedia({ [type]: { deviceId } });
+    const result: Promise<MediaStream> = start(getMedia);
 
     return () => {
       result.then((mediaStream) => {
@@ -112,12 +132,12 @@ export const useUserMedia = (
         setState((prevState) => ({
           ...prevState,
           stop: NOOP,
-          start: () => startInner(deviceId, type),
+          start: () => start(getMedia),
           stream: null,
         }));
       });
     };
-  }, [type, deviceId]);
+  }, [config]);
 
   return state;
 };

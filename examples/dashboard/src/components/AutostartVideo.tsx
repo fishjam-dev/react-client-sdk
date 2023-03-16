@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 import { JsonComponent } from "./JsonComponent";
 import { enumerateDevices } from "../../../../src/navigator/enumerateDevices";
 import { useUserMedia } from "../../../../src/navigator/useUserMedia";
-import { EnumerateDevices } from "../../../../src/navigator/types";
+import { EnumerateDevices, MediaType } from "../../../../src/navigator/types";
 
 type IdToStream = Record<string, MediaStream>;
 
@@ -41,7 +41,15 @@ export const AutostartVideo = () => {
     setSelectedCameraId(lastSelectedDeviceId);
   }, []);
 
-  const cameraState = useUserMedia("video", cameraId);
+  const config: { type: MediaType; deviceId: string | null } = useMemo(
+    () => ({
+      type: "video",
+      deviceId: cameraId,
+    }),
+    [cameraId]
+  );
+
+  const cameraState = useUserMedia(config);
 
   const enumerateAllDevices = () =>
     enumerateDevices(true, true).then((result) => {
