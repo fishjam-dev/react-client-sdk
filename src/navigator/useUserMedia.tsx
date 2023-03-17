@@ -13,7 +13,7 @@ export type UseUserMedia = {
   enable: () => void;
 };
 
-const defaultState: UseUserMedia = {
+export const defaultState: UseUserMedia = {
   isError: false,
   stream: null,
   isLoading: false,
@@ -24,7 +24,7 @@ const defaultState: UseUserMedia = {
   enable: NOOP,
 };
 
-const stopTracks = (stream: MediaStream) => {
+export const stopTracks = (stream: MediaStream) => {
   stream.getTracks().forEach((track) => {
     track.stop();
   });

@@ -1,34 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NOOP } from "./utils";
 import { MediaType } from "./types";
-
-export type UseUserMedia = {
-  isError: boolean;
-  stream: MediaStream | null;
-  isLoading: boolean;
-  start: () => void;
-  stop: () => void;
-  isEnabled: boolean;
-  disable: () => void;
-  enable: () => void;
-};
-
-const defaultState: UseUserMedia = {
-  isError: false,
-  stream: null,
-  isLoading: false,
-  start: NOOP,
-  stop: NOOP,
-  isEnabled: true,
-  disable: NOOP,
-  enable: NOOP,
-};
-
-const stopTracks = (stream: MediaStream) => {
-  stream.getTracks().forEach((track) => {
-    track.stop();
-  });
-};
+import { defaultState, stopTracks, UseUserMedia } from "./useUserMedia";
 
 export const useMediaBase = (getMedia: () => Promise<MediaStream>): UseUserMedia => {
   const [state, setState] = useState<UseUserMedia>(defaultState);
