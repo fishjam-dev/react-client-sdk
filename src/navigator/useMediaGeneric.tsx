@@ -30,21 +30,7 @@ const stopTracks = (stream: MediaStream) => {
   });
 };
 
-type Config =
-  | {
-      type: MediaType;
-      deviceId: string | null;
-    }
-  | {
-      type: "DisplayMedia";
-      constraints: DisplayMediaStreamOptions | null;
-    }
-  | {
-      type: "UserMedia";
-      constraints: MediaStreamConstraints | null;
-    };
-
-export const useUserMedia = (getMedia: () => Promise<MediaStream>): UseUserMedia => {
+export const useMediaGeneric = (getMedia: () => Promise<MediaStream>): UseUserMedia => {
   const [state, setState] = useState<UseUserMedia>(defaultState);
 
   const setEnable = useCallback(
