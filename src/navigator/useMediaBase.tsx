@@ -3,7 +3,7 @@ import { NOOP } from "./utils";
 import { MediaType } from "./types";
 import { defaultState, stopTracks, UseUserMedia } from "./useUserMedia";
 
-export const useMediaBase = (getMedia: () => Promise<MediaStream>): UseUserMedia => {
+export const useMediaBase = (getMedia: (() => Promise<MediaStream>) | null): UseUserMedia => {
   const [state, setState] = useState<UseUserMedia>(defaultState);
 
   const setEnable = useCallback(
@@ -74,7 +74,7 @@ export const useMediaBase = (getMedia: () => Promise<MediaStream>): UseUserMedia
     setState((prevState) => ({
       ...prevState,
       stop: NOOP,
-      start: () => start(getMedia),
+      start: getMedia ? () => start(getMedia) : NOOP,
       stream: null,
     }));
   }, [setState, start]);
