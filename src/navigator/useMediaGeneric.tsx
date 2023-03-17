@@ -30,6 +30,8 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
       return getMedia()
         .then((mediasStream) => {
           const stop = () => {
+            console.log("%cManual stopping stream", "color: red")
+
             stopTracks(mediasStream);
             setState((prevState) => ({
               ...prevState,
@@ -78,7 +80,7 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
 
     return () => {
       result.then((mediaStream) => {
-        console.log("%cuStopping stream", "color: red")
+        console.log("%cAuto stopping stream", "color: red")
 
         stopTracks(mediaStream);
         setState((prevState) => ({
