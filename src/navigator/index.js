@@ -5,3 +5,5 @@ export * from "./types";
 export * from "./useEnumerateDevices";
 export * from "./useUserMedia";
 export * from "./utils";
+export * from "./useMediaGeneric"
+export * from "./useMediaBase"
