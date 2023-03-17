@@ -23,6 +23,8 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
 
   const start: (getMedia: () => Promise<MediaStream>) => Promise<MediaStream> = useCallback(
     (getMedia: () => Promise<MediaStream>) => {
+      console.log("%cstarting stream", "color: blue")
+
       setState((prevState) => ({ ...prevState, isLoading: true }));
 
       return getMedia()
@@ -70,11 +72,14 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
   );
 
   useEffect(() => {
+    console.log("%cuseMediaGeneric invoked", "color: orange")
     if (!getMedia) return;
     const result: Promise<MediaStream> = start(getMedia);
 
     return () => {
       result.then((mediaStream) => {
+        console.log("%cuStopping stream", "color: red")
+
         stopTracks(mediaStream);
         setState((prevState) => ({
           ...prevState,
