@@ -15,10 +15,6 @@ export const VIDEO_TRACK_CONSTRAINTS: MediaTrackConstraints = {
   },
 };
 
-export const AUDIO_TRACK_CONSTRAINS: MediaTrackConstraints = {
-  advanced: [
-    { autoGainControl: true },
-    { noiseSuppression: true },
-    { echoCancellation: true },
-  ],
+export const AUDIO_TRACK_CONSTRAINTS: MediaTrackConstraints = {
+  advanced: [{ autoGainControl: true }, { noiseSuppression: true }, { echoCancellation: true }],
 };
