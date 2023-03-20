@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NOOP } from "./utils";
-import { MediaType } from "./types";
 
 export type UseUserMedia = {
   isError: boolean;
@@ -13,7 +12,7 @@ export type UseUserMedia = {
   enable: () => void;
 };
 
-export const defaultState: UseUserMedia = {
+const defaultState: UseUserMedia = {
   isError: false,
   stream: null,
   isLoading: false,
@@ -24,7 +23,7 @@ export const defaultState: UseUserMedia = {
   enable: NOOP,
 };
 
-export const stopTracks = (stream: MediaStream) => {
+const stopTracks = (stream: MediaStream) => {
   stream.getTracks().forEach((track) => {
     track.stop();
   });
@@ -123,13 +122,3 @@ export const useMedia = (getMedia: (() => Promise<MediaStream>) | null): UseUser
   return state;
 };
 
-export const useUserMediaById = (type: MediaType, deviceId: string | null) => {
-  const media = useMemo(
-    () => (deviceId ? () => navigator.mediaDevices.getUserMedia({ [type]: { deviceId } }) : null),
-    [deviceId, type]
-  );
-  return useMedia(media);
-};
-
-export const useUserMedia = (constraints: MediaStreamConstraints | null) =>
-  useMedia(useMemo(() => (constraints ? () => navigator.mediaDevices.getUserMedia(constraints) : null), [constraints]));

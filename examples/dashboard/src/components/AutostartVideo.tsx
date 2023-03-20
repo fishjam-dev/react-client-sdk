@@ -2,13 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 import { JsonComponent } from "./JsonComponent";
-import { enumerateDevices } from "../../../../src/navigator/enumerateDevices";
-import { EnumerateDevices, MediaType } from "../../../../src/navigator/types";
-import { useUserMediaById } from "../../../../src/navigator";
+import { enumerateDevices, EnumerateDevices, useUserMediaById } from "../../../../dist/navigator";
 
 type IdToStream = Record<string, MediaStream>;
-
-// todo automayczne wybieranie poprzenio wybranego urządzenia
 
 const getDefaultValue = (lastSelectedDeviceId: string | null, devices: any) => {
   const result = lastSelectedDeviceId && devices?.video?.devices ? lastSelectedDeviceId : "Select camera";

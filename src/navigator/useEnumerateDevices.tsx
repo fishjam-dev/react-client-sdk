@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  isAudio,
-  isNotGranted,
-  isVideo,
-  prepareReturn,
-  toMediaTrackConstraints,
-} from "./utils";
+import { isAudio, isNotGranted, isVideo, prepareReturn, toMediaTrackConstraints } from "./utils";
 import { DeviceReturnType } from "./types";
 
 export type UseEnumerateDevices = {
@@ -24,8 +18,7 @@ export const useEnumerateDevices = (
     videoParam: boolean | MediaTrackConstraints,
     audioParam: boolean | MediaTrackConstraints
   ) => {
-    if (!navigator?.mediaDevices)
-      throw Error("Navigator is available only in secure contexts");
+    if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
     const objAudio = toMediaTrackConstraints(audioParam);
     const objVideo = toMediaTrackConstraints(videoParam);
@@ -38,18 +31,11 @@ export const useEnumerateDevices = (
       video: booleanVideo ? { type: "Loading" } : { type: "Not requested" },
     }));
 
-    let mediaDeviceInfos: MediaDeviceInfo[] =
-      await navigator.mediaDevices.enumerateDevices();
+    let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
 
     const constraints = {
-      video:
-        booleanVideo &&
-        mediaDeviceInfos.filter(isVideo).some(isNotGranted) &&
-        objVideo,
-      audio:
-        booleanAudio &&
-        mediaDeviceInfos.filter(isAudio).some(isNotGranted) &&
-        objAudio,
+      video: booleanVideo && mediaDeviceInfos.filter(isVideo).some(isNotGranted) && objVideo,
+      audio: booleanAudio && mediaDeviceInfos.filter(isAudio).some(isNotGranted) && objAudio,
     };
 
     let audioError: string | null = null;
@@ -57,9 +43,7 @@ export const useEnumerateDevices = (
 
     try {
       if (constraints.audio || constraints.video) {
-        const requestedDevices = await navigator.mediaDevices.getUserMedia(
-          constraints
-        );
+        const requestedDevices = await navigator.mediaDevices.getUserMedia(constraints);
 
         mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
 
@@ -74,16 +58,8 @@ export const useEnumerateDevices = (
     }
 
     setState({
-      video: prepareReturn(
-        booleanVideo,
-        mediaDeviceInfos.filter(isVideo),
-        videoError
-      ),
-      audio: prepareReturn(
-        booleanAudio,
-        mediaDeviceInfos.filter(isAudio),
-        audioError
-      ),
+      video: prepareReturn(booleanVideo, mediaDeviceInfos.filter(isVideo), videoError),
+      audio: prepareReturn(booleanAudio, mediaDeviceInfos.filter(isAudio), audioError),
     });
   };
 
