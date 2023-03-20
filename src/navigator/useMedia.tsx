@@ -1,9 +1,36 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NOOP } from "./utils";
 import { MediaType } from "./types";
-import { defaultState, stopTracks, UseUserMedia } from "./useUserMedia";
 
-export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): UseUserMedia => {
+export type UseUserMedia = {
+  isError: boolean;
+  stream: MediaStream | null;
+  isLoading: boolean;
+  start: () => void;
+  stop: () => void;
+  isEnabled: boolean;
+  disable: () => void;
+  enable: () => void;
+};
+
+export const defaultState: UseUserMedia = {
+  isError: false,
+  stream: null,
+  isLoading: false,
+  start: NOOP,
+  stop: NOOP,
+  isEnabled: true,
+  disable: NOOP,
+  enable: NOOP,
+};
+
+export const stopTracks = (stream: MediaStream) => {
+  stream.getTracks().forEach((track) => {
+    track.stop();
+  });
+};
+
+export const useMedia = (getMedia: (() => Promise<MediaStream>) | null): UseUserMedia => {
   const [state, setState] = useState<UseUserMedia>(defaultState);
 
   const setEnable = useCallback(
@@ -23,14 +50,14 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
 
   const start: (getMedia: () => Promise<MediaStream>) => Promise<MediaStream> = useCallback(
     (getMedia: () => Promise<MediaStream>) => {
-      console.log("%cstarting stream", "color: blue")
+      // console.log("%cstarting stream", "color: blue");
 
       setState((prevState) => ({ ...prevState, isLoading: true }));
 
       return getMedia()
         .then((mediasStream) => {
           const stop = () => {
-            console.log("%cManual stopping stream", "color: red")
+            // console.log("%cManual stopping stream", "color: red");
 
             stopTracks(mediasStream);
             setState((prevState) => ({
@@ -74,13 +101,13 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
   );
 
   useEffect(() => {
-    console.log("%cuseMediaGeneric invoked", "color: orange")
+    // console.log("%cuseMediaGeneric invoked", "color: orange");
     if (!getMedia) return;
     const result: Promise<MediaStream> = start(getMedia);
 
     return () => {
       result.then((mediaStream) => {
-        console.log("%cAuto stopping stream", "color: red")
+        // console.log("%cAuto stopping stream", "color: red");
 
         stopTracks(mediaStream);
         setState((prevState) => ({
@@ -95,3 +122,14 @@ export const useMediaGeneric = (getMedia: (() => Promise<MediaStream>) | null): 
 
   return state;
 };
+
+export const useUserMediaById = (type: MediaType, deviceId: string | null) => {
+  const media = useMemo(
+    () => (deviceId ? () => navigator.mediaDevices.getUserMedia({ [type]: { deviceId } }) : null),
+    [deviceId, type]
+  );
+  return useMedia(media);
+};
+
+export const useUserMedia = (constraints: MediaStreamConstraints | null) =>
+  useMedia(useMemo(() => (constraints ? () => navigator.mediaDevices.getUserMedia(constraints) : null), [constraints]));

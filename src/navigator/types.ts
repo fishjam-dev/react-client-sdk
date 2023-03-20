@@ -8,4 +8,3 @@ export type EnumerateDevices = {
   video: DeviceReturnType;
 };
 export type MediaType = "audio" | "video";
-export type MediaTypeException = { name: any; message: any };
