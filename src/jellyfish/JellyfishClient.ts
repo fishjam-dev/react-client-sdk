@@ -4,7 +4,10 @@ import TypedEmitter from "typed-emitter";
 import { EventEmitter } from "events";
 import { Callbacks } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
 
-type MessageEvents = Omit<Callbacks, "onSendMediaEvent">;
+type MessageEvents = Omit<Callbacks, "onSendMediaEvent"> & {
+  onClose: (event: CloseEvent) => void;
+  onError: (event: Event) => void;
+};
 
 export type ConnectConfig = {
   websocketUrl?: string;
@@ -32,8 +35,14 @@ export class JellyfishClient<
     // const websocketUrl = config?.websocketUrl ?? "/socket";
 
     this.websocket = new WebSocket(`ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`);
-    this.websocket.addEventListener("error", (event) => console.log("blad", event));
-    this.websocket.addEventListener("close", (event) => console.log("close", event));
+    this.websocket.addEventListener("error", (event) => {
+      console.log("error", event);
+      this.emit("onError", event);
+    });
+    this.websocket.addEventListener("close", (event) => {
+      console.log("close", event);
+      this.emit("onClose", event);
+    });
 
     // client
     // this.socket = new Socket(websocketUrl);
@@ -56,85 +65,92 @@ export class JellyfishClient<
 
     const includeOnTrackEncodingChanged = !config?.disableDeprecated;
 
-    this.webrtc = new MembraneWebRTC({
-      callbacks: {
-        onSendMediaEvent: (mediaEvent: SerializedMediaEvent) => {
-          const messageJS = {
-            type: "mediaEvent",
-            data: mediaEvent,
-          };
-          const message = JSON.stringify(messageJS);
-          // console.log("%cTO_ENGINE", "color: blue");
-          // console.log({
-          //   mediaEvent: JSON.parse(mediaEvent),
-          //   message: messageJS,
-          //   toSend: message,
-          // });
-          this.websocket?.send(message);
-          // this.signaling?.push("mediaEvent", { data: mediaEvent });
-        },
-
-        onConnectionError: (message) => {
-          console.log("%conConnectionError", "color: pink");
-          return;
-        },
-
-        // todo [Peer] -> Peer[] ???
-        onJoinSuccess: (peerId, peersInRoom: [Peer]) => {
-          this.emit("onJoinSuccess", peerId, peersInRoom);
-        },
-
-        onRemoved: (reason) => {
-          this.emit("onRemoved", reason);
-        },
-
-        onPeerJoined: (peer) => {
-          this.emit("onPeerJoined", peer);
-        },
-
-        onPeerLeft: (peer) => {
-          this.emit("onPeerLeft", peer);
-        },
-
-        onPeerUpdated: (peer: Peer) => {
-          this.emit("onPeerUpdated", peer);
-        },
-
-        onTrackReady: (ctx) => {
-          this.emit("onTrackReady", ctx);
-        },
-
-        onTrackAdded: (ctx) => {
-          this.emit("onTrackAdded", ctx);
-        },
-
-        onTrackRemoved: (ctx) => {
-          this.emit("onTrackRemoved", ctx);
-        },
-
-        onTrackUpdated: (ctx: TrackContext) => {
-          this.emit("onTrackUpdated", ctx);
-        },
-
-        onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
-          this.emit("onTracksPriorityChanged", enabledTracks, disabledTracks);
-        },
-
-        onJoinError: (metadata) => {
-          this.emit("onJoinError", metadata);
-        },
-
-        onBandwidthEstimationChanged: (estimation) => {
-          this.emit("onBandwidthEstimationChanged", estimation);
-        },
-
-        ...(includeOnTrackEncodingChanged && {
-          onTrackEncodingChanged: (peerId, trackId, encoding) => {
-            this.emit("onTrackEncodingChanged", peerId, trackId, encoding);
-          },
-        }),
+    const callbacks: Callbacks = {
+      onSendMediaEvent: (mediaEvent: SerializedMediaEvent) => {
+        const messageJS = {
+          type: "mediaEvent",
+          data: mediaEvent,
+        };
+        const message = JSON.stringify(messageJS);
+        // console.log("%cTO_ENGINE", "color: blue");
+        // console.log({
+        //   mediaEvent: JSON.parse(mediaEvent),
+        //   message: messageJS,
+        //   toSend: message,
+        // });
+        this.websocket?.send(message);
+        // this.signaling?.push("mediaEvent", { data: mediaEvent });
       },
-    });
+
+      onConnectionError: (message) => {
+        console.log("%conConnectionError", "color: pink");
+        return;
+      },
+
+      // todo [Peer] -> Peer[] ???
+      onJoinSuccess: (peerId, peersInRoom: [Peer]) => {
+        this.emit("onJoinSuccess", peerId, peersInRoom);
+      },
+
+      onRemoved: (reason) => {
+        this.emit("onRemoved", reason);
+      },
+
+      onPeerJoined: (peer) => {
+        this.emit("onPeerJoined", peer);
+      },
+
+      onPeerLeft: (peer) => {
+        this.emit("onPeerLeft", peer);
+      },
+
+      onPeerUpdated: (peer: Peer) => {
+        this.emit("onPeerUpdated", peer);
+      },
+
+      onTrackReady: (ctx) => {
+        this.emit("onTrackReady", ctx);
+      },
+
+      onTrackAdded: (ctx) => {
+        this.emit("onTrackAdded", ctx);
+      },
+
+      onTrackRemoved: (ctx) => {
+        this.emit("onTrackRemoved", ctx);
+      },
+
+      onTrackUpdated: (ctx: TrackContext) => {
+        this.emit("onTrackUpdated", ctx);
+      },
+
+      onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
+        this.emit("onTracksPriorityChanged", enabledTracks, disabledTracks);
+      },
+
+      onJoinError: (metadata) => {
+        this.emit("onJoinError", metadata);
+      },
+
+      onBandwidthEstimationChanged: (estimation) => {
+        this.emit("onBandwidthEstimationChanged", estimation);
+      },
+
+      ...(includeOnTrackEncodingChanged && {
+        onTrackEncodingChanged: (peerId, trackId, encoding) => {
+          this.emit("onTrackEncodingChanged", peerId, trackId, encoding);
+        },
+      }),
+    }
+
+    this.webrtc = new MembraneWebRTC();
+
+    let keyCallback: keyof Callbacks;
+    for (keyCallback in callbacks) {
+      const callback = callbacks[keyCallback];
+      this.webrtc.on(keyCallback, callback);
+    }
+
 
     // this.signaling.on("mediaEvent", (event) => {
     //   this.webrtc?.receiveMediaEvent(event.data);
