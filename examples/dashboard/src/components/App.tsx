@@ -17,6 +17,7 @@ export const App = () => {
   const [show, setShow] = useLocalStorageState(`show-json-fullstate`);
   const [showLogSelector, setShowLogSelector] = useLocalStorageState("show-log-selector");
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("show-log-selector");
+  const [showCameraTest, setShowCameraTest] = useLocalStorageState("show-camera-test");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
 
@@ -87,6 +88,14 @@ export const App = () => {
           >
             {showLogSelector ? "Hide device selector" : "Show device selector"}
           </button>
+          <button
+            className="btn btn-sm mx-1 my-0"
+            onClick={() => {
+              setShowCameraTest(!showCameraTest);
+            }}
+          >
+            {showCameraTest ? "Hide camera test" : "Show camera test"}
+          </button>
           <PersistentInput name="refetch on success" />
         </div>
         <div className="flex flex-row justify-start">
@@ -105,7 +114,7 @@ export const App = () => {
 
       <div className="flex flex-row w-full h-full m-2 items-start">
         <div>
-          <AutostartVideo />
+          {showCameraTest && <AutostartVideo />}
           {showLogSelector && <LogSelector />}
           {show && (
             <div className="w-[600px] m-2 card bg-base-100 shadow-xl">
