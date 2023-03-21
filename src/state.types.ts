@@ -40,7 +40,7 @@ export type State<PeerMetadata, TrackMetadata> = {
   local: Peer<PeerMetadata, TrackMetadata> | null;
   remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>>;
   bandwidthEstimation: bigint;
-  status: "connecting" | "connected" | "error" | null,
+  status: "connecting" | "connected" | "error" | null;
   connectivity: Connectivity<PeerMetadata, TrackMetadata>;
 };
 

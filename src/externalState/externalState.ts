@@ -24,10 +24,7 @@ export const DEFAULT_STORE = {
   },
 };
 
-export const createStore = <PeerMetadata, TrackMetadata>(): ExternalState<
-  PeerMetadata,
-  TrackMetadata
-> => {
+export const createStore = <PeerMetadata, TrackMetadata>(): ExternalState<PeerMetadata, TrackMetadata> => {
   type StateType = State<PeerMetadata, TrackMetadata>;
 
   let listeners: Listener[] = [];
