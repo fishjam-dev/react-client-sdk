@@ -121,4 +121,3 @@ export const useMedia = (getMedia: (() => Promise<MediaStream>) | null): UseUser
 
   return state;
 };
-

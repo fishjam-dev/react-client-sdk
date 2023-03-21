@@ -1,8 +1,4 @@
-import type {
-  Peer,
-  SerializedMediaEvent,
-  TrackContext,
-} from "@jellyfish-dev/membrane-webrtc-js";
+import type { Peer, SerializedMediaEvent, TrackContext } from "@jellyfish-dev/membrane-webrtc-js";
 import { MembraneWebRTC } from "@jellyfish-dev/membrane-webrtc-js";
 import type { Channel } from "phoenix";
 import { Socket } from "phoenix";
@@ -34,15 +30,8 @@ export type ConnectConfig = {
 
 // todo remove. This is connect function that works with current videoroom implementation
 export const connect =
-  <PeerMetadata, TrackMetadata>(
-    setStore: SetStore<PeerMetadata, TrackMetadata>
-  ) =>
-  (
-    roomId: string,
-    peerMetadata: PeerMetadata,
-    isSimulcastOn: boolean,
-    config?: ConnectConfig
-  ): (() => void) => {
+  <PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMetadata, TrackMetadata>) =>
+  (roomId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean, config?: ConnectConfig): (() => void) => {
     const socket = new Socket("ws://localhost:4000/socket");
     socket.connect();
     const socketOnCloseRef = socket.onClose(() => cleanUp());
@@ -61,8 +50,7 @@ export const connect =
       return;
     });
 
-    const includeOnTrackEncodingChanged =
-      !config?.disableOnTrackEncodingChanged;
+    const includeOnTrackEncodingChanged = !config?.disableOnTrackEncodingChanged;
 
     const webrtc = new MembraneWebRTC({
       callbacks: {
@@ -130,10 +118,7 @@ export const connect =
         },
 
         // todo handle state
-        onTracksPriorityChanged: (
-          enabledTracks: TrackContext[],
-          disabledTracks: TrackContext[]
-        ) => {
+        onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
           console.log({
             name: "onTracksPriorityChanged",
             enabledTracks,
@@ -177,23 +162,19 @@ export const connect =
       return;
     });
 
-    setStore(
-      (
-        prevState: State<PeerMetadata, TrackMetadata>
-      ): State<PeerMetadata, TrackMetadata> => {
-        return {
-          ...prevState,
-          status: "connecting",
-          connectivity: {
-            ...prevState.connectivity,
-            socket: socket,
-            api: api,
-            webrtc: webrtc,
-            signaling: signaling,
-          },
-        };
-      }
-    );
+    setStore((prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
+      return {
+        ...prevState,
+        status: "connecting",
+        connectivity: {
+          ...prevState.connectivity,
+          socket: socket,
+          api: api,
+          webrtc: webrtc,
+          signaling: signaling,
+        },
+      };
+    });
 
     signaling
       .join()

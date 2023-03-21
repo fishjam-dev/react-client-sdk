@@ -5,11 +5,7 @@ export const createStream: (
   emoji: string,
   backgroundColor: string,
   framerate: number
-) => { stop: () => void; stream: MediaStream } = (
-  emoji: string,
-  backgroundColor: string,
-  framerate: number
-) => {
+) => { stop: () => void; stream: MediaStream } = (emoji: string, backgroundColor: string, framerate: number) => {
   const canvasElement = document.createElement("canvas");
   canvasElement.width = canvasWidth;
   canvasElement.height = canvasHeight;

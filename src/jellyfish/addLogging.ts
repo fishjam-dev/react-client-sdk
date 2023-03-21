@@ -1,9 +1,6 @@
 import { JellyfishClient } from "./JellyfishClient";
 
-export const getBooleanValue = (
-  name: string,
-  defaultValue: boolean = true
-): boolean => {
+export const getBooleanValue = (name: string, defaultValue: boolean = true): boolean => {
   const stringValue = localStorage.getItem(name);
   if (stringValue === null || stringValue === undefined) {
     return defaultValue;
@@ -11,9 +8,7 @@ export const getBooleanValue = (
   return stringValue === "true";
 };
 
-export const addLogging = <PeerMetadata, TrackMetadata>(
-  client: JellyfishClient<PeerMetadata, TrackMetadata>
-) => {
+export const addLogging = <PeerMetadata, TrackMetadata>(client: JellyfishClient<PeerMetadata, TrackMetadata>) => {
   client.on("onJoinSuccess", (peerId, peersInRoom) => {
     if (getBooleanValue("onJoinSuccess")) {
       console.log({ name: "onJoinSuccess", peerId, peersInRoom });
@@ -79,29 +74,23 @@ export const addLogging = <PeerMetadata, TrackMetadata>(
       console.log({ name: "onBandwidthEstimationChanged", estimation });
     }
   });
-  client.on(
-    "onTrackEncodingChanged",
-    (peerId, trackId, encoding) => {
-      if (getBooleanValue("onTrackEncodingChanged")) {
-        console.log({
-          name: "onTrackEncodingChanged",
-          peerId,
-          trackId,
-          encoding,
-        });
-      }
+  client.on("onTrackEncodingChanged", (peerId, trackId, encoding) => {
+    if (getBooleanValue("onTrackEncodingChanged")) {
+      console.log({
+        name: "onTrackEncodingChanged",
+        peerId,
+        trackId,
+        encoding,
+      });
     }
-  );
-  client.on(
-    "onTracksPriorityChanged",
-    (enabledTracks, disabledTracks) => {
-      if (getBooleanValue("onTracksPriorityChanged")) {
-        console.log({
-          name: "onTracksPriorityChanged",
-          enabledTracks,
-          disabledTracks,
-        });
-      }
+  });
+  client.on("onTracksPriorityChanged", (enabledTracks, disabledTracks) => {
+    if (getBooleanValue("onTracksPriorityChanged")) {
+      console.log({
+        name: "onTracksPriorityChanged",
+        enabledTracks,
+        disabledTracks,
+      });
     }
-  );
+  });
 };

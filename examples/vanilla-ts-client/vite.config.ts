@@ -10,7 +10,7 @@ export default defineConfig({
     // true - listen on all addresses, including LAN and public addresses
     // host: true,
     // https: true,
-    port: 3005
+    port: 3005,
   },
   plugins: [
     // react(),

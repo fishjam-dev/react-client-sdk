@@ -24,11 +24,7 @@ export class ServerRoomSdk {
   }
 
   addPeer(roomId: string, type: string) {
-    return axios.post(
-      `${this.url}/${roomId}/peer`,
-      { type: type },
-      { headers }
-    );
+    return axios.post(`${this.url}/${roomId}/peer`, { type: type }, { headers });
   }
 
   removePeer(roomId: string, peerId: string) {
@@ -36,9 +32,6 @@ export class ServerRoomSdk {
   }
 
   getPeer(roomId: string, peerId: string) {
-    return axios.get(
-      `${this.url}/${roomId}/peer/${peerId}`,
-      { headers }
-    );
+    return axios.get(`${this.url}/${roomId}/peer/${peerId}`, { headers });
   }
 }

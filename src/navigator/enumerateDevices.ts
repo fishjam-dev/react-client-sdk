@@ -1,18 +1,11 @@
-import {
-  isAudio,
-  isNotGranted,
-  isVideo,
-  prepareReturn,
-  toMediaTrackConstraints,
-} from "./utils";
+import { isAudio, isNotGranted, isVideo, prepareReturn, toMediaTrackConstraints } from "./utils";
 import { EnumerateDevices } from "./types";
 
 export const enumerateDevices = async (
   videoParam: boolean | MediaTrackConstraints,
   audioParam: boolean | MediaTrackConstraints
 ): Promise<EnumerateDevices> => {
-  if (!navigator?.mediaDevices)
-    throw Error("Navigator is available only in secure contexts");
+  if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
   const objAudio = toMediaTrackConstraints(audioParam);
   const objVideo = toMediaTrackConstraints(videoParam);
@@ -20,18 +13,11 @@ export const enumerateDevices = async (
   const booleanAudio = !!audioParam;
   const booleanVideo = !!videoParam;
 
-  let mediaDeviceInfos: MediaDeviceInfo[] =
-    await navigator.mediaDevices.enumerateDevices();
+  let mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
 
   const constraints = {
-    video:
-      booleanVideo &&
-      mediaDeviceInfos.filter(isVideo).some(isNotGranted) &&
-      objVideo,
-    audio:
-      booleanAudio &&
-      mediaDeviceInfos.filter(isAudio).some(isNotGranted) &&
-      objAudio,
+    video: booleanVideo && mediaDeviceInfos.filter(isVideo).some(isNotGranted) && objVideo,
+    audio: booleanAudio && mediaDeviceInfos.filter(isAudio).some(isNotGranted) && objAudio,
   };
 
   let audioError: string | null = null;
@@ -39,9 +25,7 @@ export const enumerateDevices = async (
 
   try {
     if (constraints.audio || constraints.video) {
-      const requestedDevices = await navigator.mediaDevices.getUserMedia(
-        constraints
-      );
+      const requestedDevices = await navigator.mediaDevices.getUserMedia(constraints);
 
       mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();
 
@@ -56,15 +40,7 @@ export const enumerateDevices = async (
   }
 
   return {
-    video: prepareReturn(
-      booleanVideo,
-      mediaDeviceInfos.filter(isVideo),
-      videoError
-    ),
-    audio: prepareReturn(
-      booleanAudio,
-      mediaDeviceInfos.filter(isAudio),
-      audioError
-    ),
+    video: prepareReturn(booleanVideo, mediaDeviceInfos.filter(isVideo), videoError),
+    audio: prepareReturn(booleanAudio, mediaDeviceInfos.filter(isAudio), audioError),
   };
 };

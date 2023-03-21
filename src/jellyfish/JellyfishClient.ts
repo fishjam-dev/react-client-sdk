@@ -1,10 +1,5 @@
 import { Channel, MessageRef, Socket } from "phoenix";
-import {
-  MembraneWebRTC,
-  Peer,
-  SerializedMediaEvent,
-  TrackContext,
-} from "@jellyfish-dev/membrane-webrtc-js";
+import { MembraneWebRTC, Peer, SerializedMediaEvent, TrackContext } from "@jellyfish-dev/membrane-webrtc-js";
 import TypedEmitter from "typed-emitter";
 import { EventEmitter } from "events";
 import { Callbacks } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
@@ -16,7 +11,10 @@ export type ConnectConfig = {
   disableDeprecated?: boolean;
 };
 
-export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
+export class JellyfishClient<
+  PeerMetadata,
+  TrackMetadata
+> extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
   // for backward compatibility with videoroom: TODO remove
   socket: Socket | null = null;
   websocket: WebSocket | null = null;
@@ -30,24 +28,12 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
     super();
   }
 
-  connect(
-    roomId: string,
-    peerId: string,
-    peerMetadata: PeerMetadata,
-    isSimulcastOn: boolean,
-    config?: ConnectConfig
-  ) {
+  connect(roomId: string, peerId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean, config?: ConnectConfig) {
     // const websocketUrl = config?.websocketUrl ?? "/socket";
 
-    this.websocket = new WebSocket(
-      `ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`
-    );
-    this.websocket.addEventListener("error", (event) =>
-      console.log("blad", event)
-    );
-    this.websocket.addEventListener("close", (event) =>
-      console.log("close", event)
-    );
+    this.websocket = new WebSocket(`ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`);
+    this.websocket.addEventListener("error", (event) => console.log("blad", event));
+    this.websocket.addEventListener("close", (event) => console.log("close", event));
 
     // client
     // this.socket = new Socket(websocketUrl);
@@ -89,7 +75,7 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
         },
 
         onConnectionError: (message) => {
-          console.log("%conConnectionError", "color: pink")
+          console.log("%conConnectionError", "color: pink");
           return;
         },
 
@@ -130,15 +116,8 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
           this.emit("onTrackUpdated", ctx);
         },
 
-        onTracksPriorityChanged: (
-          enabledTracks: TrackContext[],
-          disabledTracks: TrackContext[]
-        ) => {
-          this.emit(
-            "onTracksPriorityChanged",
-            enabledTracks,
-            disabledTracks
-          );
+        onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
+          this.emit("onTracksPriorityChanged", enabledTracks, disabledTracks);
         },
 
         onJoinError: (metadata) => {
@@ -151,17 +130,11 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
 
         ...(includeOnTrackEncodingChanged && {
           onTrackEncodingChanged: (peerId, trackId, encoding) => {
-            this.emit(
-              "onTrackEncodingChanged",
-              peerId,
-              trackId,
-              encoding
-            );
+            this.emit("onTrackEncodingChanged", peerId, trackId, encoding);
           },
         }),
       },
     });
-
 
     // this.signaling.on("mediaEvent", (event) => {
     //   this.webrtc?.receiveMediaEvent(event.data);
@@ -202,7 +175,7 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
 
   cleanUp() {
     this.webrtc?.leave();
-    this.websocket?.close()
+    this.websocket?.close();
     this.signaling?.leave();
     // if (this.socketOnCloseRef) {
     //   this.socket?.off([this.socketOnCloseRef]);

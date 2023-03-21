@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 .mockup-code pre:before {
-    display: none;
+  display: none;
 }
 
 .mockup-code:before {
-    display: none;
+  display: none;
 }
 
 .mockup-code pre {
-    padding-left: 1.25rem;
+  padding-left: 1.25rem;
 }
