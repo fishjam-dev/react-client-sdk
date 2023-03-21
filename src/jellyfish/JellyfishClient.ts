@@ -16,7 +16,7 @@ export type ConnectConfig = {
   disableDeprecated?: boolean;
 };
 
-export class JellyfishClient<PeerMetadata, TrackMetadata> {
+export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
   // for backward compatibility with videoroom: TODO remove
   socket: Socket | null = null;
   websocket: WebSocket | null = null;
@@ -25,10 +25,9 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
   webrtc: MembraneWebRTC | null = null;
   socketOnCloseRef: MessageRef | null = null;
   socketOnErrorRef: MessageRef | null = null;
-  messageEmitter: TypedEmitter<MessageEvents>;
 
   constructor() {
-    this.messageEmitter = new EventEmitter() as TypedEmitter<MessageEvents>;
+    super();
   }
 
   connect(
@@ -96,46 +95,46 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
 
         // todo [Peer] -> Peer[] ???
         onJoinSuccess: (peerId, peersInRoom: [Peer]) => {
-          this.messageEmitter.emit("onJoinSuccess", peerId, peersInRoom);
+          this.emit("onJoinSuccess", peerId, peersInRoom);
         },
 
         onRemoved: (reason) => {
-          this.messageEmitter.emit("onRemoved", reason);
+          this.emit("onRemoved", reason);
         },
 
         onPeerJoined: (peer) => {
-          this.messageEmitter.emit("onPeerJoined", peer);
+          this.emit("onPeerJoined", peer);
         },
 
         onPeerLeft: (peer) => {
-          this.messageEmitter.emit("onPeerLeft", peer);
+          this.emit("onPeerLeft", peer);
         },
 
         onPeerUpdated: (peer: Peer) => {
-          this.messageEmitter.emit("onPeerUpdated", peer);
+          this.emit("onPeerUpdated", peer);
         },
 
         onTrackReady: (ctx) => {
-          this.messageEmitter.emit("onTrackReady", ctx);
+          this.emit("onTrackReady", ctx);
         },
 
         onTrackAdded: (ctx) => {
-          this.messageEmitter.emit("onTrackAdded", ctx);
+          this.emit("onTrackAdded", ctx);
         },
 
         onTrackRemoved: (ctx) => {
-          this.messageEmitter.emit("onTrackRemoved", ctx);
+          this.emit("onTrackRemoved", ctx);
         },
 
         onTrackUpdated: (ctx: TrackContext) => {
-          this.messageEmitter.emit("onTrackUpdated", ctx);
+          this.emit("onTrackUpdated", ctx);
         },
 
         onTracksPriorityChanged: (
           enabledTracks: TrackContext[],
           disabledTracks: TrackContext[]
         ) => {
-          this.messageEmitter.emit(
+          this.emit(
             "onTracksPriorityChanged",
             enabledTracks,
             disabledTracks
@@ -143,16 +142,16 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> {
         },
 
         onJoinError: (metadata) => {
-          this.messageEmitter.emit("onJoinError", metadata);
+          this.emit("onJoinError", metadata);
         },
 
         onBandwidthEstimationChanged: (estimation) => {
-          this.messageEmitter.emit("onBandwidthEstimationChanged", estimation);
+          this.emit("onBandwidthEstimationChanged", estimation);
         },
 
         ...(includeOnTrackEncodingChanged && {
           onTrackEncodingChanged: (peerId, trackId, encoding) => {
-            this.messageEmitter.emit(
+            this.emit(
               "onTrackEncodingChanged",
               peerId,
               trackId,

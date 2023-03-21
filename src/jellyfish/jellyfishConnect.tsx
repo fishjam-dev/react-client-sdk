@@ -37,30 +37,30 @@ export function connect<PeerMetadata, TrackMetadata>(
 
     addLogging<PeerMetadata, TrackMetadata>(client);
 
-    client.messageEmitter.on("onJoinSuccess", (peerId, peersInRoom) => {
+    client.on("onJoinSuccess", (peerId, peersInRoom) => {
       console.log("Join success!");
       setStore(onJoinSuccess(peersInRoom, peerId, peerMetadata));
     });
     // todo handle state and handle callback
-    client.messageEmitter.on("onJoinError", (metadata) => {
+    client.on("onJoinError", (metadata) => {
       setStore(onJoinError(metadata));
     });
-    client.messageEmitter.on("onRemoved", (reason) => {
+    client.on("onRemoved", (reason) => {
       setStore(onPeerRemoved(reason));
     });
-    client.messageEmitter.on("onPeerJoined", (peer) =>
+    client.on("onPeerJoined", (peer) =>
       setStore(onPeerJoined(peer))
     );
-    client.messageEmitter.on("onPeerUpdated", (peer) => {
+    client.on("onPeerUpdated", (peer) => {
       setStore(onPeerUpdated(peer));
     });
-    client.messageEmitter.on("onPeerLeft", (peer) => {
+    client.on("onPeerLeft", (peer) => {
       setStore(onPeerLeft(peer));
     });
-    client.messageEmitter.on("onTrackReady", (ctx) => {
+    client.on("onTrackReady", (ctx) => {
       setStore(onTrackReady(ctx));
     });
-    client.messageEmitter.on("onTrackAdded", (ctx) => {
+    client.on("onTrackAdded", (ctx) => {
       setStore(onTrackAdded(ctx));
 
       // temporary solution. Add events emitters to TrackContext
@@ -79,23 +79,23 @@ export function connect<PeerMetadata, TrackMetadata>(
         setStore(onVoiceActivityChanged(ctx));
       };
     });
-    client.messageEmitter.on("onTrackRemoved", (ctx) => {
+    client.on("onTrackRemoved", (ctx) => {
       setStore(onTrackRemoved(ctx));
     });
-    client.messageEmitter.on("onTrackUpdated", (ctx) => {
+    client.on("onTrackUpdated", (ctx) => {
       setStore(onTrackUpdated(ctx));
     });
-    client.messageEmitter.on("onBandwidthEstimationChanged", (estimation) => {
+    client.on("onBandwidthEstimationChanged", (estimation) => {
       setStore(onBandwidthEstimationChanged(estimation));
     });
-    client.messageEmitter.on(
+    client.on(
       "onTrackEncodingChanged",
       (peerId, trackId, encoding) => {
         setStore(onTrackEncodingChanged(peerId, trackId, encoding));
       }
     );
     // todo handle state
-    client.messageEmitter.on(
+    client.on(
       "onTracksPriorityChanged",
       (enabledTracks, disabledTracks) => {
         setStore(onTracksPriorityChanged(enabledTracks, disabledTracks));

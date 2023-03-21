@@ -55,7 +55,7 @@ export const { useConnect, useSelector } = createNoContextMembraneClient<PeerMet
 
 const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
-client.messageEmitter.on("onJoinSuccess", (_peerId, peersInRoom) => {
+client.on("onJoinSuccess", (_peerId, peersInRoom) => {
   console.log("Join success!");
   const template = document.querySelector("#remote-peer-template-card")!;
   const remotePeers = document.querySelector("#remote-peers")!;
@@ -72,9 +72,9 @@ client.messageEmitter.on("onJoinSuccess", (_peerId, peersInRoom) => {
     remotePeers.appendChild(clone);
   });
 });
-client.messageEmitter.on("onJoinError", (_metadata) => {});
-client.messageEmitter.on("onRemoved", (_reason) => {});
-client.messageEmitter.on("onPeerJoined", (peer) => {
+client.on("onJoinError", (_metadata) => {});
+client.on("onRemoved", (_reason) => {});
+client.on("onPeerJoined", (peer) => {
   console.log("Join success!");
   const template = document.querySelector("#remote-peer-template-card")!;
   const remotePeers = document.querySelector("#remote-peers")!;
@@ -89,9 +89,9 @@ client.messageEmitter.on("onPeerJoined", (peer) => {
 
   remotePeers.appendChild(clone);
 });
-client.messageEmitter.on("onPeerUpdated", (_peer) => {});
-client.messageEmitter.on("onPeerLeft", (_peer) => {});
-client.messageEmitter.on("onTrackReady", (ctx) => {
+client.on("onPeerUpdated", (_peer) => {});
+client.on("onPeerLeft", (_peer) => {});
+client.on("onTrackReady", (ctx) => {
   console.log("On track ready");
   const peerId = ctx.peer.id;
   const peerComponent = document.querySelector(`div[data-peer-id="${peerId}"`)!;
@@ -101,7 +101,7 @@ client.messageEmitter.on("onTrackReady", (ctx) => {
   videoPlayer.play();
   console.log(peerComponent);
 });
-client.messageEmitter.on("onTrackAdded", (ctx) => {
+client.on("onTrackAdded", (ctx) => {
   const prevOnEncodingChanged = ctx.onEncodingChanged;
   const prevOnVoiceActivityChanged = ctx.onVoiceActivityChanged;
 
@@ -113,11 +113,11 @@ client.messageEmitter.on("onTrackAdded", (ctx) => {
     prevOnVoiceActivityChanged?.call(ctx);
   };
 });
-client.messageEmitter.on("onTrackRemoved", (_ctx) => {});
-client.messageEmitter.on("onTrackUpdated", (_ctx) => {});
-client.messageEmitter.on("onBandwidthEstimationChanged", (_estimation) => {});
-client.messageEmitter.on("onTrackEncodingChanged", (_peerId, _trackId, _encoding) => {});
-client.messageEmitter.on("onTracksPriorityChanged", (_enabledTracks, _disabledTracks) => {});
+client.on("onTrackRemoved", (_ctx) => {});
+client.on("onTrackUpdated", (_ctx) => {});
+client.on("onBandwidthEstimationChanged", (_estimation) => {});
+client.on("onTrackEncodingChanged", (_peerId, _trackId, _encoding) => {});
+client.on("onTracksPriorityChanged", (_enabledTracks, _disabledTracks) => {});
 
 connectButton.addEventListener("click", () => {
   console.log("Connect");
