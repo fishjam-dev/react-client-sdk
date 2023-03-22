@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { createNoContextMembraneClient } from "../../../../src/externalState";
-import { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
+import { useState } from "react";
+import { createNoContextMembraneClient, DEFAULT_MEMBRANE_CLIENT_CONFIG } from "../../../../src/externalState";
+import type { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
 import { useLocalStorageState } from "./LogSelector";
-import { StreamInfo } from "./VideoDeviceSelector";
+import type { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
-import { ServerRoomSdk } from "../utils/ServerSdk";
 
 type ClientProps = {
   roomId: string;
@@ -20,7 +19,7 @@ type ClientProps = {
 type Disconnect = null | (() => void);
 
 export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStream, remove }: ClientProps) => {
-  const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>());
+  const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>(DEFAULT_MEMBRANE_CLIENT_CONFIG));
   const connect = client.useConnect();
   const [disconnect, setDisconnect] = useState<Disconnect>(() => null);
   const fullState = client.useSelector((snapshot) => ({

@@ -17,10 +17,13 @@ export type CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> = {
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
 };
 
-export const createNoContextMembraneClient = <PeerMetadata, TrackMetadata>(): CreateNoContextJellyfishClient<
-  PeerMetadata,
-  TrackMetadata
-> => {
+export type MembraneClientConfig = {
+  isEqual: (a: any, b: any) => boolean;
+};
+
+export const createNoContextMembraneClient = <PeerMetadata, TrackMetadata>(
+  config: MembraneClientConfig
+): CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> => {
   const store: ExternalState<PeerMetadata, TrackMetadata> = createStore<PeerMetadata, TrackMetadata>();
 
   return {
@@ -30,7 +33,7 @@ export const createNoContextMembraneClient = <PeerMetadata, TrackMetadata>(): Cr
       }, []);
     },
     useSelector: <Result,>(selector: Selector<PeerMetadata, TrackMetadata, Result>): Result => {
-      return useSelector(store, selector);
+      return useSelector(store, selector, config.isEqual);
     },
   };
 };
