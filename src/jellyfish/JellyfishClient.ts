@@ -5,8 +5,9 @@ import { EventEmitter } from "events";
 import { Callbacks } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
 
 type MessageEvents = Omit<Callbacks, "onSendMediaEvent"> & {
-  onClose: (event: CloseEvent) => void;
-  onError: (event: Event) => void;
+  onSocketClose: (event: CloseEvent) => void;
+  onSocketError: (event: Event) => void;
+  onSocketOpen: (event: Event) => void;
 };
 
 export type ConnectConfig = {
@@ -35,13 +36,17 @@ export class JellyfishClient<
     // const websocketUrl = config?.websocketUrl ?? "/socket";
 
     this.websocket = new WebSocket(`ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`);
+    this.websocket.addEventListener("open", (event) => {
+      console.log("websocket open", event);
+      this.emit("onSocketOpen", event);
+    });
     this.websocket.addEventListener("error", (event) => {
-      console.log("error", event);
-      this.emit("onError", event);
+      console.log("websocket error", event);
+      this.emit("onSocketError", event);
     });
     this.websocket.addEventListener("close", (event) => {
-      console.log("close", event);
-      this.emit("onClose", event);
+      console.log("websocket close", event);
+      this.emit("onSocketClose", event);
     });
 
     // client
@@ -83,8 +88,7 @@ export class JellyfishClient<
       },
 
       onConnectionError: (message) => {
-        console.log("%conConnectionError", "color: pink");
-        return;
+        this.emit("onConnectionError", message);
       },
 
       // todo [Peer] -> Peer[] ???

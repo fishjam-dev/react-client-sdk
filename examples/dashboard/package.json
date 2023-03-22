@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@jellyfish-dev/membrane-webrtc-js": "^0.4.5",
     "axios": "^1.3.4",
     "daisyui": "^2.51.3",
     "events": "^3.3.0",
@@ -18,6 +17,7 @@
     "phoenix": "^1.6.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.0",
     "vite-plugin-mkcert": "^1.13.3"
   },
   "devDependencies": {
