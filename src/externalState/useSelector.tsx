@@ -8,10 +8,10 @@ const EMPTY_FUNCTION = () => undefined;
 export const useSelector = <Result, PeerMetadata, TrackMetadata>(
   store: ExternalState<PeerMetadata, TrackMetadata>,
   selector: Selector<PeerMetadata, TrackMetadata, Result>,
-  isEqual: (a: unknown, b: unknown) => boolean
+  isEqual?: (a: unknown, b: unknown) => boolean
 ): Result => {
   const cachedSelector: Selector<PeerMetadata, TrackMetadata, Result> = useMemo(
-    () => cache(isEqual, selector),
+    () => cache(isEqual ?? Object.is, selector),
     [selector]
   );
 
