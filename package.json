@@ -40,7 +40,7 @@
     "prepare": "rimraf dist && tsc"
   },
   "devDependencies": {
-    "@jellyfish-dev/membrane-webrtc-js": "^0.4.5",
+    "@jellyfish-dev/membrane-webrtc-js": "github:jellyfish-dev/membrane-webrtc-js#Change-client-to-extend-event-emitter",
     "@types/events": "^3.0.0",
     "@types/lodash.isequal": "^4.5.6",
     "@types/phoenix": "^1.5.5",

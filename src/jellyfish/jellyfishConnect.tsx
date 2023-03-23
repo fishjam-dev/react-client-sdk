@@ -105,6 +105,7 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
           webrtc: client.webrtc,
           websocket: client.websocket,
           signaling: client.signaling,
+          client: client,
         },
       };
     });

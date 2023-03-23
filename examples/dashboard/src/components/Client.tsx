@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { createNoContextMembraneClient } from "../../../../src/externalState";
-import { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
+import type { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
 import { useLocalStorageState } from "./LogSelector";
-import { StreamInfo } from "./VideoDeviceSelector";
+import type { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
+import { Toaster } from "react-hot-toast";
+import { showToastError } from "./Toasts";
 
 type ClientProps = {
   roomId: string;
@@ -20,6 +22,7 @@ type Disconnect = null | (() => void);
 
 export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStream, remove }: ClientProps) => {
   const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>());
+
   const connect = client.useConnect();
   const [disconnect, setDisconnect] = useState<Disconnect>(() => null);
   const fullState = client.useSelector((snapshot) => ({
@@ -29,6 +32,8 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
     status: snapshot.status,
   }));
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
+  const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
+
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
 
   const [trackId, setTrackId] = useState<null | string>(null);
@@ -36,8 +41,34 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
   const isThereAnyTrack =
     Object.values(fullState?.remote || {}).flatMap(({ tracks }) => Object.values(tracks)).length > 0;
 
+  useEffect(() => {
+    const onSocketError = () => {
+      console.log("onSocketError");
+      showToastError("Socket error occurred");
+    };
+    jellyfishClient?.on("onSocketError", onSocketError);
+
+    const onConnectionError = (message: string) => {
+      console.log("onConnectionError");
+      showToastError(`Connection error occurred. ${message ?? ""}`);
+    };
+    jellyfishClient?.on("onConnectionError", onConnectionError);
+
+    const onJoinError = () => {
+      console.log("onJoinError");
+      showToastError("Failed to join the room");
+    };
+
+    return () => {
+      jellyfishClient?.off("onSocketError", onSocketError);
+      jellyfishClient?.off("onConnectionError", onConnectionError);
+      jellyfishClient?.off("onJoinError", onJoinError);
+    };
+  }, [jellyfishClient]);
+
   return (
     <div className="card w-150 bg-base-100 shadow-xl m-2 indicator">
+      <Toaster />
       <CloseButton
         onClick={() => {
           remove(roomId);

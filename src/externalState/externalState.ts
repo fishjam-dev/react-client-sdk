@@ -21,6 +21,7 @@ export const DEFAULT_STORE = {
     socket: null,
     connect: null,
     websocket: null,
+    client: null,
   },
 };
 

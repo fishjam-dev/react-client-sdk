@@ -2,6 +2,7 @@ import type { MembraneWebRTC, TrackEncoding } from "@jellyfish-dev/membrane-webr
 import type { Channel, Socket } from "phoenix";
 import type { Api } from "./api";
 import { VadStatus } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
+import { JellyfishClient } from "./jellyfish/JellyfishClient";
 
 export type TrackId = string;
 export type PeerId = string;
@@ -34,6 +35,7 @@ export type Connectivity<PeerMetadata, TrackMetadata> = {
   websocket: WebSocket | null;
   api: Api<TrackMetadata> | null;
   connect: ((roomId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean) => () => void) | null;
+  client: JellyfishClient<PeerMetadata, TrackMetadata> | null;
 };
 
 export type State<PeerMetadata, TrackMetadata> = {
