@@ -6,7 +6,6 @@ import { JsonComponent } from "./JsonComponent";
 import { useLocalStorageState } from "./LogSelector";
 import { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
-import { ServerRoomSdk } from "../utils/ServerSdk";
 
 type ClientProps = {
   roomId: string;
@@ -32,7 +31,6 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
 
-  const mockStream = selectedVideoStream;
   const [trackId, setTrackId] = useState<null | string>(null);
 
   const isThereAnyTrack =
@@ -94,10 +92,10 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
             {trackId === null ? (
               <button
                 className="btn btn-sm btn-success m-2"
-                disabled={fullState.status !== "connected"}
+                disabled={fullState.status !== "connected" || !selectedVideoStream?.stream}
                 onClick={() => {
-                  const track = mockStream?.stream?.getVideoTracks()?.[0];
-                  const stream = mockStream?.stream;
+                  const track = selectedVideoStream?.stream?.getVideoTracks()?.[0];
+                  const stream = selectedVideoStream?.stream;
                   if (!stream || !track) return;
                   const trackId = api?.addTrack(track, stream, {
                     type: "camera",
