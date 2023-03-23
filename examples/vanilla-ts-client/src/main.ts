@@ -2,8 +2,8 @@ import "./style.css";
 import { createNoContextMembraneClient } from "../../../src/externalState";
 import { JellyfishClient } from "../../../src/jellyfish/JellyfishClient";
 import { createStream } from "./createMockStream";
-import { enumerateDevices } from "../../../src/navigator/enumerateDevices";
-import { getUserMedia } from "../../../src/navigator/getUserMedia";
+import { enumerateDevices } from "../../../src/navigator";
+import { getUserMedia } from "../../../src/navigator";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 
 const roomIdInput = document.querySelector<HTMLInputElement>("#room-id-input")!;
@@ -15,8 +15,6 @@ const addTrackButton = document.querySelector<HTMLButtonElement>("#add-track-btn
 const removeTrackButton = document.querySelector<HTMLButtonElement>("#remove-track-btn")!;
 const localVideo = document.querySelector<HTMLVideoElement>("#local-track-video")!;
 const enumerateDevicesButton = document.querySelector<HTMLVideoElement>("#enumerate-devices-btn")!;
-// const refreshButton = document.querySelector<HTMLVideoElement>("#refresh-code-btn")!;
-// const clientStateCode = document.querySelector<HTMLVideoElement>("#client-state-id")!;
 
 const stream = createStream("🧪", "black", 24).stream;
 localVideo.srcObject = stream;
@@ -101,6 +99,7 @@ client.on("onTrackReady", (ctx) => {
   videoPlayer.play();
   console.log(peerComponent);
 });
+
 client.on("onTrackAdded", (ctx) => {
   const prevOnEncodingChanged = ctx.onEncodingChanged;
   const prevOnVoiceActivityChanged = ctx.onVoiceActivityChanged;
@@ -113,6 +112,7 @@ client.on("onTrackAdded", (ctx) => {
     prevOnVoiceActivityChanged?.call(ctx);
   };
 });
+
 client.on("onTrackRemoved", (_ctx) => {});
 client.on("onTrackUpdated", (_ctx) => {});
 client.on("onBandwidthEstimationChanged", (_estimation) => {});
@@ -129,7 +129,7 @@ disconnectButton.addEventListener("click", () => {
   client.cleanUp();
 });
 
-addTrackButton.addEventListener("click", () => {
+const addTrack = (stream: MediaStream) => {
   console.log("Add track");
   const trackMetadata: TrackMetadata = {
     type: "camera",
@@ -137,12 +137,20 @@ addTrackButton.addEventListener("click", () => {
   };
   const track = stream.getVideoTracks()[0];
   remoteTrakcId = client.webrtc?.addTrack(track, stream, trackMetadata) || null;
-});
+};
 
-removeTrackButton.addEventListener("click", () => {
+const removeTrack = () => {
   console.log("Remove track");
   remoteTrakcId && client.webrtc?.removeTrack(remoteTrakcId);
   remoteTrakcId = null;
+};
+
+addTrackButton.addEventListener("click", () => {
+  addTrack(stream);
+});
+
+removeTrackButton.addEventListener("click", () => {
+  removeTrack();
 });
 
 enumerateDevicesButton.addEventListener("click", () => {
@@ -177,13 +185,17 @@ enumerateDevicesButton.addEventListener("click", () => {
         videoPlayer.srcObject = null;
       });
 
+      clone.querySelector(".add-track-template-btn").addEventListener("click", () => {
+        if (!videoPlayer.srcObject) return;
+
+        addTrack(videoPlayer.srcObject);
+      });
+
+      clone.querySelector(".remove-track-template-btn").addEventListener("click", () => {
+        removeTrack();
+      });
+
       videoPlayers.appendChild(clone);
-      //
     });
   });
 });
-
-// refreshButton.addEventListener("click", () => {
-//   // clientStateCode.innerHTML = client.webrtc.
-// });
-//

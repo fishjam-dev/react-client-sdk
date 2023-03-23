@@ -37,7 +37,7 @@ export const useLocalStorageStateString = (name: string): [string | null, (newVa
 
 export const LogSelector = () => {
   return (
-    <div className="card w-96 bg-base-100 shadow-xl flex flex-col m-2">
+    <div className="card bg-base-100 shadow-xl flex flex-col m-2">
       <div className="card-body mt-4">
         <PersistentInput name="onJoinSuccess" />
         <PersistentInput name="onJoinError" />

@@ -36,7 +36,6 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
 
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
 
-  const mockStream = selectedVideoStream;
   const [trackId, setTrackId] = useState<null | string>(null);
 
   const isThereAnyTrack =
@@ -124,10 +123,10 @@ export const Client = ({ roomId, peerId, name, refetchIfNeeded, selectedVideoStr
             {trackId === null ? (
               <button
                 className="btn btn-sm btn-success m-2"
-                disabled={fullState.status !== "connected"}
+                disabled={fullState.status !== "connected" || !selectedVideoStream?.stream}
                 onClick={() => {
-                  const track = mockStream?.stream?.getVideoTracks()?.[0];
-                  const stream = mockStream?.stream;
+                  const track = selectedVideoStream?.stream?.getVideoTracks()?.[0];
+                  const stream = selectedVideoStream?.stream;
                   if (!stream || !track) return;
                   const trackId = api?.addTrack(track, stream, {
                     type: "camera",

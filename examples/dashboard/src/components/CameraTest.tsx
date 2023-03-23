@@ -12,7 +12,7 @@ const getDefaultValue = (lastSelectedDeviceId: string | null, devices: any) => {
   return result;
 };
 
-export const AutostartVideo = () => {
+export const CameraTest = () => {
   const [autostartDeviceManager, setAutostartDeviceManager] = useLocalStorageState("AUTOSTART-DEVICE-MANAGER");
   const [enumerateDevicesState, setEnumerateDevicesState] = useState<EnumerateDevices | null>(null);
   const [autostartVideo, setAutostartVideo] = useLocalStorageState("AUTOSTART-VIDEO");

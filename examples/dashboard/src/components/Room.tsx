@@ -43,9 +43,9 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
   };
 
   return (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col items-start mr-4">
       <div className="flex flex-col w-full border-opacity-50 m-2">
-        <div className="divider">Room: {roomId}</div>
+        <div className="divider p-2">Room: {roomId}</div>
       </div>
 
       <div className="flex flex-row items-start">
