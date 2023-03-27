@@ -1,5 +1,4 @@
-import type { MembraneWebRTC, TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
-import type { Channel, Socket } from "phoenix";
+import type { TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
 import type { Api } from "./api";
 import { VadStatus } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
 import { JellyfishClient } from "./jellyfish/JellyfishClient";
