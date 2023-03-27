@@ -1,5 +1,4 @@
 import "./style.css";
-import { createNoContextMembraneClient } from "../../../src/externalState";
 import { JellyfishClient } from "../../../src/jellyfish/JellyfishClient";
 import { createStream } from "./createMockStream";
 import { enumerateDevices } from "../../../src/navigator";
@@ -48,8 +47,6 @@ export type TrackMetadata = {
   type: TrackType;
   active: boolean;
 };
-
-export const { useConnect, useSelector } = createNoContextMembraneClient<PeerMetadata, TrackMetadata>();
 
 const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
@@ -101,16 +98,8 @@ client.on("onTrackReady", (ctx) => {
 });
 
 client.on("onTrackAdded", (ctx) => {
-  const prevOnEncodingChanged = ctx.onEncodingChanged;
-  const prevOnVoiceActivityChanged = ctx.onVoiceActivityChanged;
-
-  ctx.onEncodingChanged = () => {
-    prevOnEncodingChanged?.call(ctx);
-  };
-
-  ctx.onVoiceActivityChanged = () => {
-    prevOnVoiceActivityChanged?.call(ctx);
-  };
+  ctx.on("onEncodingChanged", () => {});
+  ctx.on("onVoiceActivityChanged", () => {});
 });
 
 client.on("onTrackRemoved", (_ctx) => {});
