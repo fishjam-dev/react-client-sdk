@@ -7,6 +7,7 @@ import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 
 const roomIdInput = document.querySelector<HTMLInputElement>("#room-id-input")!;
 const peerIdInput = document.querySelector<HTMLInputElement>("#peer-id-input")!;
+const peerTokenInput = document.querySelector<HTMLInputElement>("#peer-token-input")!;
 const peerNameInput = document.querySelector<HTMLInputElement>("#peer-name-input")!;
 const connectButton = document.querySelector<HTMLButtonElement>("#connect-btn")!;
 const disconnectButton = document.querySelector<HTMLButtonElement>("#disconnect-btn")!;
@@ -20,22 +21,31 @@ localVideo.srcObject = stream;
 let remoteTrakcId: string | null = null;
 localVideo.play();
 
-const ROOM_ID_LOCAL_STORAGE_ID = "roomId";
-const PEER_ID_LOCAL_STORAGE_ID = "peerId";
-const PEER_NAME_LOCAL_STORAGE_ID = "peerName";
-roomIdInput.value = localStorage.getItem(ROOM_ID_LOCAL_STORAGE_ID) || "";
-peerIdInput.value = localStorage.getItem(PEER_ID_LOCAL_STORAGE_ID) || "";
-peerNameInput.value = localStorage.getItem(PEER_NAME_LOCAL_STORAGE_ID) || "";
+const LOCAL_STORAGE_KEY = {
+  ROOM_ID: "roomId",
+  PEER_ID: "peerId",
+  PEER_TOKEN: "peerToken",
+  PEER_NAME: "peerName",
+} as const;
 
-roomIdInput.addEventListener("input", (event: any) => {
-  localStorage.setItem(ROOM_ID_LOCAL_STORAGE_ID, event.target.value);
-});
-peerIdInput.addEventListener("input", (event: any) => {
-  localStorage.setItem(PEER_ID_LOCAL_STORAGE_ID, event.target.value);
-});
-peerNameInput.addEventListener("input", (event: any) => {
-  localStorage.setItem(PEER_NAME_LOCAL_STORAGE_ID, event.target.value);
-});
+const keyInputMap = {
+  [LOCAL_STORAGE_KEY.ROOM_ID]: roomIdInput,
+  [LOCAL_STORAGE_KEY.PEER_ID]: peerIdInput,
+  [LOCAL_STORAGE_KEY.PEER_TOKEN]: peerTokenInput,
+  [LOCAL_STORAGE_KEY.PEER_NAME]: peerNameInput,
+} as const;
+
+(function bindLocalStorageToInputs() {
+  for (const property in LOCAL_STORAGE_KEY) {
+    const key = property as keyof typeof LOCAL_STORAGE_KEY;
+    const input = keyInputMap[LOCAL_STORAGE_KEY[key]];
+    input.value = localStorage.getItem(LOCAL_STORAGE_KEY[key]) || "";
+    input.addEventListener("input", (event: any) => {
+      localStorage.setItem(LOCAL_STORAGE_KEY[key], event.target.value);
+    });
+  }
+})();
+
 
 const TrackTypeValues = ["screensharing", "camera", "audio"] as const;
 export type TrackType = (typeof TrackTypeValues)[number];
@@ -67,8 +77,8 @@ client.on("onJoinSuccess", (_peerId, peersInRoom) => {
     remotePeers.appendChild(clone);
   });
 });
-client.on("onJoinError", (_metadata) => {});
-client.on("onRemoved", (_reason) => {});
+client.on("onJoinError", (_metadata) => { });
+client.on("onRemoved", (_reason) => { });
 client.on("onPeerJoined", (peer) => {
   console.log("Join success!");
   const template = document.querySelector("#remote-peer-template-card")!;
@@ -84,8 +94,8 @@ client.on("onPeerJoined", (peer) => {
 
   remotePeers.appendChild(clone);
 });
-client.on("onPeerUpdated", (_peer) => {});
-client.on("onPeerLeft", (_peer) => {});
+client.on("onPeerUpdated", (_peer) => { });
+client.on("onPeerLeft", (_peer) => { });
 client.on("onTrackReady", (ctx) => {
   console.log("On track ready");
   const peerId = ctx.peer.id;
@@ -98,19 +108,19 @@ client.on("onTrackReady", (ctx) => {
 });
 
 client.on("onTrackAdded", (ctx) => {
-  ctx.on("onEncodingChanged", () => {});
-  ctx.on("onVoiceActivityChanged", () => {});
+  ctx.on("onEncodingChanged", () => { });
+  ctx.on("onVoiceActivityChanged", () => { });
 });
 
-client.on("onTrackRemoved", (_ctx) => {});
-client.on("onTrackUpdated", (_ctx) => {});
-client.on("onBandwidthEstimationChanged", (_estimation) => {});
-client.on("onTrackEncodingChanged", (_peerId, _trackId, _encoding) => {});
-client.on("onTracksPriorityChanged", (_enabledTracks, _disabledTracks) => {});
+client.on("onTrackRemoved", (_ctx) => { });
+client.on("onTrackUpdated", (_ctx) => { });
+client.on("onBandwidthEstimationChanged", (_estimation) => { });
+client.on("onTrackEncodingChanged", (_peerId, _trackId, _encoding) => { });
+client.on("onTracksPriorityChanged", (_enabledTracks, _disabledTracks) => { });
 
 connectButton.addEventListener("click", () => {
   console.log("Connect");
-  client.connect(roomIdInput.value, peerIdInput.value, { name: peerNameInput.value || "" }, false);
+  client.connect({ roomId: roomIdInput.value, peerId: peerIdInput.value, peerMetadata: { name: peerNameInput.value || "" }, isSimulcastOn: false, useAuth: peerTokenInput.value !== "", token: peerTokenInput.value })
 });
 
 disconnectButton.addEventListener("click", () => {
