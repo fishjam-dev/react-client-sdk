@@ -64,13 +64,13 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
       const prevOnVoiceActivityChanged = ctx.onVoiceActivityChanged;
 
       ctx.onEncodingChanged = () => {
-        prevOnEncodingChanged?.call(ctx);
+        // prevOnEncodingChanged?.call(ctx);
 
         setStore(onEncodingChanged(ctx));
       };
 
       ctx.onVoiceActivityChanged = () => {
-        prevOnVoiceActivityChanged?.call(ctx);
+        // prevOnVoiceActivityChanged?.call(ctx);
 
         setStore(onVoiceActivityChanged(ctx));
       };
