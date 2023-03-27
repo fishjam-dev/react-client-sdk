@@ -25,14 +25,9 @@ export class JellyfishClient<
   PeerMetadata,
   TrackMetadata
 > extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
-  // for backward compatibility with videoroom: TODO remove
-  socket: Socket | null = null;
-  websocket: WebSocket | null = null;
-  // for backward compatibility with videoroom: TODO remove
-  signaling: Channel | null = null;
+  private websocket: WebSocket | null = null;
+  private signaling: Channel | null = null;
   webrtc: MembraneWebRTC | null = null;
-  socketOnCloseRef: MessageRef | null = null;
-  socketOnErrorRef: MessageRef | null = null;
 
   constructor() {
     super();
@@ -41,15 +36,15 @@ export class JellyfishClient<
   connect(roomId: string, peerId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean, config?: ConnectConfig) {
     this.websocket = new WebSocket(`ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`);
     this.websocket.addEventListener("open", (event) => {
-      console.log("websocket open", event);
+      // console.log("websocket open", event);
       this.emit("onSocketOpen", event);
     });
     this.websocket.addEventListener("error", (event) => {
-      console.log("websocket error", event);
+      // console.log("websocket error", event);
       this.emit("onSocketError", event);
     });
     this.websocket.addEventListener("close", (event) => {
-      console.log("websocket close", event);
+      // console.log("websocket close", event);
       this.emit("onSocketClose", event);
     });
 
@@ -72,7 +67,6 @@ export class JellyfishClient<
     //   return;
     // });
 
-    const includeOnTrackEncodingChanged = !config?.disableDeprecated;
 
     this.webrtc = new MembraneWebRTC();
 
@@ -166,8 +160,8 @@ export class JellyfishClient<
     });
   }
 
-  private setupCallbacks2() {
-    const callbacks: Omit<Required<Callbacks>, "onSendMediaEvent"> = this.createCallbacks();
+  private setupCallbacks2(config?: ConnectConfig) {
+    const callbacks: Omit<Required<Callbacks>, "onSendMediaEvent"> = this.createCallbacks(config);
     let keyCallback: keyof typeof callbacks;
     for (keyCallback in callbacks) {
       const callback = callbacks[keyCallback];
@@ -175,7 +169,9 @@ export class JellyfishClient<
     }
   }
 
-  private createCallbacks(): Omit<Required<Callbacks>, "onSendMediaEvent"> {
+  private createCallbacks(config?: ConnectConfig): Omit<Required<Callbacks>, "onSendMediaEvent"> {
+    const includeOnTrackEncodingChanged = !config?.disableDeprecated;
+
     return {
       onConnectionError: (message) => {
         this.emit("onConnectionError", message);

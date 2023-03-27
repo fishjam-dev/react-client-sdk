@@ -29,10 +29,6 @@ export type Peer<PeerMetadata, TrackMetadata> = {
 };
 
 export type Connectivity<PeerMetadata, TrackMetadata> = {
-  socket: Socket | null;
-  signaling: Channel | null;
-  webrtc: MembraneWebRTC | null;
-  websocket: WebSocket | null;
   api: Api<TrackMetadata> | null;
   connect: ((roomId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean) => () => void) | null;
   client: JellyfishClient<PeerMetadata, TrackMetadata> | null;

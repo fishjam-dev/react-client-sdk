@@ -48,16 +48,16 @@ export const addLogging = <PeerMetadata, TrackMetadata>(client: JellyfishClient<
     if (getBooleanValue("onTrackAdded")) {
       console.log({ name: "onTrackAdded", ctx });
     }
-    ctx.onEncodingChanged = () => {
+    ctx.on("onEncodingChanged", (context) => {
       if (getBooleanValue("onEncodingChanged")) {
-        console.log({ name: "onEncodingChanged", ctx });
+        console.log({ name: "onEncodingChanged", context });
       }
-    };
-    ctx.onVoiceActivityChanged = () => {
+    });
+    ctx.on("onVoiceActivityChanged", (context) => {
       if (getBooleanValue("onVoiceActivityChanged")) {
-        console.log({ name: "onVoiceActivityChanged", ctx });
+        console.log({ name: "onVoiceActivityChanged", context });
       }
-    };
+    });
   });
   client.on("onTrackRemoved", (ctx) => {
     if (getBooleanValue("onTrackRemoved")) {

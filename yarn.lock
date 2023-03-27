@@ -37,7 +37,7 @@
   "version" "1.2.1"
 
 "@jellyfish-dev/membrane-webrtc-js@github:jellyfish-dev/membrane-webrtc-js#Change-client-to-extend-event-emitter":
-  "resolved" "git+ssh://git@github.com/jellyfish-dev/membrane-webrtc-js.git#f7d2b31ee35455062847972c3452a19f21d312ce"
+  "resolved" "git+ssh://git@github.com/jellyfish-dev/membrane-webrtc-js.git#8ac66325823e0526f19353aa4fd3f2adec5f987f"
   "version" "0.4.5"
   dependencies:
     "events" "^3.3.0"

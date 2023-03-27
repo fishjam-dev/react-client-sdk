@@ -9,18 +9,14 @@ export type ExternalState<PeerMetadata, TrackMetadata> = {
 export type Subscribe = (onStoreChange: () => void) => () => void;
 export type Listener = () => void;
 
-export const DEFAULT_STORE = {
+export const DEFAULT_STORE: State<any, any> = {
   local: null,
   remote: {},
   status: null,
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
   connectivity: {
     api: null,
-    webrtc: null,
-    signaling: null,
-    socket: null,
     connect: null,
-    websocket: null,
     client: null,
   },
 };

@@ -52,6 +52,7 @@ export const LogSelector = () => {
         <PersistentInput name="onTrackEncodingChanged" />
         <PersistentInput name="onTracksPriorityChanged" />
         <PersistentInput name="onBandwidthEstimationChanged" />
+        <PersistentInput name="onEncodingChanged" />
       </div>
     </div>
   );

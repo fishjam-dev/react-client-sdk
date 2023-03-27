@@ -1,8 +1,8 @@
 import React, { useContext, useMemo, useState } from "react";
 import type { State, Selector } from "./state.types";
 import { DEFAULT_STORE } from "./externalState/externalState";
-import { connect } from "./jellyfish/jellyfishConnect";
 import { ConnectConfig } from "./jellyfish/JellyfishClient";
+import { connect } from "./connect";
 
 type Props = {
   children: React.ReactNode;
