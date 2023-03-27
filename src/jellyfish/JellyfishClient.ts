@@ -1,8 +1,14 @@
 import { Channel, MessageRef, Socket } from "phoenix";
-import { MembraneWebRTC, Peer, SerializedMediaEvent, TrackContext } from "@jellyfish-dev/membrane-webrtc-js";
+import {
+  Callbacks,
+  MembraneWebRTC,
+  Peer,
+  SerializedMediaEvent,
+  TrackContext,
+} from "@jellyfish-dev/membrane-webrtc-js";
+
 import TypedEmitter from "typed-emitter";
 import { EventEmitter } from "events";
-import { Callbacks } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
 
 type MessageEvents = Omit<Callbacks, "onSendMediaEvent"> & {
   onSocketClose: (event: CloseEvent) => void;
@@ -33,8 +39,6 @@ export class JellyfishClient<
   }
 
   connect(roomId: string, peerId: string, peerMetadata: PeerMetadata, isSimulcastOn: boolean, config?: ConnectConfig) {
-    // const websocketUrl = config?.websocketUrl ?? "/socket";
-
     this.websocket = new WebSocket(`ws://localhost:4000/socket/websocket?peer_id=${peerId}&room_id=${roomId}`);
     this.websocket.addEventListener("open", (event) => {
       console.log("websocket open", event);
@@ -70,91 +74,10 @@ export class JellyfishClient<
 
     const includeOnTrackEncodingChanged = !config?.disableDeprecated;
 
-    const callbacks: Callbacks = {
-      onSendMediaEvent: (mediaEvent: SerializedMediaEvent) => {
-        const messageJS = {
-          type: "mediaEvent",
-          data: mediaEvent,
-        };
-        const message = JSON.stringify(messageJS);
-        // console.log("%cTO_ENGINE", "color: blue");
-        // console.log({
-        //   mediaEvent: JSON.parse(mediaEvent),
-        //   message: messageJS,
-        //   toSend: message,
-        // });
-        this.websocket?.send(message);
-        // this.signaling?.push("mediaEvent", { data: mediaEvent });
-      },
-
-      onConnectionError: (message) => {
-        this.emit("onConnectionError", message);
-      },
-
-      // todo [Peer] -> Peer[] ???
-      onJoinSuccess: (peerId, peersInRoom: [Peer]) => {
-        this.emit("onJoinSuccess", peerId, peersInRoom);
-      },
-
-      onRemoved: (reason) => {
-        this.emit("onRemoved", reason);
-      },
-
-      onPeerJoined: (peer) => {
-        this.emit("onPeerJoined", peer);
-      },
-
-      onPeerLeft: (peer) => {
-        this.emit("onPeerLeft", peer);
-      },
-
-      onPeerUpdated: (peer: Peer) => {
-        this.emit("onPeerUpdated", peer);
-      },
-
-      onTrackReady: (ctx) => {
-        this.emit("onTrackReady", ctx);
-      },
-
-      onTrackAdded: (ctx) => {
-        this.emit("onTrackAdded", ctx);
-      },
-
-      onTrackRemoved: (ctx) => {
-        this.emit("onTrackRemoved", ctx);
-      },
-
-      onTrackUpdated: (ctx: TrackContext) => {
-        this.emit("onTrackUpdated", ctx);
-      },
-
-      onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
-        this.emit("onTracksPriorityChanged", enabledTracks, disabledTracks);
-      },
-
-      onJoinError: (metadata) => {
-        this.emit("onJoinError", metadata);
-      },
-
-      onBandwidthEstimationChanged: (estimation) => {
-        this.emit("onBandwidthEstimationChanged", estimation);
-      },
-
-      ...(includeOnTrackEncodingChanged && {
-        onTrackEncodingChanged: (peerId, trackId, encoding) => {
-          this.emit("onTrackEncodingChanged", peerId, trackId, encoding);
-        },
-      }),
-    }
-
     this.webrtc = new MembraneWebRTC();
 
-    let keyCallback: keyof Callbacks;
-    for (keyCallback in callbacks) {
-      const callback = callbacks[keyCallback];
-      this.webrtc.on(keyCallback, callback);
-    }
-
+    this.setupCallbacks();
+    // this.setupCallbacks2();
 
     // this.signaling.on("mediaEvent", (event) => {
     //   this.webrtc?.receiveMediaEvent(event.data);
@@ -191,6 +114,116 @@ export class JellyfishClient<
     //     console.error("Received error status");
     //     console.error(response);
     //   });
+  }
+
+  private setupCallbacks() {
+    this.webrtc?.on("onSendMediaEvent", (mediaEvent: SerializedMediaEvent) => {
+      const messageJS = {
+        type: "mediaEvent",
+        data: mediaEvent,
+      };
+
+      const message = JSON.stringify(messageJS);
+      this.websocket?.send(message);
+    });
+
+    this.webrtc?.on("onConnectionError", (message) => this.emit("onConnectionError", message));
+    this.webrtc?.on("onJoinSuccess", (peerId, peersInRoom: [Peer]) => {
+      this.emit("onJoinSuccess", peerId, peersInRoom);
+    });
+    this.webrtc?.on("onRemoved", (reason) => {
+      this.emit("onRemoved", reason);
+    });
+    this.webrtc?.on("onPeerJoined", (peer) => {
+      this.emit("onPeerJoined", peer);
+    });
+    this.webrtc?.on("onPeerLeft", (peer) => {
+      this.emit("onPeerLeft", peer);
+    });
+    this.webrtc?.on("onPeerUpdated", (peer: Peer) => {
+      this.emit("onPeerUpdated", peer);
+    });
+    this.webrtc?.on("onTrackReady", (ctx: TrackContext) => {
+      this.emit("onTrackReady", ctx);
+    });
+    this.webrtc?.on("onTrackAdded", (ctx) => {
+      this.emit("onTrackAdded", ctx);
+    });
+    this.webrtc?.on("onTrackRemoved", (ctx) => {
+      this.emit("onTrackRemoved", ctx);
+    });
+    this.webrtc?.on("onTrackUpdated", (ctx: TrackContext) => {
+      this.emit("onTrackUpdated", ctx);
+    });
+    this.webrtc?.on("onTracksPriorityChanged", (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
+      this.emit("onTracksPriorityChanged", enabledTracks, disabledTracks);
+    });
+    this.webrtc?.on("onJoinError", (metadata) => {
+      this.emit("onJoinError", metadata);
+    });
+    this.webrtc?.on("onBandwidthEstimationChanged", (estimation) => {
+      this.emit("onBandwidthEstimationChanged", estimation);
+    });
+  }
+
+  private setupCallbacks2() {
+    const callbacks: Omit<Required<Callbacks>, "onSendMediaEvent"> = this.createCallbacks();
+    let keyCallback: keyof typeof callbacks;
+    for (keyCallback in callbacks) {
+      const callback = callbacks[keyCallback];
+      this.webrtc?.on(keyCallback, callback);
+    }
+  }
+
+  private createCallbacks(): Omit<Required<Callbacks>, "onSendMediaEvent"> {
+    return {
+      onConnectionError: (message) => {
+        this.emit("onConnectionError", message);
+      },
+      // todo [Peer] -> Peer[] ???
+      onJoinSuccess: (peerId, peersInRoom: [Peer]) => {
+        this.emit("onJoinSuccess", peerId, peersInRoom);
+      },
+      onRemoved: (reason) => {
+        this.emit("onRemoved", reason);
+      },
+      onPeerJoined: (peer) => {
+        this.emit("onPeerJoined", peer);
+      },
+      onPeerLeft: (peer) => {
+        this.emit("onPeerLeft", peer);
+      },
+      onPeerUpdated: (peer: Peer) => {
+        this.emit("onPeerUpdated", peer);
+      },
+      onTrackReady: (ctx) => {
+        this.emit("onTrackReady", ctx);
+      },
+      onTrackAdded: (ctx) => {
+        this.emit("onTrackAdded", ctx);
+      },
+      onTrackRemoved: (ctx) => {
+        this.emit("onTrackRemoved", ctx);
+      },
+      onTrackUpdated: (ctx: TrackContext) => {
+        this.emit("onTrackUpdated", ctx);
+      },
+      onTracksPriorityChanged: (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) => {
+        this.emit("onTracksPriorityChanged", enabledTracks, disabledTracks);
+      },
+      onJoinError: (metadata) => {
+        this.emit("onJoinError", metadata);
+      },
+      onBandwidthEstimationChanged: (estimation) => {
+        this.emit("onBandwidthEstimationChanged", estimation);
+      },
+
+      // ...(includeOnTrackEncodingChanged && {
+      onTrackEncodingChanged: (peerId, trackId, encoding) => {
+        this.emit("onTrackEncodingChanged", peerId, trackId, encoding);
+      },
+      // }),
+    };
   }
 
   cleanUp() {
