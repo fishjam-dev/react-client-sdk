@@ -35,16 +35,18 @@ const keyInputMap = {
   [LOCAL_STORAGE_KEY.PEER_NAME]: peerNameInput,
 } as const;
 
-(function bindLocalStorageToInputs() {
-  for (const property in LOCAL_STORAGE_KEY) {
-    const key = property as keyof typeof LOCAL_STORAGE_KEY;
-    const input = keyInputMap[LOCAL_STORAGE_KEY[key]];
-    input.value = localStorage.getItem(LOCAL_STORAGE_KEY[key]) || "";
-    input.addEventListener("input", (event: any) => {
-      localStorage.setItem(LOCAL_STORAGE_KEY[key], event.target.value);
-    });
-  }
-})();
+
+for (const property in LOCAL_STORAGE_KEY) {
+  const localStorageKey = property as keyof typeof LOCAL_STORAGE_KEY;
+  const input = keyInputMap[LOCAL_STORAGE_KEY[localStorageKey]];
+
+  input.value = localStorage.getItem(LOCAL_STORAGE_KEY[localStorageKey]) || "";
+  
+  input.addEventListener("input", (event: any) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY[localStorageKey], event.target.value);
+  });
+}
+
 
 
 const TrackTypeValues = ["screensharing", "camera", "audio"] as const;
