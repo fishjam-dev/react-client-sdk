@@ -21,32 +21,15 @@ localVideo.srcObject = stream;
 let remoteTrackId: string | null = null;
 localVideo.play();
 
-const LOCAL_STORAGE_KEY = {
-  ROOM_ID: "roomId",
-  PEER_ID: "peerId",
-  PEER_TOKEN: "peerToken",
-  PEER_NAME: "peerName",
-} as const;
+const inputArray = [roomIdInput, peerIdInput, peerTokenInput, peerNameInput];
 
-const keyInputMap = {
-  [LOCAL_STORAGE_KEY.ROOM_ID]: roomIdInput,
-  [LOCAL_STORAGE_KEY.PEER_ID]: peerIdInput,
-  [LOCAL_STORAGE_KEY.PEER_TOKEN]: peerTokenInput,
-  [LOCAL_STORAGE_KEY.PEER_NAME]: peerNameInput,
-} as const;
-
-
-for (const property in LOCAL_STORAGE_KEY) {
-  const localStorageKey = property as keyof typeof LOCAL_STORAGE_KEY;
-  const input = keyInputMap[LOCAL_STORAGE_KEY[localStorageKey]];
-
-  input.value = localStorage.getItem(LOCAL_STORAGE_KEY[localStorageKey]) || "";
+inputArray.forEach((input) => {
+  input.value = localStorage.getItem(input.id) || "";
 
   input.addEventListener("input", (event: any) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY[localStorageKey], event.target.value);
+    localStorage.setItem(input.id, event.target.value);
   });
-}
-
+});
 
 
 const TrackTypeValues = ["screensharing", "camera", "audio"] as const;
