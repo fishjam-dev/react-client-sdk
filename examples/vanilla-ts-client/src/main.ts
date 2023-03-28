@@ -18,7 +18,7 @@ const enumerateDevicesButton = document.querySelector<HTMLVideoElement>("#enumer
 
 const stream = createStream("🧪", "black", 24).stream;
 localVideo.srcObject = stream;
-let remoteTrakcId: string | null = null;
+let remoteTrackId: string | null = null;
 localVideo.play();
 
 const LOCAL_STORAGE_KEY = {
@@ -41,7 +41,7 @@ for (const property in LOCAL_STORAGE_KEY) {
   const input = keyInputMap[LOCAL_STORAGE_KEY[localStorageKey]];
 
   input.value = localStorage.getItem(LOCAL_STORAGE_KEY[localStorageKey]) || "";
-  
+
   input.addEventListener("input", (event: any) => {
     localStorage.setItem(LOCAL_STORAGE_KEY[localStorageKey], event.target.value);
   });
@@ -137,13 +137,13 @@ const addTrack = (stream: MediaStream) => {
     active: true,
   };
   const track = stream.getVideoTracks()[0];
-  remoteTrakcId = client.webrtc?.addTrack(track, stream, trackMetadata) || null;
+  remoteTrackId = client.webrtc?.addTrack(track, stream, trackMetadata) || null;
 };
 
 const removeTrack = () => {
   console.log("Remove track");
-  remoteTrakcId && client.webrtc?.removeTrack(remoteTrakcId);
-  remoteTrakcId = null;
+  remoteTrackId && client.webrtc?.removeTrack(remoteTrackId);
+  remoteTrackId = null;
 };
 
 addTrackButton.addEventListener("click", () => {
