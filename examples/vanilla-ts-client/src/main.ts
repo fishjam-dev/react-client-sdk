@@ -1,9 +1,11 @@
 import "./style.css";
-import { JellyfishClient } from "../../../src/jellyfish/JellyfishClient";
+
 import { createStream } from "./createMockStream";
-import { enumerateDevices } from "../../../src/navigator";
-import { getUserMedia } from "../../../src/navigator";
+
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
+import { JellyfishClient } from "@jellyfish-dev/jellyfish-react-client/jellyfish";
+import { enumerateDevices } from "@jellyfish-dev/jellyfish-react-client/navigator";
+import { getUserMedia } from "@jellyfish-dev/jellyfish-react-client/navigator";
 
 const roomIdInput = document.querySelector<HTMLInputElement>("#room-id-input")!;
 const peerIdInput = document.querySelector<HTMLInputElement>("#peer-id-input")!;
@@ -27,7 +29,7 @@ inputArray.forEach((input) => {
   input.value = localStorage.getItem(input.id) || "";
 
   input.addEventListener("input", (event: any) => {
-    localStorage.setItem(input.id, event.target.value);
+    localStorage.setItem(input.id, event.target?.value);
   });
 });
 

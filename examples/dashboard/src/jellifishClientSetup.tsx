@@ -1,4 +1,4 @@
-import { createNoContextMembraneClient } from "../../../src/externalState";
+import { createNoContextMembraneClient } from "@jellyfish-dev/jellyfish-react-client/dist/externalState";
 // import { createMembraneClient } from "membrane-react-webrtc-client";
 
 const TrackTypeValues = ["screensharing", "camera", "audio"] as const;
