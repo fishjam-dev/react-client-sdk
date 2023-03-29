@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
-import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "@jellyfish-dev/jellyfish-react-client/dist/jellyfish";
+import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "@jellyfish-dev/jellyfish-react-client/jellyfish";
 import type { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 import { client, REFETCH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";

@@ -25,9 +25,9 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./dist/navigator": "./dist/navigator/index.js",
-    "./dist/jellyfish": "./dist/jellyfish/index.js",
-    "./dist/externalState": "./dist/externalState/index.js"
+    "./navigator": "./dist/navigator/index.js",
+    "./jellyfish": "./dist/jellyfish/index.js",
+    "./externalState": "./dist/externalState/index.js"
   },
   "typesVersions": {
     "*": {

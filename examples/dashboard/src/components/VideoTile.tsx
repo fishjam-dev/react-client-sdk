@@ -1,4 +1,4 @@
-import { getUserMedia } from "@jellyfish-dev/jellyfish-react-client/dist/navigator";
+import { getUserMedia } from "@jellyfish-dev/jellyfish-react-client/navigator";
 import VideoPlayer from "./VideoPlayer";
 import React from "react";
 import { DeviceIdToStream, StreamInfo } from "./VideoDeviceSelector";

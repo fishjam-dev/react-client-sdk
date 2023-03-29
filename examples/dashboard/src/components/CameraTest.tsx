@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 import { JsonComponent } from "./JsonComponent";
-import { enumerateDevices, EnumerateDevices, useUserMediaById } from "@jellyfish-dev/jellyfish-react-client/dist/navigator";
+import { enumerateDevices, EnumerateDevices, useUserMediaById } from "@jellyfish-dev/jellyfish-react-client/navigator";
 
 // type IdToStream = Record<string, MediaStream>;
 
