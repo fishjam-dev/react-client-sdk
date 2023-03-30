@@ -4,13 +4,7 @@ import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector"
 import { JsonComponent } from "./JsonComponent";
 import { enumerateDevices, EnumerateDevices, useUserMediaById } from "@jellyfish-dev/jellyfish-react-client/navigator";
 
-// type IdToStream = Record<string, MediaStream>;
 
-// const getDefaultValue = (lastSelectedDeviceId: string | null, devices: any) => {
-//   const result = lastSelectedDeviceId && devices?.video?.devices ? lastSelectedDeviceId : "Select camera";
-//   console.log(result);
-//   return result;
-// };
 
 export const CameraTest = () => {
   const [autostartDeviceManager, setAutostartDeviceManager] = useLocalStorageState("AUTOSTART-DEVICE-MANAGER");
