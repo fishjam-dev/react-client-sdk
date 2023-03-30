@@ -68,6 +68,8 @@ export class JellyfishClient<
       this.emit("onSocketError", event);
     });
     this.websocket.addEventListener("close", (event) => {
+      const reason = event.reason;
+      console.log("socket closed with reason", reason);
       this.emit("onSocketClose", event);
     });
 
