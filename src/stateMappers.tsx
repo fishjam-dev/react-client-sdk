@@ -2,30 +2,30 @@ import type { Peer as WebRtcPeer, SimulcastConfig, TrackContext } from "@jellyfi
 import type { Peer, PeerId, State, Track, TrackId } from "./state.types";
 
 export const onSocketOpen =
-  <PeerMetadata, TrackMetadata>(_metadata?: unknown) =>
+  <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return { ...prevState, status: "connected" };
   };
 
 export const onSocketError =
-  <PeerMetadata, TrackMetadata>(_metadata?: unknown) =>
+  <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return { ...prevState, status: "error" };
   };
 export const onAuthSuccess =
-  <PeerMetadata, TrackMetadata>(_metadata?: unknown) =>
+  <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return { ...prevState, status: "authenticated" };
   };
 
 export const onAuthError =
-  <PeerMetadata, TrackMetadata>(_metadata?: unknown) =>
+  <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return { ...prevState, status: "error" };
   };
 
 export const onDisconnected =
-  <PeerMetadata, TrackMetadata>(_metadata?: unknown) =>
+  <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     return { ...prevState, status: null };
   };
