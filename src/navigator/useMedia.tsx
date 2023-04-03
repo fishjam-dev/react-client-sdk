@@ -89,7 +89,7 @@ export const useMedia = (getMedia: (() => Promise<MediaStream>) | null): UseUser
           return Promise.reject(e);
         });
     },
-    [setEnable]
+    []
   );
 
   useEffect(() => {
