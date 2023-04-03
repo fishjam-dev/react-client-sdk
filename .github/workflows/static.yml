@@ -36,7 +36,7 @@ jobs:
 
       - name: Run typedoc
         run: | 
-          npm ci
+          npm install
           npm run docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
