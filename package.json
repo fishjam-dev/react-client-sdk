@@ -34,7 +34,7 @@
   },
   "scripts": {
     "build": "rimraf dist && tsc",
-    "docs": "typedoc src/index.ts",
+    "docs": "typedoc src src/navigator src/externalState src/jellyfish",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "rimraf dist && tsc"
