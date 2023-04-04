@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createNoContextMembraneClient } from "../../../../src/externalState";
+import { createNoContextMembraneClient } from "@jellyfish-dev/jellyfish-react-client/externalState";
 import type { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";

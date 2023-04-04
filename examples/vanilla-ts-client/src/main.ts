@@ -1,9 +1,10 @@
 import "./style.css";
-import { JellyfishClient } from "../../../src/jellyfish/JellyfishClient";
+
 import { createStream } from "./createMockStream";
-import { enumerateDevices, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "../../../src/navigator";
-import { getUserMedia } from "../../../src/navigator";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
+import { JellyfishClient } from "@jellyfish-dev/jellyfish-react-client/jellyfish";
+import { enumerateDevices, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/jellyfish-react-client/navigator";
+import { getUserMedia } from "@jellyfish-dev/jellyfish-react-client/navigator";
 
 const peerTokenInput = document.querySelector<HTMLInputElement>("#peer-token-input")!;
 const peerNameInput = document.querySelector<HTMLInputElement>("#peer-name-input")!;
@@ -45,7 +46,7 @@ inputArray.forEach((input) => {
   input.value = localStorage.getItem(input.id) || "";
 
   input.addEventListener("input", (event: any) => {
-    localStorage.setItem(input.id, event.target.value);
+    localStorage.setItem(input.id, event.target?.value);
   });
 });
 
