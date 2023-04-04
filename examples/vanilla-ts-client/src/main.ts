@@ -160,7 +160,7 @@ client.on("onTracksPriorityChanged", (_enabledTracks, _disabledTracks) => { });
 
 connectButton.addEventListener("click", () => {
   console.log("Connect");
-  client.connect({ roomId: roomIdInput.value, peerId: peerIdInput.value, peerMetadata: { name: peerNameInput.value || "" }, isSimulcastOn: false, useAuth: peerTokenInput.value !== "", token: peerTokenInput.value })
+  client.connect({ roomId: roomIdInput.value, peerId: peerIdInput.value, peerMetadata: { name: peerNameInput.value || "" }, isSimulcastOn: false, token: peerTokenInput.value })
   elementsToShowIfConnected.forEach((e) => e.classList.remove("hidden"));
 });
 

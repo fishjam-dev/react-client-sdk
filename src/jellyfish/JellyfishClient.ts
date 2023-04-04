@@ -13,26 +13,15 @@ type MessageEvents = Omit<Required<Callbacks>, "onSendMediaEvent"> & {
   onDisconnected: () => void;
 };
 
-type ConnectConfigBase<PeerMetadata> = {
+export type ConnectConfig<PeerMetadata> = {
   roomId: string;
   peerId: string;
   peerMetadata: PeerMetadata;
   isSimulcastOn: boolean;
   websocketUrl?: string;
   disableDeprecated?: boolean;
-};
-
-type ConnectConfigUnAuth<PeerMetadata> = ConnectConfigBase<PeerMetadata> & {
-  useAuth?: false;
-};
-
-
-type ConnectConfigAuth<PeerMetadata> = ConnectConfigBase<PeerMetadata> & {
-  useAuth: true;
   token: string;
-}
-
-export type ConnectConfig<PeerMetadata> = ConnectConfigAuth<PeerMetadata> | ConnectConfigUnAuth<PeerMetadata>;
+};
 
 export class JellyfishClient<
   PeerMetadata,
@@ -73,20 +62,20 @@ export class JellyfishClient<
       this.emit("onSocketClose", event);
     });
 
-    if (config?.useAuth) {
-      this.websocket.addEventListener("open", (event) => {
-        this.websocket?.send(JSON.stringify({
-          type: "controlMessage",
-          data: {
-            type: "authRequest",
-            token: config?.token
-          }
-        }));
 
-        console.log('sent token', config?.token);
-        this.emit("onAuthRequest");
-      });
-    }
+    this.websocket.addEventListener("open", (event) => {
+      this.websocket?.send(JSON.stringify({
+        type: "controlMessage",
+        data: {
+          type: "authRequest",
+          token: config?.token
+        }
+      }));
+
+      console.log('sent token', config?.token);
+      this.emit("onAuthRequest");
+    });
+
 
     // TODO: add support for simulcast
     // client
