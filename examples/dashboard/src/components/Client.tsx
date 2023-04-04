@@ -7,6 +7,7 @@ import { useLocalStorageState } from "./LogSelector";
 import type { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
 import { Toaster } from "react-hot-toast";
+
 import { BadgeStatus } from "./Bage";
 import { showToastError } from "./Toasts";
 import { CopyToClipboardButton } from "./CopyButton";
@@ -120,8 +121,6 @@ export const Client = ({ roomId, peerId, token, name, refetchIfNeeded, selectedV
                   const disconnect = connect({
                     peerMetadata: { name },
                     isSimulcastOn: true,
-                    roomId,
-                    peerId,
                     token,
                   });
                   setTimeout(() => {

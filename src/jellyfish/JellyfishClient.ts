@@ -14,8 +14,6 @@ type MessageEvents = Omit<Required<Callbacks>, "onSendMediaEvent"> & {
 };
 
 export type ConnectConfig<PeerMetadata> = {
-  roomId: string;
-  peerId: string;
   peerMetadata: PeerMetadata;
   isSimulcastOn: boolean;
   websocketUrl?: string;
@@ -37,8 +35,6 @@ export class JellyfishClient<
 
   connect(config: ConnectConfig<PeerMetadata>): void {
     const {
-      roomId,
-      peerId,
       peerMetadata,
       isSimulcastOn,
       websocketUrl = "ws://localhost:4000/socket/websocket",
@@ -49,7 +45,8 @@ export class JellyfishClient<
       this.cleanUp();
     }
 
-    this.websocket = new WebSocket(`${websocketUrl}?peer_id=${peerId}&room_id=${roomId}`);
+    this.websocket = new WebSocket(`${websocketUrl}`);
+
     this.websocket.addEventListener("open", (event) => {
       this.emit("onSocketOpen", event);
     });
