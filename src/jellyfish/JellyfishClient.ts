@@ -58,7 +58,7 @@ export type ConnectConfig<PeerMetadata> = {
    */
   isSimulcastOn: boolean;
 
-  /** 
+  /**
    * URL of the websocket server
    */
   websocketUrl?: string;
@@ -74,27 +74,26 @@ export type ConnectConfig<PeerMetadata> = {
   token: string;
 };
 
-
 /**
  * JellyfishClient is the main class to interact with Jellyfish.
- * 
+ *
  * @example
  * ```typescript
  * const client = new JellyfishClient();
  * const peerToken = "YOUR_PEER_TOKEN";
- * 
+ *
  * // Start the peer connection
  * client.connect({
  *    peerMetadata: {},
  *    isSimulcastOn: false,
  *    token: peerToken,
  * });
- * 
+ *
  * // You can listen to events emitted by the client
  * client.on("onJoinSuccess", (peerId, peersInRoom) => {
  *   console.log("join success");
  * });
- * 
+ *
  * // Close the peer connection
  * client.cleanUp();
  * ```
@@ -113,7 +112,7 @@ export class JellyfishClient<
 
   /**
    * Uses the {@link WebSocket} connection and {@link MembraneWebRTC} to join to the room
-   * 
+   *
    * @param {ConnectConfig} config - Configuration object for the client
    * @param {ConnectConfig.websocketUrl} [config.websocketUrl="ws://localhost:4000/socket/websocket"] - URL of the websocket server defaults to `ws://localhost:4000/socket/websocket`
    */
@@ -308,7 +307,6 @@ export class JellyfishClient<
       // }),
     };
   }
-
 
   /**
    * Disconnect from the room, and close the websocket connection.

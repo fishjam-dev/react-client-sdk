@@ -88,11 +88,7 @@ export const App = () => {
   }, [jellyfishClient, webrtcApi]);
 
   // Render the remote tracks from other peers
-  return (
-    <>
-      ...
-    </>
-  );
+  return <>...</>;
 };
 ```
 
