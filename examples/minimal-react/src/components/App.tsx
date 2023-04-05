@@ -1,27 +1,18 @@
-# Jellyfish React client
-
-React client library for [Jellyfish](https://github.com/jellyfish-dev/jellyfish).
-It is a wrapper around the [Jellyfish TS client](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/src/jellyfish).
-
-## Installation
-
-You can install the library using `npm`:
-
-```bash
-npm install https://github.com/jellyfish-dev/jellyfish-react-client
-```
-
-It was tested with `nodejs` version mentioned in `.tool-versions` file.
-
-## Usage
-
-For pure TypeScript usage, see [Jellyfish TS client](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/src/jellyfish).
-
-This snippet is based on [minimal-react](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/examples/minimal-react) example.
-
-```ts
+import React, { useEffect, useState } from "react";
 import { createNoContextMembraneClient } from "@jellyfish-dev/jellyfish-react-client/externalState";
 import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/jellyfish-react-client/navigator";
+import VideoPlayer from "./VideoPlayer";
+import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
+
+// Example metadata types for peer and track
+// You can define your own metadata types just make sure they are serializable
+type PeerMetadata = {
+  name: string;
+};
+
+type TrackMetadata = {
+  type: "camera" | "screen";
+};
 
 export const App = () => {
   // Create a Membrane client instance
@@ -30,6 +21,9 @@ export const App = () => {
   // Create the connect function
   const connect = client.useConnect();
 
+  // Get the full state
+  const remoteTracks = client.useSelector((snapshot) => Object.values(snapshot?.remote || {}));
+
   // Get the webrtcApi reference
   const webrtcApi = client.useSelector((snapshot) => snapshot.connectivity.api);
 
@@ -37,7 +31,7 @@ export const App = () => {
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
 
   useEffect(() => {
-    const peerToken = "YOUR_PEER_TOKEN";
+    const peerToken = prompt("Enter peer token") ?? "YOUR_PEER_TOKEN";
 
     // Start the peer connection
     const disconnect = connect({
@@ -72,6 +66,8 @@ export const App = () => {
 
     const onJoinSuccess = (peerId: string, peersInRoom: [Peer]) => {
       console.log("join success");
+      console.log("peerId", peerId);
+      console.log("peersInRoom", peersInRoom);
 
       // To start broadcasting your media you will need source of MediaStream like camera, microphone or screen
       // In this example we will use screen sharing
@@ -90,22 +86,11 @@ export const App = () => {
   // Render the remote tracks from other peers
   return (
     <>
-      ...
+      {remoteTracks.map(({ tracks }) => {
+        return Object.values(tracks || {}).map(({ stream, trackId }) => (
+          <VideoPlayer key={trackId} stream={stream} /> // Simple component to render a video element
+        ));
+      })}
     </>
   );
 };
-```
-
-## Examples
-
-For examples, see [examples](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/examples) folder.
-
-More information about usage of webrtc can be found in [MembraneWebRTC documentation](https://jellyfish-dev.github.io/membrane-webrtc-js/).
-
-## Documentation
-
-Can be found [here](https://jellyfish-dev.github.io/jellyfish-react-client/) or you can generate it locally:
-
-```bash
-npm run docs
-```
