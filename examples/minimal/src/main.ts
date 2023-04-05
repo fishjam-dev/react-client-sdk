@@ -55,7 +55,7 @@ client.on("onTrackReady", (ctx) => {
     videoPlayer.srcObject = ctx.stream; // assign MediaStream to video element
 });
 
-// Cleanup vide element when track is removed
+// Cleanup video element when track is removed
 client.on("onTrackRemoved", (ctx) => {
     console.log("On track removed");
     const peerId = ctx.peer.id;

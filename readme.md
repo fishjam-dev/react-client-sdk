@@ -15,11 +15,13 @@ It was tested with `nodejs` version mentioned in `.tool-versions` file.
 
 ## Usage
 
-TODO
+For pure TypeScript usage, see [Jellyfish TS client](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/src/jellyfish).
 
 ## Examples
 
-There are some examples of usage in the `examples` directory.
+For examples, see [examples](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/examples) folder.
+
+More information about usage of webrtc can be found in [MembraneWebRTC documentation](https://jellyfish-dev.github.io/membrane-webrtc-js/).
 
 ## Documentation
 
