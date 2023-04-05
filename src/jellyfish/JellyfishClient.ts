@@ -65,7 +65,6 @@ export class JellyfishClient<
         })
       );
 
-      console.log("sent token", config?.token);
       this.emit("onAuthRequest");
     });
 
