@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
  * OnSendMediaEvent is omitted because it is handled internally.
  * Other events come from {@link Callbacks} defined in MembraneWebRTC.
  */
-export type MessageEvents = Omit<Required<Callbacks>, "onSendMediaEvent"> & {
+export interface MessageEvents extends Omit<Required<Callbacks>, "onSendMediaEvent"> {
   /**
    * Emitted when the websocket connection is closed
    * @param {CloseEvent} event - Close event object from the websocket
@@ -45,9 +45,12 @@ export type MessageEvents = Omit<Required<Callbacks>, "onSendMediaEvent"> & {
    * Emitted when the connection is closed
    */
   onDisconnected: () => void;
-};
+}
 
-export type ConnectConfig<PeerMetadata> = {
+/**
+ * Configuration object for the client
+ */
+export interface ConnectConfig<PeerMetadata> {
   /**
    * Metadata for the peer
    */
@@ -72,7 +75,7 @@ export type ConnectConfig<PeerMetadata> = {
    * Token for authentication
    */
   token: string;
-};
+}
 
 /**
  * JellyfishClient is the main class to interact with Jellyfish.
@@ -101,7 +104,7 @@ export type ConnectConfig<PeerMetadata> = {
 export class JellyfishClient<
   PeerMetadata,
   TrackMetadata
-> extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
+> extends (EventEmitter as new () => TypedEmitter<Required<MessageEvents>>) {
   private websocket: WebSocket | null = null;
   // todo hide this object, add additional
   webrtc: MembraneWebRTC | null = null;
@@ -111,10 +114,11 @@ export class JellyfishClient<
   }
 
   /**
-   * Uses the {@link WebSocket} connection and {@link MembraneWebRTC} to join to the room
+   * Uses the {@link WebSocket} connection and {@link MembraneWebRTC} to join to the room.
+   * Registers the callbacks to handle the events emitted by the {@link MembraneWebRTC}.
    *
    * @param {ConnectConfig} config - Configuration object for the client
-   * @param {ConnectConfig.websocketUrl} [config.websocketUrl="ws://localhost:4000/socket/websocket"] - URL of the websocket server defaults to `ws://localhost:4000/socket/websocket`
+   * @param {string} [config.websocketUrl="ws://localhost:4000/socket/websocket"] - URL of the websocket server defaults to `ws://localhost:4000/socket/websocket`
    */
   connect(config: ConnectConfig<PeerMetadata>): void {
     const { peerMetadata, isSimulcastOn, websocketUrl = "ws://localhost:4000/socket/websocket" } = config;
@@ -310,6 +314,7 @@ export class JellyfishClient<
 
   /**
    * Disconnect from the room, and close the websocket connection.
+   * Tries to leave the room gracefully, but if it fails, it will close the websocket anyway.
    */
   cleanUp() {
     try {
