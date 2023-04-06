@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
  * OnSendMediaEvent is omitted because it is handled internally.
  * Other events come from {@link Callbacks} defined in MembraneWebRTC.
  */
-type MessageEvents = Omit<Required<Callbacks>, "onSendMediaEvent"> & {
+export type MessageEvents = Omit<Required<Callbacks>, "onSendMediaEvent"> & {
   /**
    * Emitted when the websocket connection is closed
    * @param {CloseEvent} event - Close event object from the websocket
