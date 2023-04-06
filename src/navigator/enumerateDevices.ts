@@ -7,6 +7,11 @@ import { EnumerateDevices } from "./types";
  * @param videoParam - boolean or MediaTrackConstraints with configuration for video device
  * @param audioParam - boolean or MediaTrackConstraints with configuration for audio device
  * @returns Promise with object containing arrays of objects for each kind of media device
+ * 
+ * @example
+ * enumerateDevices(true, true).then((devices) => {
+ *  console.log(devices);
+ * });
  */
 export const enumerateDevices = async (
   videoParam: boolean | MediaTrackConstraints,

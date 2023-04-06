@@ -118,6 +118,17 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
    *
    * @param {ConnectConfig} config - Configuration object for the client
    * @param {string} [config.websocketUrl="ws://localhost:4000/socket/websocket"] - URL of the websocket server defaults to `ws://localhost:4000/socket/websocket`
+   * 
+   * @example
+   * ```typescript
+   * const client = new JellyfishClient();
+   * 
+   * client.connect({
+   *  peerMetadata: {},
+   *  isSimulcastOn: false,
+   *  token: peerToken,
+   * });
+   * ```
    */
   connect(config: ConnectConfig<PeerMetadata>): void {
     const { peerMetadata, isSimulcastOn, websocketUrl = "ws://localhost:4000/socket/websocket" } = config;
@@ -312,9 +323,18 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
   }
 
   /**
-   * Disconnect from the room, and close the websocket connection.
-   * Tries to leave the room gracefully, but if it fails, it will close the websocket anyway.
-   */
+    * Disconnect from the room, and close the websocket connection.
+    * Tries to leave the room gracefully, but if it fails, it will close the websocket anyway.
+    * 
+    * @example
+    * ```typescript
+    * const client = new JellyfishClient();
+    * 
+    * client.connect({ ... });
+    * 
+    * client.cleanUp();
+    * ```
+    */
   cleanUp() {
     try {
       this.webrtc?.leave();
