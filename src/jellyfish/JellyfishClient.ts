@@ -312,7 +312,11 @@ export class JellyfishClient<
    * Disconnect from the room, and close the websocket connection.
    */
   cleanUp() {
-    this.webrtc?.leave();
+    try {
+      this.webrtc?.leave();
+    } catch (e) {
+      console.warn(e);
+    }
     this.websocket?.close();
     this.websocket = null;
     this.emit("onDisconnected");

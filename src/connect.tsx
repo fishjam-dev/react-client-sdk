@@ -121,6 +121,7 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         },
       };
     });
+
     return () => {
       setStore(() => DEFAULT_STORE);
       client.cleanUp();

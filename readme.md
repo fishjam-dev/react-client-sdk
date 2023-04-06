@@ -17,6 +17,12 @@ It was tested with `nodejs` version mentioned in `.tool-versions` file.
 
 For pure TypeScript usage, see [Jellyfish TS client](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/src/jellyfish).
 
+Prerequisites:
+
+- Running [Jellyfish](https://github.com/jellyfish-dev/jellyfish) server.
+- Created room and token of peer in that room.
+  You u can use [dashboard](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/examples/dashboard) example to create room and peer token.
+
 This snippet is based on [minimal-react](https://github.com/jellyfish-dev/jellyfish-react-client/tree/main/examples/minimal-react) example.
 
 ```ts
@@ -25,7 +31,7 @@ import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/jellyfish-react
 
 export const App = () => {
   // Create a Membrane client instance
-  const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>());
+  const [client] = useState(createNoContextMembraneClient());
 
   // Create the connect function
   const connect = client.useConnect();
@@ -41,7 +47,7 @@ export const App = () => {
 
     // Start the peer connection
     const disconnect = connect({
-      peerMetadata: { name: "peer" },
+      peerMetadata: {},
       isSimulcastOn: false,
       token: peerToken,
     });
@@ -67,7 +73,7 @@ export const App = () => {
       screenStream.getTracks().forEach((track) => localStream.addTrack(track));
 
       // Add local MediaStream to webrtc
-      localStream.getTracks().forEach((track) => webrtcApi.addTrack(track, localStream, { type: "screen" }));
+      localStream.getTracks().forEach((track) => webrtcApi.addTrack(track, localStream));
     }
 
     const onJoinSuccess = (peerId: string, peersInRoom: [Peer]) => {
