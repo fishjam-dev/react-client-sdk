@@ -2,7 +2,7 @@ import { MediaType } from "./types";
 
 /**
  * Get media stream from provided device id and media type.
- * 
+ *
  * @param deviceId - id of device to get stream from
  * @param type - type of media to get stream from
  * @returns Promise with {@link MediaStream}

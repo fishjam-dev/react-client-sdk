@@ -31,7 +31,7 @@ const stopTracks = (stream: MediaStream) => {
 
 /**
  * Hook that returns media stream and methods to control it, depending on the passed method.
- * 
+ *
  * @param getMedia - Promise that returns a promise with MediaStream
  * @returns object containing information about the media stream and methods to control it
  */

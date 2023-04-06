@@ -2,7 +2,7 @@ import { JellyfishClient } from "./JellyfishClient";
 
 /**
  * Save a string value to local storage
- * 
+ *
  * @param key - key to save the value
  * @param value - value to save
  */
@@ -10,10 +10,9 @@ export const saveString = (key: string, value: string) => {
   localStorage.setItem(key, value);
 };
 
-
 /**
  * Load a string value from local storage
- * 
+ *
  * @param key - key to load the value
  * @param defaultValue - default value to return if the key is not found
  * @returns loaded value or default value
@@ -26,11 +25,10 @@ export const loadString = (key: string, defaultValue = "") => {
   return value;
 };
 
-
 /**
  * Save an object to local storage.
  * Make sure the object is serializable.
- * 
+ *
  * @param key - key to save the value
  * @param value - object to save
  */
@@ -41,7 +39,7 @@ export const saveObject = <T>(key: string, value: T) => {
 
 /**
  * Load an object from local storage.
- * 
+ *
  * @param key - key to load the value
  * @param defaultValue - default value to return if the key is not found
  * @returns loaded object or default value
@@ -64,7 +62,7 @@ export const removeSavedItem = (key: string) => {
 
 /**
  * Get a boolean value from local storage
- * 
+ *
  * @param name - key to load the value
  * @param defaultValue - default value to return if the key is not found
  * @returns loaded value or default value
@@ -77,10 +75,9 @@ export const getBooleanValue = (name: string, defaultValue = true): boolean => {
   return stringValue === "true";
 };
 
-
 /**
  * Add logging to a client on events
- * 
+ *
  * @param client - client to add logging to
  */
 export const addLogging = <PeerMetadata, TrackMetadata>(client: JellyfishClient<PeerMetadata, TrackMetadata>) => {

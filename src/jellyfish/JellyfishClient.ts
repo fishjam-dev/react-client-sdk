@@ -101,10 +101,9 @@ export interface ConnectConfig<PeerMetadata> {
  * client.cleanUp();
  * ```
  */
-export class JellyfishClient<
-  PeerMetadata,
-  TrackMetadata
-> extends (EventEmitter as new () => TypedEmitter<Required<MessageEvents>>) {
+export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter as new () => TypedEmitter<
+  Required<MessageEvents>
+>) {
   private websocket: WebSocket | null = null;
   // todo hide this object, add additional
   webrtc: MembraneWebRTC | null = null;

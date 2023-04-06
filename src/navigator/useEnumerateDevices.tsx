@@ -7,8 +7,8 @@ export type UseEnumerateDevices = {
   video: DeviceReturnType | { type: "Loading" };
 };
 /**
- * Hook that returns the list of available devices 
- * 
+ * Hook that returns the list of available devices
+ *
  * @param video - boolean or MediaTrackConstraints with configuration for video device
  * @param audio - boolean or MediaTrackConstraints with configuration for audio device
  * @returns object containing devices or loading state

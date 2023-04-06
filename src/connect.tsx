@@ -29,9 +29,9 @@ import { State } from "./state.types";
 import { createApiWrapper } from "./api";
 
 /**
- * Connects to the Jellyfish server. 
+ * Connects to the Jellyfish server.
  * Also adds listeners to the JellyfishClient to update the store.
- * 
+ *
  * @param setStore - function that sets the store
  * @returns function that disconnects from the Jellyfish server
  */
