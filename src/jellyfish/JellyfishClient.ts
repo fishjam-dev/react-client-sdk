@@ -138,6 +138,8 @@ export class JellyfishClient<PeerMetadata, TrackMetadata> extends (EventEmitter 
       this.cleanUp();
     }
 
+    console.log({ websocketUrl });
+
     this.websocket = new WebSocket(`${websocketUrl}`);
 
     this.websocket.addEventListener("open", (event) => {

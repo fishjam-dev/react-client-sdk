@@ -119,11 +119,13 @@ export const Client = ({ roomId, peerId, token, name, refetchIfNeeded, selectedV
               <button
                 className="btn btn-sm btn-success m-2"
                 onClick={() => {
-                  const disconnect = connect({
+                  const config = {
                     peerMetadata: { name },
                     isSimulcastOn: true,
                     token,
-                  });
+                  };
+                  console.log({ config });
+                  const disconnect = connect(config);
                   setTimeout(() => {
                     refetchIfNeeded();
                   }, 500);

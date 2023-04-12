@@ -1,6 +1,15 @@
-import axios from "axios";
+import axios, { Axios, AxiosRequestConfig } from "axios";
+import { PeerApi, RoomApi } from "../server-sdk";
 
-const headers = { "Content-Type": "application/json" };
+const headers: AxiosRequestConfig["headers"] = {
+  "Content-Type": "application/json",
+  Authorization: "Bearer development",
+};
+
+axios.defaults.headers.common["Authorization"] = `Bearer development`;
+
+export const roomApi = new RoomApi(undefined, "http://localhost:4000", axios);
+export const peerApi = new PeerApi(undefined, "http://localhost:4000", axios);
 
 export class ServerRoomSdk {
   url: string;

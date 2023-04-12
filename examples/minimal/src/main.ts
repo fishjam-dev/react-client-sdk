@@ -1,5 +1,6 @@
 import { JellyfishClient } from "@jellyfish-dev/jellyfish-react-client/jellyfish";
 import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/jellyfish-react-client/navigator";
+import { MembraneWebRTC } from "@jellyfish-dev/membrane-webrtc-js";
 
 // Example metadata types for peer and track
 // You can define your own metadata types just make sure they are serializable
@@ -31,7 +32,7 @@ client.on("onJoinSuccess", (peerId, peersInRoom) => {
 
   // To start broadcasting your media you will need source of MediaStream like camera, microphone or screen
   // In this example we will use screen sharing
-  startScreenSharing();
+  startScreenSharing(client.webrtc);
 });
 
 // To receive media from other peers you need to listen to onTrackReady event
@@ -61,20 +62,13 @@ client.on("onTrackRemoved", (ctx) => {
   document.getElementById(peerId)?.remove(); // remove video element
 });
 
-async function startScreenSharing() {
-  const { webrtc } = client;
+async function startScreenSharing(webrtc: MembraneWebRTC | null) {
   // Check if webrtc is initialized
   if (!webrtc) return console.error("webrtc is not initialized");
-
-  // Create a new MediaStream to add tracks to
-  const localStream: MediaStream = new MediaStream();
 
   // Get screen sharing MediaStream
   const screenStream = await navigator.mediaDevices.getDisplayMedia(SCREEN_SHARING_MEDIA_CONSTRAINTS);
 
-  // Add tracks from screen sharing MediaStream to local MediaStream
-  screenStream.getTracks().forEach((track) => localStream.addTrack(track));
-
   // Add local MediaStream to webrtc
-  localStream.getTracks().forEach((track) => webrtc.addTrack(track, localStream, { type: "screen" }));
+  screenStream.getTracks().forEach((track) => webrtc.addTrack(track, screenStream, { type: "screen" }));
 }

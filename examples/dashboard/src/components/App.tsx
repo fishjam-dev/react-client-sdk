@@ -1,20 +1,20 @@
-import { ServerRoomSdk } from "../utils/ServerSdk";
+import { roomApi, ServerRoomSdk } from "../utils/ServerSdk";
 import React, { useEffect, useState } from "react";
 import { LogSelector, PersistentInput, useLocalStorageState } from "./LogSelector";
 import { getBooleanValue } from "@jellyfish-dev/jellyfish-react-client/jellyfish";
-import type { RoomType } from "./Room";
 import { Room } from "./Room";
 import { JsonComponent } from "./JsonComponent";
 import { ThemeSelector } from "./ThemeSelector";
 import type { DeviceIdToStream, StreamInfo } from "./VideoDeviceSelector";
 import { VideoDeviceSelector } from "./VideoDeviceSelector";
+import { Room as RoomAPI } from "../server-sdk";
 
-export const client = new ServerRoomSdk("http://localhost:4000");
+// export const client = new ServerRoomSdk("http://localhost:4000");
 
 export const REFETCH_ON_SUCCESS = "refetch on success";
 
 export const App = () => {
-  const [state, setState] = useState<RoomType[] | null>(null);
+  const [state, setState] = useState<RoomAPI[] | null>(null);
   const [showServerState, setShow] = useLocalStorageState(`show-json-fullstate`);
   const [showLogSelector, setShowLogSelector] = useLocalStorageState("showServerState-log-selector");
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showServerState-log-selector");
@@ -23,7 +23,7 @@ export const App = () => {
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
 
   const refetchAll = () => {
-    client.get().then((response) => {
+    roomApi.jellyfishWebRoomControllerIndex().then((response) => {
       setState(response.data.data);
     });
   };
@@ -53,8 +53,8 @@ export const App = () => {
           <button
             className="btn btn-sm btn-success mx-1 my-0"
             onClick={() => {
-              client
-                .create(10)
+              roomApi
+                .jellyfishWebRoomControllerCreate({ maxPeers: 10 })
                 .then((response) => {
                   console.log({ name: "createRoom", response });
                 })
@@ -131,7 +131,7 @@ export const App = () => {
         {state?.map((room) => (
           <Room
             key={room.id}
-            roomId={room.id}
+            roomId={room.id || ""}
             initial={room}
             refetchIfNeeded={refetchIfNeeded}
             selectedVideoStream={selectedVideoStream}
