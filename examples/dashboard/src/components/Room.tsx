@@ -8,8 +8,8 @@ import type { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
 import { CopyToClipboardButton } from "./CopyButton";
 import { Room as RoomAPI } from "../server-sdk";
-import { peerApi, roomApi } from "../utils/ServerSdk";
 import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "../addLogging";
+import { useServerSdk } from "./ServerSdkContext";
 
 type RoomConfig = {
   maxPeers: number;
@@ -31,6 +31,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
   const [room, setRoom] = useState<RoomAPI | null>(initial);
   const [show, setShow] = useLocalStorageState(`show-json-${roomId}`);
   const [token, setToken] = useState<Record<string, string>>({});
+  const { roomApi, peerApi } = useServerSdk();
 
   const refetch = () => {
     roomApi.jellyfishWebRoomControllerShow(roomId).then((response) => {

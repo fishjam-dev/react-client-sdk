@@ -1,4 +1,3 @@
-import { roomApi } from "../utils/ServerSdk";
 import React, { useEffect, useState } from "react";
 import { LogSelector, PersistentInput, useLocalStorageState } from "./LogSelector";
 import { Room } from "./Room";
@@ -8,6 +7,8 @@ import type { DeviceIdToStream, StreamInfo } from "./VideoDeviceSelector";
 import { VideoDeviceSelector } from "./VideoDeviceSelector";
 import { Room as RoomAPI } from "../server-sdk";
 import { getBooleanValue } from "../addLogging";
+import { useServerSdk } from "./ServerSdkContext";
+import { showToastError } from "./Toasts";
 
 export const REFETCH_ON_SUCCESS = "refetch on success";
 
@@ -19,11 +20,17 @@ export const App = () => {
   // const [showCameraTest, setShowCameraTest] = useLocalStorageState("showServerState-camera-test");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
-
+  const { serverAddress, setServerAddress, roomApi } = useServerSdk();
   const refetchAll = () => {
-    roomApi.jellyfishWebRoomControllerIndex().then((response) => {
-      setState(response.data.data);
-    });
+    roomApi
+      .jellyfishWebRoomControllerIndex()
+      .then((response) => {
+        setState(response.data.data);
+      })
+      .catch((error) => {
+        showToastError("Cannot connect to Jellyfish server")
+        setState(null);
+      });
   };
 
   useEffect(() => {
@@ -89,6 +96,15 @@ export const App = () => {
           >
             {showServerState ? "Hide server state" : "Show server state"}
           </button>
+          <input
+            type="text"
+            placeholder="Type here"
+            className="input input-bordered w-full max-w-xs"
+            value={serverAddress}
+            onChange={(event) => {
+              setServerAddress(event.target.value);
+            }}
+          />
 
           {/*<button*/}
           {/*  className="btn btn-sm mx-1 my-0"*/}

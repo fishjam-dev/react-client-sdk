@@ -80,7 +80,6 @@ export const Client = ({ roomId, peerId, token, name, refetchIfNeeded, selectedV
 
   return (
     <div className="card w-150 bg-base-100 shadow-xl m-2 indicator">
-      <Toaster />
       <CloseButton
         onClick={() => {
           remove(roomId);

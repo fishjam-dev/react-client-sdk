@@ -1,6 +1,6 @@
 import toast, { ToastOptions } from "react-hot-toast";
-export const showToastError = (message?: string, options?: ToastOptions) =>
-  toast.custom(
+export const showToastError = (message?: string, options?: ToastOptions) => {
+  return toast.custom(
     (t) => (
       <div
         onClick={() => toast.dismiss(t.id)}
@@ -26,6 +26,7 @@ export const showToastError = (message?: string, options?: ToastOptions) =>
     ),
     options
   );
+};
 
 export const showToastInfo = (message?: string, options?: ToastOptions) =>
   toast.custom(
