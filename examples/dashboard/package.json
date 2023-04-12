@@ -9,7 +9,8 @@
     "watch": "tsc --noEmit --watch",
     "preview": "vite preview",
     "format": "prettier --write . --ignore-path ./.eslintignore",
-    "format:check": "prettier --check . --ignore-path ./.eslintignore"
+    "format:check": "prettier --check . --ignore-path ./.eslintignore",
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "@jellyfish-dev/browser-media-utils": "github:jellyfish-dev/browser-media-utils#feature/prepare-initial-release",

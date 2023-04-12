@@ -1,46 +1,9 @@
-import axios, { Axios, AxiosRequestConfig } from "axios";
+import axios from "axios";
 import { PeerApi, RoomApi } from "../server-sdk";
-
-const headers: AxiosRequestConfig["headers"] = {
-  "Content-Type": "application/json",
-  Authorization: "Bearer development",
-};
 
 axios.defaults.headers.common["Authorization"] = `Bearer development`;
 
-export const roomApi = new RoomApi(undefined, "http://localhost:4000", axios);
-export const peerApi = new PeerApi(undefined, "http://localhost:4000", axios);
+const basePath = "http://localhost:4000";
 
-export class ServerRoomSdk {
-  url: string;
-
-  constructor(url?: string) {
-    const baseUrl = url ?? "";
-    this.url = `${baseUrl}/room`;
-  }
-
-  get(id?: string) {
-    const url = id ? `${this.url}/${id}` : this.url;
-    return axios.get(url);
-  }
-
-  create(maxPeers: number) {
-    return axios.post(this.url, { maxPeers: maxPeers }, { headers });
-  }
-
-  remove(roomId: string) {
-    return axios.delete(`${this.url}/${roomId}`);
-  }
-
-  addPeer(roomId: string, type: string) {
-    return axios.post(`${this.url}/${roomId}/peer`, { type: type }, { headers });
-  }
-
-  removePeer(roomId: string, peerId: string) {
-    return axios.delete(`${this.url}/${roomId}/peer/${peerId}`);
-  }
-
-  getPeer(roomId: string, peerId: string) {
-    return axios.get(`${this.url}/${roomId}/peer/${peerId}`, { headers });
-  }
-}
+export const roomApi = new RoomApi(undefined, basePath, axios);
+export const peerApi = new PeerApi(undefined, basePath, axios);

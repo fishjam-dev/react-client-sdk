@@ -94,7 +94,11 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     peerApi
                       .jellyfishWebPeerControllerCreate(roomId, { type: "webrtc" })
                       .then((response) => {
-                        console.log({ name: "createPeer", response });
+                        console.log({ name: "xxx", response });
+                        // const res1 = response.data
+                        // const res2 = res1.data
+                        // const token = res2.token
+                        // const peer1 = res2.peer
                         setToken((prev) => {
                           // @ts-ignore
                           if (!response.data.data.peer.id) throw Error("response.data.data.id is undefined");

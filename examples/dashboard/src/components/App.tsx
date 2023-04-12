@@ -1,4 +1,4 @@
-import { roomApi, ServerRoomSdk } from "../utils/ServerSdk";
+import { roomApi } from "../utils/ServerSdk";
 import React, { useEffect, useState } from "react";
 import { LogSelector, PersistentInput, useLocalStorageState } from "./LogSelector";
 import { Room } from "./Room";
@@ -8,8 +8,6 @@ import type { DeviceIdToStream, StreamInfo } from "./VideoDeviceSelector";
 import { VideoDeviceSelector } from "./VideoDeviceSelector";
 import { Room as RoomAPI } from "../server-sdk";
 import { getBooleanValue } from "../addLogging";
-
-// export const client = new ServerRoomSdk("http://localhost:4000");
 
 export const REFETCH_ON_SUCCESS = "refetch on success";
 
