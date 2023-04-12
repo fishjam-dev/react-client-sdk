@@ -79,10 +79,16 @@
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@jellyfish-dev/browser-media-utils@github:jellyfish-dev/browser-media-utils#feature/prepare-initial-release":
+  version "0.0.1"
+  resolved "git+ssh://git@github.com/jellyfish-dev/browser-media-utils.git#f0c9db112fdb50ec65155db544e2e188508a933b"
+
 "@jellyfish-dev/jellyfish-react-client@file:../..":
   version "0.0.1"
   resolved "file:../.."
   dependencies:
+    "@jellyfish-dev/membrane-webrtc-js" "github:jellyfish-dev/membrane-webrtc-js#Change-client-to-extend-event-emitter"
+    "@jellyfish-dev/ts-client-sdk" "github:jellyfish-dev/ts-client-sdk#bugfix/initial-release"
     events "^3.3.0"
 
 "@lukeed/csprng@^1.0.0":

@@ -1,6 +1,5 @@
 import type { SetStore } from "./state.types";
 
-import { ConnectConfig, JellyfishClient } from "./jellyfish/JellyfishClient";
 import {
   onAuthError,
   onAuthSuccess,
@@ -23,10 +22,10 @@ import {
   onTrackUpdated,
   onVoiceActivityChanged,
 } from "./stateMappers";
-import { addLogging } from "./jellyfish/addLogging";
-import { DEFAULT_STORE } from "./externalState/externalState";
 import { State } from "./state.types";
 import { createApiWrapper } from "./api";
+import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
+import { DEFAULT_STORE } from "./state";
 
 /**
  * Connects to the Jellyfish server.
@@ -36,12 +35,10 @@ import { createApiWrapper } from "./api";
  * @returns function that disconnects from the Jellyfish server
  */
 export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMetadata, TrackMetadata>) {
-  return (config: ConnectConfig<PeerMetadata>): (() => void) => {
+  return (config: Config<PeerMetadata>): (() => void) => {
     const { peerMetadata } = config;
 
     const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
-
-    addLogging<PeerMetadata, TrackMetadata>(client);
 
     client.on("onSocketOpen", () => {
       console.log("Socket open!");

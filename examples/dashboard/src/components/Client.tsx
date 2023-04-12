@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { createNoContextMembraneClient } from "@jellyfish-dev/jellyfish-react-client/externalState";
 import type { PeerMetadata, TrackMetadata } from "../jellifishClientSetup";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
@@ -11,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import { BadgeStatus } from "./Bage";
 import { showToastError } from "./Toasts";
 import { CopyToClipboardButton } from "./CopyButton";
+import { create } from "@jellyfish-dev/jellyfish-react-client/experimental";
 
 type ClientProps = {
   roomId: string;
@@ -25,7 +25,7 @@ type ClientProps = {
 type Disconnect = null | (() => void);
 
 export const Client = ({ roomId, peerId, token, name, refetchIfNeeded, selectedVideoStream, remove }: ClientProps) => {
-  const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>());
+  const [client] = useState(create<PeerMetadata, TrackMetadata>());
 
   const connect = client.useConnect();
   const [disconnect, setDisconnect] = useState<Disconnect>(() => null);

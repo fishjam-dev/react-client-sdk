@@ -12,6 +12,7 @@
     "format:check": "prettier --check . --ignore-path ./.eslintignore"
   },
   "dependencies": {
+    "@jellyfish-dev/browser-media-utils": "github:jellyfish-dev/browser-media-utils#feature/prepare-initial-release",
     "@jellyfish-dev/jellyfish-react-client": "file:../..",
     "axios": "^1.3.4",
     "daisyui": "^2.51.3",

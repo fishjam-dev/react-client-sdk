@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
-import {
-  getBooleanValue,
-  loadObject,
-  removeSavedItem,
-  saveObject,
-} from "@jellyfish-dev/jellyfish-react-client/jellyfish";
 import type { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 import { REFETCH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
@@ -15,6 +9,7 @@ import { CloseButton } from "./CloseButton";
 import { CopyToClipboardButton } from "./CopyButton";
 import { Room as RoomAPI } from "../server-sdk";
 import { peerApi, roomApi } from "../utils/ServerSdk";
+import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "../addLogging";
 
 type RoomConfig = {
   maxPeers: number;

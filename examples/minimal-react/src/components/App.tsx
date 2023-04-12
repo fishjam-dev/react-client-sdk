@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { createNoContextMembraneClient } from "@jellyfish-dev/jellyfish-react-client/externalState";
-import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/jellyfish-react-client/navigator";
+import { create } from "@jellyfish-dev/jellyfish-react-client/experimental";
 import VideoPlayer from "./VideoPlayer";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
+import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/browser-media-utils";
 
 // Example metadata types for peer and track
 // You can define your own metadata types just make sure they are serializable
@@ -16,7 +16,7 @@ type TrackMetadata = {
 
 export const App = () => {
   // Create a Membrane client instance
-  const [client] = useState(createNoContextMembraneClient<PeerMetadata, TrackMetadata>());
+  const [client] = useState(create<PeerMetadata, TrackMetadata>());
 
   // Create the connect function
   const connect = client.useConnect();

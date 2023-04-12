@@ -1,4 +1,4 @@
-import { JellyfishClient } from "./JellyfishClient";
+import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
 /**
  * Save a string value to local storage

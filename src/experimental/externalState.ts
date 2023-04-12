@@ -1,4 +1,5 @@
 import type { SetStore, State } from "../state.types";
+import { DEFAULT_STORE } from "../state";
 
 export type ExternalState<PeerMetadata, TrackMetadata> = {
   getSnapshot: () => State<PeerMetadata, TrackMetadata>;
@@ -8,18 +9,6 @@ export type ExternalState<PeerMetadata, TrackMetadata> = {
 
 export type Subscribe = (onStoreChange: () => void) => () => void;
 export type Listener = () => void;
-
-export const DEFAULT_STORE: State<any, any> = {
-  local: null,
-  remote: {},
-  status: null,
-  bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
-  connectivity: {
-    api: null,
-    connect: null,
-    client: null,
-  },
-};
 
 /**
  * Create store with initial state.
