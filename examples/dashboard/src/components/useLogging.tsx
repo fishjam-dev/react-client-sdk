@@ -1,71 +1,75 @@
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
-import {
-  onBandwidthEstimationChanged,
-  onTrackEncodingChanged,
-  onTrackReady,
-  onTrackRemoved,
-  onTrackUpdated,
-} from "../../../../src/stateMappers";
 import { useEffect } from "react";
 import { getBooleanValue } from "../utils/localStorageUtils";
 
-export const useLogging = (client: JellyfishClient<any, any> | null) => {
+export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
   useEffect(() => {
     if (!client) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onJoinSuccess = (peerId: any, peersInRoom: any) => {
       if (getBooleanValue("onJoinSuccess")) {
         console.log({ name: "onJoinSuccess", peerId, peersInRoom });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onJoinError = (metadata: any) => {
       if (getBooleanValue("onJoinError")) {
         console.log({ name: "onJoinError", metadata });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onJoinRemove = (reason: any) => {
       if (getBooleanValue("onRemoved")) {
         console.log({ name: "onRemoved", reason });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerJoined = (peer: any) => {
       if (getBooleanValue("onPeerJoined")) {
         console.log({ name: "onPeerJoined", peer });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerUpdated = (peer: any) => {
       if (getBooleanValue("onPeerUpdated")) {
         console.log({ name: "onPeerUpdated", peer });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerLeft = (peer: any) => {
       if (getBooleanValue("onPeerLeft")) {
         console.log({ name: "onPeerLeft", peer });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onTrackReady = (ctx: any) => {
       if (getBooleanValue("onTrackReady")) {
         console.log({ name: "onTrackReady", ctx });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onTrackAdded = (ctx: any) => {
       if (getBooleanValue("onTrackAdded")) {
         console.log({ name: "onTrackAdded", ctx });
       }
 
       // todo remove this callback in useEffect return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ctx.on("onEncodingChanged", (context: any) => {
         if (getBooleanValue("onEncodingChanged")) {
           console.log({ name: "onEncodingChanged", context });
         }
       });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ctx.on("onVoiceActivityChanged", (context: any) => {
         if (getBooleanValue("onVoiceActivityChanged")) {
           console.log({ name: "onVoiceActivityChanged", context });
@@ -73,24 +77,28 @@ export const useLogging = (client: JellyfishClient<any, any> | null) => {
       });
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onTrackRemoved = (ctx: any) => {
       if (getBooleanValue("onTrackRemoved")) {
         console.log({ name: "onTrackRemoved", ctx });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onTrackUpdated = (ctx: any) => {
       if (getBooleanValue("onTrackUpdated")) {
         console.log({ name: "onTrackUpdated", ctx });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onBandwidthEstimationChanged = (estimation: any) => {
       if (getBooleanValue("onBandwidthEstimationChanged")) {
         console.log({ name: "onBandwidthEstimationChanged", estimation });
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onTrackEncodingChanged = (peerId: any, trackId: any, encoding: any) => {
       if (getBooleanValue("onTrackEncodingChanged")) {
         console.log({
@@ -102,6 +110,7 @@ export const useLogging = (client: JellyfishClient<any, any> | null) => {
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onTracksPriorityChanged = (enabledTracks: any, disabledTracks: any) => {
       if (getBooleanValue("onTracksPriorityChanged")) {
         console.log({
@@ -116,7 +125,7 @@ export const useLogging = (client: JellyfishClient<any, any> | null) => {
       console.log("onAuthError");
     };
 
-    const onConnectionError = (message: string) => {
+    const onConnectionError = (_message: string) => {
       console.log("onConnectionError");
     };
 

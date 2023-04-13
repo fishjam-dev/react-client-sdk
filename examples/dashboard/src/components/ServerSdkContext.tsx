@@ -35,7 +35,7 @@ export const ServerSDKProvider = ({ children }: Props) => {
   );
   const roomApi = useMemo(() => new RoomApi(undefined, serverAddress, axios), [serverAddress]);
   const peerApi = useMemo(() => new PeerApi(undefined, serverAddress, axios), [serverAddress]);
-  
+
   const websocketUrl = useMemo(() => serverAddress.replace("http", "ws") + "/socket/websocket", [serverAddress]);
 
   return (

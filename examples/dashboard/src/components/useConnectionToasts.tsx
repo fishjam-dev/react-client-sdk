@@ -3,7 +3,7 @@ import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { useEffect } from "react";
 import { showToastError } from "./Toasts";
 
-export const useConnectionToasts = (client: JellyfishClient<any, any> | null) => {
+export const useConnectionToasts = <P, T>(client: JellyfishClient<P, T> | null) => {
   useEffect(() => {
     if (!client) return;
 

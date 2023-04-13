@@ -2,7 +2,6 @@
 
 ## Run
 
-
 ```shell
 # Build `react-client-sdk`. Run following command in the project root directory
 npm install
@@ -15,7 +14,6 @@ cd examples/dashboard
 npm install
 npm run dev
 ```
-
 
 ```shell
 yarn run dev

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { LogSelector, PersistentInput, useLocalStorageState } from "./LogSelector";
 import { Room } from "./Room";
 import { JsonComponent } from "./JsonComponent";
@@ -22,23 +22,23 @@ export const App = () => {
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
   const { serverAddress, setServerAddress, roomApi } = useServerSdk();
-  const refetchAll = () => {
+  const refetchAll = useCallback(() => {
     roomApi
       .jellyfishWebRoomControllerIndex()
       .then((response) => {
         setState(response.data.data);
       })
-      .catch((error) => {
+      .catch(() => {
         showToastError("Cannot connect to Jellyfish server");
         setState(null);
       });
-  };
+  }, [roomApi]);
 
   useEffect(() => {
     if (getBooleanValue(REFETCH_ON_MOUNT)) {
       refetchAll();
     }
-  }, []);
+  }, [refetchAll]);
 
   const refetchIfNeeded = () => {
     if (getBooleanValue(REFETCH_ON_SUCCESS)) {
@@ -63,7 +63,7 @@ export const App = () => {
             onClick={() => {
               roomApi
                 .jellyfishWebRoomControllerCreate({ maxPeers: 10 })
-                .then((response) => {
+                .then((_response) => {
                   // console.log({ name: "createRoom", response });
                 })
                 .then(() => {
