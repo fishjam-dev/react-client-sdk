@@ -7,7 +7,6 @@ import type {
 import { addTrack, removeTrack, replaceTrack, updateTrackMetadata } from "./stateMappers";
 import { SetStore } from "./state.types";
 
-
 // todo implement
 //  setTrackBandwidth
 //  setEncodingBandwidth
