@@ -61,10 +61,11 @@
     typed-emitter "^2.1.0"
     uuid "^8.3.2"
 
-"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#bugfix/initial-release":
+"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#feature/remove-simulcast-from-config":
   version "0.0.1"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#5cdd553b49efa5fb79741aad129a279bab00bd89"
+  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#2d37f18dc1d169ac9f9d439e178e5a1a919ac1eb"
   dependencies:
+    "@jellyfish-dev/membrane-webrtc-js" "github:jellyfish-dev/membrane-webrtc-js#Change-client-to-extend-event-emitter"
     events "^3.3.0"
 
 "@nodelib/fs.scandir@2.1.5":

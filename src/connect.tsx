@@ -1,31 +1,11 @@
 import type { SetStore } from "./state.types";
-
-import {
-  onAuthError,
-  onAuthSuccess,
-  onBandwidthEstimationChanged,
-  onDisconnected,
-  onEncodingChanged,
-  onJoinError,
-  onJoinSuccess,
-  onPeerJoined,
-  onPeerLeft,
-  onPeerRemoved,
-  onPeerUpdated,
-  onSocketError,
-  onSocketOpen,
-  onTrackAdded,
-  onTrackEncodingChanged,
-  onTrackReady,
-  onTrackRemoved,
-  onTracksPriorityChanged,
-  onTrackUpdated,
-  onVoiceActivityChanged,
-} from "./stateMappers";
+import * as mappers from "./stateMappers";
 import { State } from "./state.types";
 import { createApiWrapper } from "./api";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
+import { Peer as WebRtcPeer } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
+import { TrackContext, TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
 
 /**
  * Connects to the Jellyfish server.
@@ -37,80 +17,72 @@ import { DEFAULT_STORE } from "./state";
 export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMetadata, TrackMetadata>) {
   return (config: Config<PeerMetadata>): (() => void) => {
     const { peerMetadata } = config;
-
     const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
+    const trackContextOffFunctions: (() => void)[] = [];
 
-    client.on("onSocketOpen", () => {
-      // console.log("Socket open!");
-      setStore(onSocketOpen());
-    });
+    const onTrackAdded = (ctx: TrackContext) => {
+      const onEncodingChange = () => {
+        setStore(mappers.onEncodingChanged(ctx));
+      };
+      const onVoiceActivityChanged = () => {
+        setStore(mappers.onVoiceActivityChanged(ctx));
+      };
 
-    client.on("onSocketError", () => {
-      // console.log("Socket error!");
-      setStore(onSocketError());
-    });
+      ctx.on("onEncodingChanged", onEncodingChange);
+      ctx.on("onVoiceActivityChanged", onVoiceActivityChanged);
 
-    client.on("onAuthSuccess", () => {
-      // console.log("Auth success!");
-      setStore(onAuthSuccess());
-    });
-
-    client.on("onAuthError", () => {
-      // console.log("Auth error!");
-      setStore(onAuthError());
-    });
-
-    client.on("onDisconnected", () => {
-      // console.log("Disconnected!");
-      setStore(onDisconnected());
-    });
-
-    client.on("onJoinSuccess", (peerId, peersInRoom) => {
-      setStore(onJoinSuccess(peersInRoom, peerId, peerMetadata));
-    });
-    // todo handle state and handle callback
-    client.on("onJoinError", (metadata) => {
-      setStore(onJoinError(metadata));
-    });
-    client.on("onRemoved", (reason) => {
-      setStore(onPeerRemoved(reason));
-    });
-    client.on("onPeerJoined", (peer) => setStore(onPeerJoined(peer)));
-    client.on("onPeerUpdated", (peer) => {
-      setStore(onPeerUpdated(peer));
-    });
-    client.on("onPeerLeft", (peer) => {
-      setStore(onPeerLeft(peer));
-    });
-    client.on("onTrackReady", (ctx) => {
-      setStore(onTrackReady(ctx));
-    });
-    client.on("onTrackAdded", (ctx) => {
-      setStore(onTrackAdded(ctx));
-
-      ctx.on("onEncodingChanged", () => {
-        setStore(onEncodingChanged(ctx));
+      trackContextOffFunctions.push(() => {
+        ctx.off("onEncodingChanged", onEncodingChange);
+        ctx.off("onVoiceActivityChanged", onVoiceActivityChanged);
       });
-      ctx.on("onVoiceActivityChanged", () => {
-        setStore(onVoiceActivityChanged(ctx));
-      });
-    });
-    client.on("onTrackRemoved", (ctx) => {
-      setStore(onTrackRemoved(ctx));
-    });
-    client.on("onTrackUpdated", (ctx) => {
-      setStore(onTrackUpdated(ctx));
-    });
-    client.on("onBandwidthEstimationChanged", (estimation) => {
-      setStore(onBandwidthEstimationChanged(estimation));
-    });
-    client.on("onTrackEncodingChanged", (peerId, trackId, encoding) => {
-      setStore(onTrackEncodingChanged(peerId, trackId, encoding));
-    });
+
+      setStore(mappers.onTrackAdded(ctx));
+    };
+
+    const onSocketOpen = () => setStore(mappers.onSocketOpen());
+    const onSocketError = () => setStore(mappers.onSocketError());
+    const onAuthSuccess = () => setStore(mappers.onAuthSuccess());
+    const onAuthError = () => setStore(mappers.onAuthError());
+    const onDisconnected = () => setStore(mappers.onDisconnected());
+    const onJoinSuccess = (peerId: string, peersInRoom: [WebRtcPeer]) =>
+      setStore(mappers.onJoinSuccess(peersInRoom, peerId, peerMetadata));
     // todo handle state
-    client.on("onTracksPriorityChanged", (enabledTracks, disabledTracks) => {
-      setStore(onTracksPriorityChanged(enabledTracks, disabledTracks));
-    });
+    const onJoinError = (metadata: unknown) => setStore(mappers.onJoinError(metadata));
+    const onRemoved = (reason: string) => setStore(mappers.onPeerRemoved(reason));
+    const onPeerJoined = (peer: WebRtcPeer) => setStore(mappers.onPeerJoined(peer));
+    const onPeerUpdated = (peer: WebRtcPeer) => setStore(mappers.onPeerUpdated(peer));
+    const onPeerLeft = (peer: WebRtcPeer) => setStore(mappers.onPeerLeft(peer));
+    const onTrackReady = (ctx: TrackContext) => setStore(mappers.onTrackReady(ctx));
+    const onTrackRemoved = (ctx: TrackContext) => {
+      setStore(mappers.onTrackRemoved(ctx));
+      // todo remove listeners from TrackContext
+    };
+    const onTrackUpdated = (ctx: TrackContext) => setStore(mappers.onTrackUpdated(ctx));
+    const onBandwidthEstimationChanged = (estimation: bigint) =>
+      setStore(mappers.onBandwidthEstimationChanged(estimation));
+    const onTrackEncodingChanged = (peerId: string, trackId: string, encoding: TrackEncoding) =>
+      setStore(mappers.onTrackEncodingChanged(peerId, trackId, encoding));
+    const onTracksPriorityChanged = (enabledTracks: TrackContext[], disabledTracks: TrackContext[]) =>
+      setStore(mappers.onTracksPriorityChanged(enabledTracks, disabledTracks));
+
+    client.on("onTrackAdded", onTrackAdded);
+    client.on("onSocketOpen", onSocketOpen);
+    client.on("onSocketError", onSocketError);
+    client.on("onAuthSuccess", onAuthSuccess);
+    client.on("onAuthError", onAuthError);
+    client.on("onDisconnected", onDisconnected);
+    client.on("onJoinSuccess", onJoinSuccess);
+    client.on("onJoinError", onJoinError);
+    client.on("onRemoved", onRemoved);
+    client.on("onPeerJoined", onPeerJoined);
+    client.on("onPeerUpdated", onPeerUpdated);
+    client.on("onPeerLeft", onPeerLeft);
+    client.on("onTrackReady", onTrackReady);
+    client.on("onTrackRemoved", onTrackRemoved);
+    client.on("onTrackUpdated", onTrackUpdated);
+    client.on("onBandwidthEstimationChanged", onBandwidthEstimationChanged);
+    client.on("onTrackEncodingChanged", onTrackEncodingChanged);
+    client.on("onTracksPriorityChanged", onTracksPriorityChanged);
 
     client.connect(config);
 
@@ -120,13 +92,32 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         status: "connecting",
         connectivity: {
           ...prevState.connectivity,
-          api: client.webrtc ? createApiWrapper(client.webrtc, setStore) : null,
+          api: client ? createApiWrapper(client, setStore) : null,
           client: client,
         },
       };
     });
 
     return () => {
+      trackContextOffFunctions.forEach((off) => off());
+      client.off("onTrackAdded", onTrackAdded);
+      client.off("onSocketOpen", onSocketOpen);
+      client.off("onSocketError", onSocketError);
+      client.off("onAuthSuccess", onAuthSuccess);
+      client.off("onAuthError", onAuthError);
+      client.off("onDisconnected", onDisconnected);
+      client.off("onJoinSuccess", onJoinSuccess);
+      client.off("onJoinError", onJoinError);
+      client.off("onRemoved", onRemoved);
+      client.off("onPeerJoined", onPeerJoined);
+      client.off("onPeerUpdated", onPeerUpdated);
+      client.off("onPeerLeft", onPeerLeft);
+      client.off("onTrackReady", onTrackReady);
+      client.off("onTrackRemoved", onTrackRemoved);
+      client.off("onTrackUpdated", onTrackUpdated);
+      client.off("onBandwidthEstimationChanged", onBandwidthEstimationChanged);
+      client.off("onTrackEncodingChanged", onTrackEncodingChanged);
+      client.off("onTracksPriorityChanged", onTracksPriorityChanged);
       setStore(() => DEFAULT_STORE);
       client.cleanUp();
     };

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { create } from "@jellyfish-dev/jellyfish-react-client/experimental";
 import VideoPlayer from "./VideoPlayer";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/browser-media-utils";
-import { create } from "@jellyfish-dev/jellyfish-react-client";
 
 // Example metadata types for peer and track
 // You can define your own metadata types just make sure they are serializable
@@ -15,7 +15,7 @@ type TrackMetadata = {
 };
 
 // Create a Membrane client instance
-export const { JellyfishContextProvider, useConnect, useSelector } = create<PeerMetadata, TrackMetadata>();
+const { useConnect, useSelector } = create<PeerMetadata, TrackMetadata>();
 const peerToken = prompt("Enter peer token") ?? "YOUR_PEER_TOKEN";
 
 export const App = () => {
@@ -25,7 +25,7 @@ export const App = () => {
   // Get all remote peers
   const remoteTracks = useSelector((snapshot) => Object.values(snapshot?.remote || {}));
 
-  // Get the apu reference
+  // Get the api reference
   const api = useSelector((snapshot) => snapshot.connectivity.api);
 
   // Get jellyfish client reference

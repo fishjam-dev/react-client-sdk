@@ -6,6 +6,7 @@ import type {
 } from "@jellyfish-dev/membrane-webrtc-js";
 import { addTrack, removeTrack, replaceTrack, updateTrackMetadata } from "./stateMappers";
 import { SetStore } from "./state.types";
+import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
 // todo implement
 //  setTrackBandwidth
@@ -207,7 +208,7 @@ export type Api<TrackMetadata> = {
  * @returns Wrapper for the MembraneWebRTC instance
  */
 export const createApiWrapper = <PeerMetadata, TrackMetadata>(
-  webrtc: MembraneWebRTC,
+  webrtc: JellyfishClient<PeerMetadata, TrackMetadata>,
   setStore: SetStore<PeerMetadata, TrackMetadata>
 ): Api<TrackMetadata> => ({
   addTrack: (
