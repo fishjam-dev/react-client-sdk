@@ -59,6 +59,8 @@ export const useLogging = (client: JellyfishClient<any, any> | null) => {
       if (getBooleanValue("onTrackAdded")) {
         console.log({ name: "onTrackAdded", ctx });
       }
+
+      // todo remove this callback in useEffect return
       ctx.on("onEncodingChanged", (context: any) => {
         if (getBooleanValue("onEncodingChanged")) {
           console.log({ name: "onEncodingChanged", context });
