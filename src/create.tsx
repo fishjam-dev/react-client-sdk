@@ -4,11 +4,11 @@ import { connect } from "./connect";
 import { Config } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
 
-export type MembraneContextProviderProps = {
+export type JellyfishContextProviderProps = {
   children: React.ReactNode;
 };
 
-type MembraneContextType<PeerMetadata, TrackMetadata> = {
+type JellyfishContextType<PeerMetadata, TrackMetadata> = {
   state: State<PeerMetadata, TrackMetadata>;
   setState: (value: (prevState: State<PeerMetadata, TrackMetadata>) => State<PeerMetadata, TrackMetadata>) => void;
   // setState: (
@@ -29,34 +29,36 @@ export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => v
  * @returns ContextProvider, useSelector, useConnect
  */
 export const create = <PeerMetadata, TrackMetadata>() => {
-  const MembraneContext = React.createContext<MembraneContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
+  const JellyfishContext = React.createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(
+    undefined
+  );
 
-  const MembraneContextProvider = ({ children }: MembraneContextProviderProps) => {
+  const JellyfishContextProvider = ({ children }: JellyfishContextProviderProps) => {
     const [state, setState] = useState<State<PeerMetadata, TrackMetadata>>(DEFAULT_STORE);
 
-    return <MembraneContext.Provider value={{ state, setState }}>{children}</MembraneContext.Provider>;
+    return <JellyfishContext.Provider value={{ state, setState }}>{children}</JellyfishContext.Provider>;
   };
 
-  const useMembraneContext = (): MembraneContextType<PeerMetadata, TrackMetadata> => {
-    const context = useContext(MembraneContext);
-    if (!context) throw new Error("useMembraneContext must be used within a MembraneContextProvider");
+  const useJellyfishContext = (): JellyfishContextType<PeerMetadata, TrackMetadata> => {
+    const context = useContext(JellyfishContext);
+    if (!context) throw new Error("useJellyfishContext must be used within a JellyfishContextProvider");
     return context;
   };
 
   const useSelector = <Result,>(selector: Selector<PeerMetadata, TrackMetadata, Result>): Result => {
-    const { state } = useMembraneContext();
+    const { state } = useJellyfishContext();
 
     return useMemo(() => selector(state), [selector, state]);
   };
 
   const useConnect = (): UseConnect<PeerMetadata> => {
-    const { setState }: MembraneContextType<PeerMetadata, TrackMetadata> = useMembraneContext();
+    const { setState }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
 
     return useMemo(() => connect(setState), [setState]);
   };
 
   return {
-    MembraneContextProvider,
+    JellyfishContextProvider,
     useSelector,
     useConnect,
   };

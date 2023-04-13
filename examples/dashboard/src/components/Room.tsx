@@ -8,8 +8,8 @@ import type { StreamInfo } from "./VideoDeviceSelector";
 import { CloseButton } from "./CloseButton";
 import { CopyToClipboardButton } from "./CopyButton";
 import { Room as RoomAPI } from "../server-sdk";
-import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "../addLogging";
 import { useServerSdk } from "./ServerSdkContext";
+import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "../utils/localStorageUtils";
 
 type RoomConfig = {
   maxPeers: number;
@@ -35,7 +35,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
 
   const refetch = () => {
     roomApi.jellyfishWebRoomControllerShow(roomId).then((response) => {
-      console.log({ name: "refetchRoom", response });
+      // console.log({ name: "refetchRoom", response });
       setRoom(response.data.data);
     });
   };
@@ -95,7 +95,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     peerApi
                       .jellyfishWebPeerControllerCreate(roomId, { type: "webrtc" })
                       .then((response) => {
-                        console.log({ name: "xxx", response });
+                        // console.log({ name: "xxx", response });
                         // const res1 = response.data
                         // const res2 = res1.data
                         // const token = res2.token

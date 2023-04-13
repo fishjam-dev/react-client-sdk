@@ -41,27 +41,27 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
     const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
     client.on("onSocketOpen", () => {
-      console.log("Socket open!");
+      // console.log("Socket open!");
       setStore(onSocketOpen());
     });
 
     client.on("onSocketError", () => {
-      console.log("Socket error!");
+      // console.log("Socket error!");
       setStore(onSocketError());
     });
 
     client.on("onAuthSuccess", () => {
-      console.log("Auth success!");
+      // console.log("Auth success!");
       setStore(onAuthSuccess());
     });
 
     client.on("onAuthError", () => {
-      console.log("Auth error!");
+      // console.log("Auth error!");
       setStore(onAuthError());
     });
 
     client.on("onDisconnected", () => {
-      console.log("Disconnected!");
+      // console.log("Disconnected!");
       setStore(onDisconnected());
     });
 
