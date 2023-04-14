@@ -92,7 +92,6 @@ export const Client = ({ roomId, peerId, token, name, refetchIfNeeded, selectedV
                 onClick={() => {
                   const disconnect = connect({
                     peerMetadata: { name },
-                    isSimulcastOn: true,
                     token,
                     websocketUrl,
                   });

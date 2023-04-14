@@ -41,27 +41,22 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
     const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
     client.on("onSocketOpen", () => {
-      // console.log("Socket open!");
       setStore(onSocketOpen());
     });
 
     client.on("onSocketError", () => {
-      // console.log("Socket error!");
       setStore(onSocketError());
     });
 
     client.on("onAuthSuccess", () => {
-      // console.log("Auth success!");
       setStore(onAuthSuccess());
     });
 
     client.on("onAuthError", () => {
-      // console.log("Auth error!");
       setStore(onAuthError());
     });
 
     client.on("onDisconnected", () => {
-      // console.log("Disconnected!");
       setStore(onDisconnected());
     });
 
@@ -120,7 +115,7 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         status: "connecting",
         connectivity: {
           ...prevState.connectivity,
-          api: client.webrtc ? createApiWrapper(client.webrtc, setStore) : null,
+          api: client ? createApiWrapper(client, setStore) : null,
           client: client,
         },
       };

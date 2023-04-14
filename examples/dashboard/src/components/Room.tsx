@@ -35,7 +35,6 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
 
   const refetch = () => {
     roomApi.jellyfishWebRoomControllerShow(roomId).then((response) => {
-      // console.log({ name: "refetchRoom", response });
       setRoom(response.data.data);
     });
   };
@@ -95,6 +94,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     peerApi
                       .jellyfishWebPeerControllerCreate(roomId, { type: "webrtc" })
                       .then((response) => {
+                        // TODO workaround for broken server API definition
                         // console.log({ name: "xxx", response });
                         // const res1 = response.data
                         // const res2 = res1.data
@@ -133,17 +133,17 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
         </div>
         <div className="flex flex-col">
           {room?.peers?.map(({ id }) => {
+            if (!id) return null;
             return (
               <Client
                 key={id}
                 roomId={roomId}
-                peerId={id || ""}
-                token={token[id || ""]}
-                name={id || ""}
+                peerId={id}
+                token={token[id]}
+                name={id}
                 refetchIfNeeded={refetchIfNeededInner}
                 selectedVideoStream={selectedVideoStream}
                 remove={() => {
-                  if (!id) throw Error("Room ID is undefined");
                   peerApi.jellyfishWebPeerControllerDelete(roomId, id);
                 }}
               />

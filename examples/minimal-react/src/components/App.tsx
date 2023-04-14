@@ -14,29 +14,28 @@ type TrackMetadata = {
   type: "camera" | "screen";
 };
 
-export const App = () => {
-  // Create a Membrane client instance
-  const [client] = useState(create<PeerMetadata, TrackMetadata>());
+// Create a Membrane client instance
+const { useSelector, useConnect } = create<PeerMetadata, TrackMetadata>();
 
+// Start the peer connection
+const peerToken = prompt("Enter peer token") ?? "YOUR_PEER_TOKEN";
+
+export const App = () => {
   // Create the connect function
-  const connect = client.useConnect();
+  const connect = useConnect();
 
   // Get the full state
-  const remoteTracks = client.useSelector((snapshot) => Object.values(snapshot?.remote || {}));
+  const remoteTracks = useSelector((snapshot) => Object.values(snapshot?.remote || {}));
 
   // Get the webrtcApi reference
-  const webrtcApi = client.useSelector((snapshot) => snapshot.connectivity.api);
+  const webrtcApi = useSelector((snapshot) => snapshot.connectivity.api);
 
   // Get jellyfish client reference
-  const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
+  const jellyfishClient = useSelector((snapshot) => snapshot.connectivity.client);
 
   useEffect(() => {
-    const peerToken = prompt("Enter peer token") ?? "YOUR_PEER_TOKEN";
-
-    // Start the peer connection
     const disconnect = connect({
       peerMetadata: { name: "peer" },
-      isSimulcastOn: false,
       token: peerToken,
     });
 

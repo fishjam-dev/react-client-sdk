@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import type { State, Selector } from "./state.types";
 import { connect } from "./connect";
 import { Config } from "@jellyfish-dev/ts-client-sdk";
@@ -29,9 +29,7 @@ export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => v
  * @returns ContextProvider, useSelector, useConnect
  */
 export const create = <PeerMetadata, TrackMetadata>() => {
-  const JellyfishContext = React.createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(
-    undefined
-  );
+  const JellyfishContext = createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
   const JellyfishContextProvider = ({ children }: JellyfishContextProviderProps) => {
     const [state, setState] = useState<State<PeerMetadata, TrackMetadata>>(DEFAULT_STORE);

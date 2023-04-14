@@ -14,11 +14,10 @@ export const REFETCH_ON_SUCCESS = "refetch on success";
 export const REFETCH_ON_MOUNT = "refetch on mount";
 
 export const App = () => {
-  const [state, setState] = useState<RoomAPI[] | null>(null);
+  const [room, setRoom] = useState<RoomAPI[] | null>(null);
   const [showServerState, setShow] = useLocalStorageState(`show-json-fullstate`);
   const [showLogSelector, setShowLogSelector] = useLocalStorageState("showServerState-log-selector");
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showServerState-log-selector");
-  // const [showCameraTest, setShowCameraTest] = useLocalStorageState("showServerState-camera-test");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
   const { serverAddress, setServerAddress, roomApi } = useServerSdk();
@@ -26,11 +25,11 @@ export const App = () => {
     roomApi
       .jellyfishWebRoomControllerIndex()
       .then((response) => {
-        setState(response.data.data);
+        setRoom(response.data.data);
       })
       .catch(() => {
         showToastError("Cannot connect to Jellyfish server");
-        setState(null);
+        setRoom(null);
       });
   }, [roomApi]);
 
@@ -61,14 +60,9 @@ export const App = () => {
           <button
             className="btn btn-sm btn-success mx-1 my-0"
             onClick={() => {
-              roomApi
-                .jellyfishWebRoomControllerCreate({ maxPeers: 10 })
-                .then((_response) => {
-                  // console.log({ name: "createRoom", response });
-                })
-                .then(() => {
-                  refetchIfNeeded();
-                });
+              roomApi.jellyfishWebRoomControllerCreate({ maxPeers: 10 }).then(() => {
+                refetchIfNeeded();
+              });
             }}
           >
             Create room
@@ -97,7 +91,7 @@ export const App = () => {
               setShow(!showServerState);
             }}
           >
-            {showServerState ? "Hide server state" : "Show server state"}
+            {showServerState ? "Hide server room" : "Show server room"}
           </button>
           <div className="form-control mx-1 my-0 flex flex-row items-center">
             <input
@@ -126,15 +120,6 @@ export const App = () => {
               </svg>
             </div>
           </div>
-
-          {/*<button*/}
-          {/*  className="btn btn-sm mx-1 my-0"*/}
-          {/*  onClick={() => {*/}
-          {/*    setShowCameraTest(!showCameraTest);*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  {showCameraTest ? "Hide camera test" : "Show camera test"}*/}
-          {/*</button>*/}
           <div className="flex flex-row w-[150px] mx-1 my-0">
             <PersistentInput name={REFETCH_ON_SUCCESS} />
           </div>
@@ -147,7 +132,6 @@ export const App = () => {
         </div>
       </div>
       <div className="flex flex-row w-full h-full m-2 items-start">
-        {/*{showCameraTest && <CameraTest />}*/}
         {showLogSelector && <LogSelector />}
         {showDeviceSelector && (
           <VideoDeviceSelector
@@ -163,12 +147,12 @@ export const App = () => {
             <div className="w-[600px] m-2 card bg-base-100 shadow-xl">
               <div className="card-body">
                 <h2 className="card-title">Server state:</h2>
-                <JsonComponent state={state} />
+                <JsonComponent state={room} />
               </div>
             </div>
           </div>
         )}
-        {state?.map((room) => (
+        {room?.map((room) => (
           <Room
             key={room.id}
             roomId={room.id || ""}

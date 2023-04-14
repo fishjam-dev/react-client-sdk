@@ -2,6 +2,7 @@ import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { useEffect } from "react";
 import { getBooleanValue } from "../utils/localStorageUtils";
 
+// TODO: refactor this
 export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
   useEffect(() => {
     if (!client) return;
