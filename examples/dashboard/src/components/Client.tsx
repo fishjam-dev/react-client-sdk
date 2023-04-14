@@ -94,6 +94,7 @@ export const Client = ({ roomId, peerId, token, name, refetchIfNeeded, selectedV
                     peerMetadata: { name },
                     token,
                     websocketUrl,
+                    isSimulcastOn: true,
                   });
                   setTimeout(() => {
                     refetchIfNeeded();
