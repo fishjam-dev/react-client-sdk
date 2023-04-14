@@ -11,13 +11,6 @@ export type JellyfishContextProviderProps = {
 type JellyfishContextType<PeerMetadata, TrackMetadata> = {
   state: State<PeerMetadata, TrackMetadata>;
   setState: (value: (prevState: State<PeerMetadata, TrackMetadata>) => State<PeerMetadata, TrackMetadata>) => void;
-  // setState: (
-  //   value:
-  //     | ((
-  //     prevState: LibraryPeersState<PeerMetadata, TrackMetadata>
-  //   ) => LibraryPeersState<PeerMetadata, TrackMetadata>)
-  //     | LibraryPeersState<PeerMetadata, TrackMetadata>
-  // ) => void;
 };
 
 export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => void;
