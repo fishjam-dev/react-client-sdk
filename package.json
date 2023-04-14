@@ -43,7 +43,7 @@
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
     "lint": "eslint . --ext .ts,.tsx",
-    "prepare": "rimraf dist && tsc"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@types/events": "^3.0.0",
@@ -54,6 +54,7 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.3",
     "lodash.isequal": "^4.5.0",
     "prettier": "^2.8.4",
     "react": "^18.2.0",

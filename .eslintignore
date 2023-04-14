@@ -1,5 +1,7 @@
 node_modules
 dist
 .github
+.husky
 docs
 examples/dashboard/src/server-sdk
+.*
