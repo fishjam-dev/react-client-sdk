@@ -7,7 +7,6 @@ export const DEFAULT_STORE: State<any, any> = {
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
   connectivity: {
     api: null,
-    connect: null,
     client: null,
   },
 };

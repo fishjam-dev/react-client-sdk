@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@jellyfish-dev/membrane-webrtc-js": "github:jellyfish-dev/membrane-webrtc-js#Change-client-to-extend-event-emitter",
-    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#bugfix/initial-release",
+    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#main",
     "events": "^3.3.0"
   },
   "directories": {

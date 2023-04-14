@@ -61,9 +61,9 @@
     typed-emitter "^2.1.0"
     uuid "^8.3.2"
 
-"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#bugfix/initial-release":
+"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#main":
   version "0.0.1"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#5cdd553b49efa5fb79741aad129a279bab00bd89"
+  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#299f6945578548e253a403a652d14c7e45b67236"
   dependencies:
     events "^3.3.0"
 
