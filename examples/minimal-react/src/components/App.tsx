@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { create } from "@jellyfish-dev/jellyfish-react-client/experimental";
 import VideoPlayer from "./VideoPlayer";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";

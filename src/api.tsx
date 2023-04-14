@@ -1,9 +1,4 @@
-import type {
-  MembraneWebRTC,
-  SimulcastConfig,
-  TrackBandwidthLimit,
-  TrackEncoding,
-} from "@jellyfish-dev/membrane-webrtc-js";
+import type { SimulcastConfig, TrackBandwidthLimit, TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
 import { addTrack, removeTrack, replaceTrack, updateTrackMetadata } from "./stateMappers";
 import { SetStore } from "./state.types";
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
