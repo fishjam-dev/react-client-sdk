@@ -120,7 +120,7 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         status: "connecting",
         connectivity: {
           ...prevState.connectivity,
-          api: client.webrtc ? createApiWrapper(client.webrtc, setStore) : null,
+          api: createApiWrapper(client, setStore),
           client: client,
         },
       };

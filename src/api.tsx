@@ -1,9 +1,5 @@
-import type {
-  MembraneWebRTC,
-  SimulcastConfig,
-  TrackBandwidthLimit,
-  TrackEncoding,
-} from "@jellyfish-dev/membrane-webrtc-js";
+import type { SimulcastConfig, TrackBandwidthLimit, TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
+import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { addTrack, removeTrack, replaceTrack, updateTrackMetadata } from "./stateMappers";
 import { SetStore } from "./state.types";
 
@@ -202,12 +198,12 @@ export type Api<TrackMetadata> = {
 /**
  * Creates a wrapper for the MembraneWebRTC instance to enable updating the store.
  *
- * @param webrtc - MembraneWebRTC instance
+ * @param client - MembraneWebRTC instance
  * @param setStore - function that sets the store
  * @returns Wrapper for the MembraneWebRTC instance
  */
 export const createApiWrapper = <PeerMetadata, TrackMetadata>(
-  webrtc: MembraneWebRTC,
+  client: JellyfishClient<PeerMetadata, TrackMetadata>,
   setStore: SetStore<PeerMetadata, TrackMetadata>
 ): Api<TrackMetadata> => ({
   addTrack: (
@@ -217,36 +213,36 @@ export const createApiWrapper = <PeerMetadata, TrackMetadata>(
     simulcastConfig?: SimulcastConfig,
     maxBandwidth?: TrackBandwidthLimit
   ) => {
-    const remoteTrackId = webrtc.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
+    const remoteTrackId = client.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
     setStore(addTrack(remoteTrackId, track, stream, trackMetadata, simulcastConfig));
     return remoteTrackId;
   },
 
   replaceTrack: (trackId, newTrack, stream, newTrackMetadata) => {
-    const promise = webrtc.replaceTrack(trackId, newTrack, newTrackMetadata);
+    const promise = client.replaceTrack(trackId, newTrack, newTrackMetadata);
     setStore(replaceTrack(trackId, newTrack, stream, newTrackMetadata));
     return promise;
   },
 
   removeTrack: (trackId) => {
-    webrtc.removeTrack(trackId);
+    client.removeTrack(trackId);
     setStore(removeTrack(trackId));
   },
 
   updateTrackMetadata: (trackId, trackMetadata) => {
-    webrtc.updateTrackMetadata(trackId, trackMetadata);
+    client.updateTrackMetadata(trackId, trackMetadata);
     setStore(updateTrackMetadata(trackId, trackMetadata));
   },
 
   enableTrackEncoding: (trackId, encoding) => {
-    webrtc.enableTrackEncoding(trackId, encoding);
+    client.enableTrackEncoding(trackId, encoding);
   },
 
   disableTrackEncoding: (trackId: string, encoding: TrackEncoding): void => {
-    webrtc.disableTrackEncoding(trackId, encoding);
+    client.disableTrackEncoding(trackId, encoding);
   },
 
   setTargetTrackEncoding: (trackId, encoding) => {
-    webrtc.setTargetTrackEncoding(trackId, encoding);
+    client.setTargetTrackEncoding(trackId, encoding);
   },
 });

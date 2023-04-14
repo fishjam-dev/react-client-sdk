@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { create } from "@jellyfish-dev/jellyfish-react-client/experimental";
 import VideoPlayer from "./VideoPlayer";
 import { Peer } from "@jellyfish-dev/membrane-webrtc-js";
@@ -14,27 +14,24 @@ type TrackMetadata = {
   type: "camera" | "screen";
 };
 
+// Create a non-context Membrane client instance
+const { useSelector, connect2 } = create<PeerMetadata, TrackMetadata>();
+
+const peerToken = prompt("Enter peer token") ?? "YOUR_PEER_TOKEN";
+
 export const App = () => {
-  // Create a Membrane client instance
-  const [client] = useState(create<PeerMetadata, TrackMetadata>());
-
-  // Create the connect function
-  const connect = client.useConnect();
-
   // Get the full state
-  const remoteTracks = client.useSelector((snapshot) => Object.values(snapshot?.remote || {}));
+  const remoteTracks = useSelector((snapshot) => Object.values(snapshot?.remote || {}));
 
   // Get the webrtcApi reference
-  const webrtcApi = client.useSelector((snapshot) => snapshot.connectivity.api);
+  const webrtcApi = useSelector((snapshot) => snapshot.connectivity.api);
 
   // Get jellyfish client reference
-  const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
+  const jellyfishClient = useSelector((snapshot) => snapshot.connectivity.client);
 
   useEffect(() => {
-    const peerToken = prompt("Enter peer token") ?? "YOUR_PEER_TOKEN";
-
     // Start the peer connection
-    const disconnect = connect({
+    const disconnect = connect2({
       peerMetadata: { name: "peer" },
       isSimulcastOn: false,
       token: peerToken,
@@ -44,7 +41,7 @@ export const App = () => {
       // Disconnect the peer when the component unmounts
       disconnect();
     };
-  }, [connect]);
+  }, []);
 
   useEffect(() => {
     async function startScreenSharing() {

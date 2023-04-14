@@ -61,9 +61,9 @@
     typed-emitter "^2.1.0"
     uuid "^8.3.2"
 
-"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#bugfix/initial-release":
+"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#feature/better-docs":
   version "0.0.1"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#5cdd553b49efa5fb79741aad129a279bab00bd89"
+  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#0eef60b36bc3b6b225314c165523a17eaca4de5b"
   dependencies:
     events "^3.3.0"
 
@@ -87,11 +87,6 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
-
-"@types/events@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@types/events/-/events-3.0.0.tgz"
-  integrity sha512-EaObqwIvayI5a8dCzhFrjKzVwKLxjoG9T6Ppd5CEo07LRKfQ8Yokw54r5+Wq7FaBQ+yXRvQAYPrHwya1/UFt9g==
 
 "@types/json-schema@^7.0.9":
   version "7.0.11"
