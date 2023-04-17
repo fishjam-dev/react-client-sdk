@@ -23,7 +23,7 @@ export const App = () => {
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
   const { serverAddress, setServerAddress, roomApi, serverWebsocket } = useServerSdk();
-  const [serverMessages, setServerMessages] = useState<{ data: any; id: string }[]>([]);
+  const [serverMessages, setServerMessages] = useState<{ data: unknown; id: string }[]>([]);
 
   const refetchAll = useCallback(() => {
     roomApi
