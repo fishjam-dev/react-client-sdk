@@ -25,10 +25,6 @@ export const App = () => {
   const [serverMessages, setServerMessages] = useState<{ data: any; id: string }[]>([]);
 
   useEffect(() => {
-    console.log({ serverWebsocket, peerWebsocket });
-  }, [serverWebsocket, peerWebsocket]);
-
-  useEffect(() => {
     const ws = new WebSocket(serverWebsocket);
     const handler = (event: unknown) => {
       if (event instanceof MessageEvent) {
