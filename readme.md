@@ -12,7 +12,7 @@ Documentation is available [here](https://jellyfish-dev.github.io/react-client-s
 You can install the library using `npm`:
 
 ```bash
-npm install https://github.com/jellyfish-dev/react-client-sdk
+npm install @jellyfish-dev/react-client-sdk
 ```
 
 It was tested with `nodejs` version mentioned in `.tool-versions` file.

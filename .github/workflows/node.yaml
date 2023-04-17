@@ -66,6 +66,10 @@ jobs:
       - name: Install dependencies lib ⬇️
         run: npm ci
         working-directory: .
+
+      - name: Build lib 📦
+        run: npm run build
+        working-directory: .
     
       - name: Install dependencies ⬇️
         run: npm ci
