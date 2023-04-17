@@ -20,7 +20,33 @@ export const App = () => {
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showServerState-log-selector");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
-  const { serverAddress, setServerAddress, roomApi } = useServerSdk();
+  const { serverAddress, setServerAddress, roomApi, peerWebsocket, serverWebsocket } = useServerSdk();
+  const [serverMessages, setServerMessages] = useState<string[]>([]);
+
+  useEffect(() => {
+    console.log({ serverWebsocket, peerWebsocket });
+  }, [serverWebsocket, peerWebsocket]);
+
+  useEffect(() => {
+    const ws = new WebSocket(serverWebsocket);
+    const handler = (event: unknown) => {
+      if (typeof event === "object" && event !== null && "data" in event && typeof event?.data === "string") {
+        const newData = event?.data;
+        setServerMessages((prevState) => [...prevState, newData]);
+        console.log(`Message from server ${newData}`);
+      }
+    };
+    ws.addEventListener("message", handler);
+
+    ws.addEventListener("open", () => {
+      ws.send(JSON.stringify({ type: "controlMessage", data: { type: "authRequest", token: "development" } }));
+    });
+
+    return () => {
+      ws.removeEventListener("message", handler);
+    };
+  }, [serverWebsocket]);
+
   const refetchAll = useCallback(() => {
     roomApi
       .jellyfishWebRoomControllerIndex()
@@ -46,7 +72,7 @@ export const App = () => {
   };
 
   return (
-    <div className="flex flex-col w-full h-full ">
+    <div className="flex flex-col width-minus-scrollbar h-full box-border">
       <div className="flex flex-row justify-between m-2">
         <div className="flex flex-row justify-start items-center">
           <button
@@ -131,7 +157,37 @@ export const App = () => {
           <ThemeSelector />
         </div>
       </div>
-      <div className="flex flex-row w-full h-full m-2 items-start">
+      <div className="flex m-2 card bg-base-100 shadow-xl">
+        <div className="card-body">
+          <h2 className="card-title">Server events</h2>
+          {serverMessages.map((message) => {
+            return (
+              <div className="chat chat-start">
+                <div className="chat-bubble">
+                  <div className="mockup-code m-2">
+                    <small>
+                      <pre className="px-0">
+                        <code>
+                          {/*{JSON.stringify(*/}
+                          {/*  JSON.parse(message),*/}
+                          {/*  (key, value) => {*/}
+                          {/*    if (typeof value === "bigint") return value.toString();*/}
+                          {/*    return value;*/}
+                          {/*  },*/}
+                          {/*  2*/}
+                          {/*)}*/}
+                          {message}
+                        </code>
+                      </pre>
+                    </small>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="flex flex-row m-2 h-full items-start">
         {showLogSelector && <LogSelector />}
         {showDeviceSelector && (
           <VideoDeviceSelector
