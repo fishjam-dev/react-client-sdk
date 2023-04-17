@@ -19,29 +19,11 @@ export const App = () => {
   const [showLogSelector, setShowLogSelector] = useLocalStorageState("showServerState-log-selector");
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showDeviceSelector");
   const [showServerEvents, setShowServerEvents] = useLocalStorageState("showServerEvents");
+  const [serverEventsState, setServerEventsState] = useState<"connected" | "disconnected">("disconnected");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
-  const { serverAddress, setServerAddress, roomApi, peerWebsocket, serverWebsocket } = useServerSdk();
+  const { serverAddress, setServerAddress, roomApi, serverWebsocket } = useServerSdk();
   const [serverMessages, setServerMessages] = useState<{ data: any; id: string }[]>([]);
-
-  useEffect(() => {
-    const ws = new WebSocket(serverWebsocket);
-    const handler = (event: unknown) => {
-      if (event instanceof MessageEvent) {
-        const newData = JSON.parse(event.data);
-        setServerMessages((prevState) => [...prevState, { data: newData, id: crypto.randomUUID() }]);
-      }
-    };
-    ws.addEventListener("message", handler);
-
-    ws.addEventListener("open", () => {
-      ws.send(JSON.stringify({ type: "controlMessage", data: { type: "authRequest", token: "development" } }));
-    });
-
-    return () => {
-      ws.removeEventListener("message", handler);
-    };
-  }, [serverWebsocket]);
 
   const refetchAll = useCallback(() => {
     roomApi
@@ -68,7 +50,7 @@ export const App = () => {
   };
 
   return (
-    <div className="flex flex-col width-minus-scrollbar h-full box-border">
+    <div className="flex flex-col w-full-no-scrollbar h-full box-border">
       <div className="flex flex-row justify-between m-2">
         <div className="flex flex-row justify-start items-center">
           <button
@@ -165,18 +147,48 @@ export const App = () => {
       {showServerEvents && (
         <div className="flex m-2 card bg-base-100 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title">Server events</h2>
-            <div className="mockup-code p-4">
-              <small>
-                {serverMessages.map(({ data, id }) => {
-                  return (
-                    <pre className="!px-0" key={id}>
-                      <code>{JSON.stringify(data)}</code>
-                    </pre>
-                  );
-                })}
-              </small>
+            <div className="flex flex-row">
+              <span className="card-title">Server events</span>
+              <button
+                className={`btn btn-sm btn-success mx-1 my-0`}
+                disabled={serverEventsState === "connected"}
+                onClick={() => {
+                  const ws = new WebSocket(serverWebsocket);
+                  const handler = (event: unknown) => {
+                    if (event instanceof MessageEvent) {
+                      const newData = JSON.parse(event.data);
+                      setServerMessages((prevState) => [...prevState, { data: newData, id: crypto.randomUUID() }]);
+                    }
+                  };
+                  ws.addEventListener("message", handler);
+
+                  ws.addEventListener("open", () => {
+                    setServerEventsState("connected");
+                    ws.send(
+                      JSON.stringify({
+                        type: "controlMessage",
+                        data: { type: "authRequest", token: "development" },
+                      })
+                    );
+                  });
+                }}
+              >
+                Connect
+              </button>
             </div>
+            {serverEventsState === "connected" && (
+              <div className="mockup-code p-4">
+                <small>
+                  {serverMessages.map(({ data, id }) => {
+                    return (
+                      <pre className="!px-0" key={id}>
+                        <code>{JSON.stringify(data)}</code>
+                      </pre>
+                    );
+                  })}
+                </small>
+              </div>
+            )}
           </div>
         </div>
       )}

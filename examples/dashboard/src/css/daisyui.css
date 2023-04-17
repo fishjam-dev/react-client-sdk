@@ -4,21 +4,20 @@
 
 @layer components {
     .mockup-code pre:before {
-        display: none;
+        @apply hidden;
     }
 
     .mockup-code:before {
-        display: none;
+        @apply hidden;
     }
 
     .mockup-code pre {
-        /*@apply padding-left: 1.25rem;*/
         @apply pl-5;
     }
 }
 
 @layer utilities {
-    .width-minus-scrollbar {
+    .w-full-no-scrollbar {
         width: calc(100vw - (100vw - 100%))
     }
 }
