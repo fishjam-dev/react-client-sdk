@@ -17,11 +17,12 @@ export const App = () => {
   const [room, setRoom] = useState<RoomAPI[] | null>(null);
   const [showServerState, setShow] = useLocalStorageState(`show-json-fullstate`);
   const [showLogSelector, setShowLogSelector] = useLocalStorageState("showServerState-log-selector");
-  const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showServerState-log-selector");
+  const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showDeviceSelector");
+  const [showServerEvents, setShowServerEvents] = useLocalStorageState("showServerEvents");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
   const { serverAddress, setServerAddress, roomApi, peerWebsocket, serverWebsocket } = useServerSdk();
-  const [serverMessages, setServerMessages] = useState<string[]>([]);
+  const [serverMessages, setServerMessages] = useState<{ data: any; id: string }[]>([]);
 
   useEffect(() => {
     console.log({ serverWebsocket, peerWebsocket });
@@ -30,10 +31,9 @@ export const App = () => {
   useEffect(() => {
     const ws = new WebSocket(serverWebsocket);
     const handler = (event: unknown) => {
-      if (typeof event === "object" && event !== null && "data" in event && typeof event?.data === "string") {
-        const newData = event?.data;
-        setServerMessages((prevState) => [...prevState, newData]);
-        console.log(`Message from server ${newData}`);
+      if (event instanceof MessageEvent) {
+        const newData = JSON.parse(event.data);
+        setServerMessages((prevState) => [...prevState, { data: newData, id: crypto.randomUUID() }]);
       }
     };
     ws.addEventListener("message", handler);
@@ -103,6 +103,15 @@ export const App = () => {
           </button>
 
           <button
+            className={`btn btn-sm mx-1 my-0 ${showServerEvents ? "btn-ghost" : ""}`}
+            onClick={() => {
+              setShowServerEvents(!showServerEvents);
+            }}
+          >
+            {showServerEvents ? "Hide server events" : "Show server events"}
+          </button>
+
+          <button
             className={`btn btn-sm mx-1 my-0 ${showDeviceSelector ? "btn-ghost" : ""}`}
             onClick={() => {
               setShowDeviceSelector(!showDeviceSelector);
@@ -157,36 +166,24 @@ export const App = () => {
           <ThemeSelector />
         </div>
       </div>
-      <div className="flex m-2 card bg-base-100 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title">Server events</h2>
-          {serverMessages.map((message) => {
-            return (
-              <div className="chat chat-start">
-                <div className="chat-bubble">
-                  <div className="mockup-code m-2">
-                    <small>
-                      <pre className="px-0">
-                        <code>
-                          {/*{JSON.stringify(*/}
-                          {/*  JSON.parse(message),*/}
-                          {/*  (key, value) => {*/}
-                          {/*    if (typeof value === "bigint") return value.toString();*/}
-                          {/*    return value;*/}
-                          {/*  },*/}
-                          {/*  2*/}
-                          {/*)}*/}
-                          {message}
-                        </code>
-                      </pre>
-                    </small>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {showServerEvents && (
+        <div className="flex m-2 card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Server events</h2>
+            <div className="mockup-code p-4">
+              <small>
+                {serverMessages.map(({ data, id }) => {
+                  return (
+                    <pre className="!px-0" key={id}>
+                      <code>{JSON.stringify(data)}</code>
+                    </pre>
+                  );
+                })}
+              </small>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
       <div className="flex flex-row m-2 h-full items-start">
         {showLogSelector && <LogSelector />}
         {showDeviceSelector && (

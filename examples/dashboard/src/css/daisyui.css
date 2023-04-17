@@ -2,21 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/*@layer components {*/
-.mockup-code pre:before {
-    display: none;
-}
+@layer components {
+    .mockup-code pre:before {
+        display: none;
+    }
 
-.mockup-code:before {
-    display: none;
-}
+    .mockup-code:before {
+        display: none;
+    }
 
-.mockup-code pre {
-    /*@apply padding-left: 1.25rem;*/
-    @apply pl-5
+    .mockup-code pre {
+        /*@apply padding-left: 1.25rem;*/
+        @apply pl-5;
+    }
 }
-
-/*}*/
 
 @layer utilities {
     .width-minus-scrollbar {
