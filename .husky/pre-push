@@ -1,7 +1,28 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# npm script called
-npm run lint
-npm run format
-npx tsc --noEmit
+# run linters and formatters in background
+npm run lint &
+npm run format -- --loglevel warn &
+
+# paths to check
+paths=( "./" )
+
+# get all folders in "./exaples" and add them to paths exclude files    
+for folder in ./examples/*; do
+    if [ -d "$folder" ]; then
+        paths+=("$folder")
+    fi
+done
+
+# save current path 
+current_path=$( pwd )
+
+# run typescript compiler in background for each path
+for path in "${paths[@]}"; do
+    cd $path
+    npx tsc --noEmit &
+    cd $current_path
+done
+
+wait # wait for all background jobs to finish
