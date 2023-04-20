@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
 import type { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 import { REFETCH_ON_SUCCESS } from "./App";
@@ -47,26 +47,33 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
   };
 
   const LOCAL_STORAGE_KEY = `tokenList-${roomId}`;
+
   useEffect(() => {
     setToken(loadObject(LOCAL_STORAGE_KEY, {}));
   }, [LOCAL_STORAGE_KEY]);
 
-  const removeToken = useCallback((peerId: string) => {
-    setToken((prev) => {
-      const tokenMap = { ...prev };
-      delete tokenMap[peerId];
-      saveObject(LOCAL_STORAGE_KEY, tokenMap);
-      return tokenMap;
-    });
-  }, []);
+  const removeToken = useCallback(
+    (peerId: string) => {
+      setToken((prev) => {
+        const tokenMap = { ...prev };
+        delete tokenMap[peerId];
+        saveObject(LOCAL_STORAGE_KEY, tokenMap);
+        return tokenMap;
+      });
+    },
+    [LOCAL_STORAGE_KEY]
+  );
 
-  const addToken = useCallback((peerId: string, token: string) => {
-    setToken((prev) => {
-      const tokenMap = { ...prev, [peerId]: token };
-      saveObject(LOCAL_STORAGE_KEY, tokenMap);
-      return tokenMap;
-    });
-  }, []);
+  const addToken = useCallback(
+    (peerId: string, token: string) => {
+      setToken((prev) => {
+        const tokenMap = { ...prev, [peerId]: token };
+        saveObject(LOCAL_STORAGE_KEY, tokenMap);
+        return tokenMap;
+      });
+    },
+    [LOCAL_STORAGE_KEY]
+  );
 
   return (
     <div className="flex flex-col items-start mr-4">
@@ -111,7 +118,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     peerApi
                       .jellyfishWebPeerControllerCreate(roomId, { type: "webrtc" })
                       .then((response) => {
-                        addToken(response.data.data.peer.id, response.data.data.token)
+                        addToken(response.data.data.peer.id, response.data.data.token);
                       })
                       .then(() => {
                         refetchIfNeededInner();
