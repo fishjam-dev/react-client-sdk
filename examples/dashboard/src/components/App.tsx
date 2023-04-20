@@ -116,7 +116,7 @@ export const App = () => {
                 setServerAddress(event.target.value);
               }}
             />
-            <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Jellifish server address">
+            <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Jellyfish server address">
               <svg
                 fill="none"
                 stroke="currentColor"

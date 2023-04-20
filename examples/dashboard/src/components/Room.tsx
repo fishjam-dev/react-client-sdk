@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
 import type { Peer } from "@jellyfish-dev/membrane-webrtc-js";
 import { REFETCH_ON_SUCCESS } from "./App";
@@ -51,6 +51,23 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
     setToken(loadObject(LOCAL_STORAGE_KEY, {}));
   }, [LOCAL_STORAGE_KEY]);
 
+  const removeToken = useCallback((peerId: string) => {
+    setToken((prev) => {
+      const tokenMap = { ...prev };
+      delete tokenMap[peerId];
+      saveObject(LOCAL_STORAGE_KEY, tokenMap);
+      return tokenMap;
+    });
+  }, []);
+
+  const addToken = useCallback((peerId: string, token: string) => {
+    setToken((prev) => {
+      const tokenMap = { ...prev, [peerId]: token };
+      saveObject(LOCAL_STORAGE_KEY, tokenMap);
+      return tokenMap;
+    });
+  }, []);
+
   return (
     <div className="flex flex-col items-start mr-4">
       <div className="flex flex-col w-full border-opacity-50 m-2">
@@ -94,11 +111,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     peerApi
                       .jellyfishWebPeerControllerCreate(roomId, { type: "webrtc" })
                       .then((response) => {
-                        setToken((prev) => {
-                          const tokenMap = { ...prev, [response.data.data.peer.id]: response.data.data.token };
-                          saveObject(LOCAL_STORAGE_KEY, tokenMap);
-                          return tokenMap;
-                        });
+                        addToken(response.data.data.peer.id, response.data.data.token)
                       })
                       .then(() => {
                         refetchIfNeededInner();
@@ -129,12 +142,18 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                 key={id}
                 roomId={roomId}
                 peerId={id}
-                token={token[id]}
+                token={token[id] || null}
                 name={id}
                 refetchIfNeeded={refetchIfNeededInner}
                 selectedVideoStream={selectedVideoStream}
                 remove={() => {
                   peerApi.jellyfishWebPeerControllerDelete(roomId, id);
+                }}
+                removeToken={() => {
+                  removeToken(id);
+                }}
+                setToken={(token: string) => {
+                  addToken(id, token);
                 }}
               />
             );
