@@ -9,6 +9,7 @@ import { Room as RoomAPI } from "../server-sdk";
 import { useServerSdk } from "./ServerSdkContext";
 import { showToastError } from "./Toasts";
 import { getBooleanValue } from "../utils/localStorageUtils";
+import { VideoroomConnect } from "./VideoroomConnect";
 
 export const REFETCH_ON_SUCCESS = "refetch on success";
 export const REFETCH_ON_MOUNT = "refetch on mount";
@@ -17,6 +18,7 @@ export const App = () => {
   const [room, setRoom] = useState<RoomAPI[] | null>(null);
   const [showServerState, setShow] = useLocalStorageState(`show-json-fullstate`);
   const [showLogSelector, setShowLogSelector] = useLocalStorageState("showServerState-log-selector");
+  const [showVideoroom, setShowVideoroom] = useLocalStorageState("showVideoroom-log-selector");
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showDeviceSelector");
   const [showServerEvents, setShowServerEvents] = useLocalStorageState("showServerEvents");
   const [serverEventsState, setServerEventsState] = useState<"connected" | "disconnected">("disconnected");
@@ -106,6 +108,16 @@ export const App = () => {
           >
             {showServerState ? "Hide server room" : "Show server room"}
           </button>
+
+          <button
+            className={`btn btn-sm mx-1 my-0 ${showVideoroom ? "btn-ghost" : ""}`}
+            onClick={() => {
+              setShowVideoroom(!showVideoroom);
+            }}
+          >
+            {showVideoroom ? "Hide videoroom" : "Show videoroom"}
+          </button>
+
           <div className="form-control mx-1 my-0 flex flex-row items-center">
             <input
               type="text"
@@ -194,6 +206,7 @@ export const App = () => {
       )}
       <div className="flex flex-row m-2 h-full items-start">
         {showLogSelector && <LogSelector />}
+        {showVideoroom && <VideoroomConnect refetchIfNeeded={refetchIfNeeded} />}
         {showDeviceSelector && (
           <VideoDeviceSelector
             activeVideoStreams={activeVideoStreams}
