@@ -43,7 +43,8 @@ export const App = () => {
     if (getBooleanValue(REFETCH_ON_MOUNT)) {
       refetchAll();
     }
-  }, [refetchAll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refetchIfNeeded = () => {
     if (getBooleanValue(REFETCH_ON_SUCCESS)) {
