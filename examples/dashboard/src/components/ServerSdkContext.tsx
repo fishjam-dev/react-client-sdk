@@ -2,8 +2,6 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { PeerApi, RoomApi } from "../server-sdk";
 import axios from "axios";
 
-// axios.defaults.headers.common["Authorization"] = `Bearer development`;
-
 const client = axios.create({
   headers: {
     Authorization: "Bearer development",
