@@ -83,6 +83,7 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
     client.on("onTrackAdded", (ctx) => {
       setStore(onTrackAdded(ctx));
 
+      // todo remove listeners
       ctx.on("onEncodingChanged", () => {
         setStore(onEncodingChanged(ctx));
       });

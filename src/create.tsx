@@ -3,6 +3,7 @@ import type { State, Selector } from "./state.types";
 import { connect } from "./connect";
 import { Config } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
+import { disconnect } from "./disconnect";
 
 export type JellyfishContextProviderProps = {
   children: React.ReactNode;
@@ -53,6 +54,12 @@ export const create = <PeerMetadata, TrackMetadata>() => {
     const { setState }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
 
     return useMemo(() => connect(setState), [setState]);
+  };
+
+  const useDisconnect = (): void => {
+    const { setState }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
+
+    return useMemo(() => disconnect(setState), [setState]);
   };
 
   return {
