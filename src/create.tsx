@@ -3,7 +3,6 @@ import type { State, Selector } from "./state.types";
 import { connect } from "./connect";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
-import { disconnect } from "./disconnect";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -12,7 +11,7 @@ export type JellyfishContextProviderProps = {
 type JellyfishContextType<PeerMetadata, TrackMetadata> = {
   state: State<PeerMetadata, TrackMetadata>;
   setState: (value: (prevState: State<PeerMetadata, TrackMetadata>) => State<PeerMetadata, TrackMetadata>) => void;
-  clientRef: MutableRefObject<JellyfishClient<PeerMetadata, TrackMetadata>>,
+  clientRef: MutableRefObject<JellyfishClient<PeerMetadata, TrackMetadata>>;
   // setState: (
   //   value:
   //     | ((
@@ -31,7 +30,7 @@ export const creteDefaultStore = <PeerMetadata, TrackMetadata>(): State<PeerMeta
   //   ...DEFAULT_STORE,
   //   connectivity: { ...DEFAULT_STORE.connectivity, client: new JellyfishClient<PeerMetadata, TrackMetadata>() },
   // };
-  return DEFAULT_STORE
+  return DEFAULT_STORE;
 };
 
 /**
@@ -48,7 +47,9 @@ export const create = <PeerMetadata, TrackMetadata>() => {
       creteDefaultStore<PeerMetadata, TrackMetadata>()
     );
 
-    const clientRef: MutableRefObject<JellyfishClient<PeerMetadata, TrackMetadata>> = useRef<JellyfishClient<PeerMetadata, TrackMetadata>>(new JellyfishClient<PeerMetadata, TrackMetadata>())
+    const clientRef: MutableRefObject<JellyfishClient<PeerMetadata, TrackMetadata>> = useRef<
+      JellyfishClient<PeerMetadata, TrackMetadata>
+    >(new JellyfishClient<PeerMetadata, TrackMetadata>());
 
     return <JellyfishContext.Provider value={{ state, setState, clientRef }}>{children}</JellyfishContext.Provider>;
   };
@@ -67,15 +68,10 @@ export const create = <PeerMetadata, TrackMetadata>() => {
 
   const useConnect = (): UseConnect<PeerMetadata> => {
     const { setState, clientRef }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
+    console.log({ name: "library client", client: clientRef.current });
 
     return useMemo(() => connect(setState, clientRef), [setState]);
   };
-
-  // const useDisconnect = (): void => {
-  //   const { setState }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
-  //
-  //   return useMemo(() => disconnect(setState), [setState]);
-  // };
 
   return {
     JellyfishContextProvider,
