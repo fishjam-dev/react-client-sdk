@@ -27,6 +27,7 @@ import { createApiWrapper } from "./api";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
 import { MutableRefObject } from "react";
+import { creteDefaultStore } from "./create";
 
 /**
  * Connects to the Jellyfish server.
@@ -128,7 +129,12 @@ export function connect<PeerMetadata, TrackMetadata>(
     });
 
     return () => {
-      setStore(() => DEFAULT_STORE);
+      if (clientRef) {
+        console.log("Creating new jellyfish client");
+
+        clientRef.current = new JellyfishClient<PeerMetadata, TrackMetadata>();
+      }
+      setStore(() => creteDefaultStore<PeerMetadata, TrackMetadata>());
       // todo remove all callbacks
       clientRef?.current.cleanUp();
     };

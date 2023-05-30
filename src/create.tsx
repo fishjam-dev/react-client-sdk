@@ -24,10 +24,15 @@ type JellyfishContextType<PeerMetadata, TrackMetadata> = {
 
 export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => void;
 
-const creteDefaultStore = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => ({
-  ...DEFAULT_STORE,
-  connectivity: { ...DEFAULT_STORE.connectivity, client: new JellyfishClient<PeerMetadata, TrackMetadata>() },
-});
+export const creteDefaultStore = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => {
+  // console.log("Creating new jellyfish client")
+
+  // return {
+  //   ...DEFAULT_STORE,
+  //   connectivity: { ...DEFAULT_STORE.connectivity, client: new JellyfishClient<PeerMetadata, TrackMetadata>() },
+  // };
+  return DEFAULT_STORE
+};
 
 /**
  * Create a client that can be used with a context.
