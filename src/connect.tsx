@@ -43,6 +43,7 @@ export function connect<PeerMetadata, TrackMetadata>(
 ) {
   return (config: Config<PeerMetadata>): (() => void) => {
     const { peerMetadata } = config;
+    console.log("Connect function invoked")
 
     // const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
@@ -129,6 +130,8 @@ export function connect<PeerMetadata, TrackMetadata>(
     });
 
     return () => {
+      console.log("Invoked cleanup function");
+
       if (clientRef) {
         console.log("Creating new jellyfish client");
 
