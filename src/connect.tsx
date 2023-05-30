@@ -26,61 +26,66 @@ import { State } from "./state.types";
 import { createApiWrapper } from "./api";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
+import { MutableRefObject } from "react";
 
 /**
  * Connects to the Jellyfish server.
  * Also adds listeners to the JellyfishClient to update the store.
  *
  * @param setStore - function that sets the store
+ * @param clientRef - stores current Jellyfish client
  * @returns function that disconnects from the Jellyfish server
  */
-export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMetadata, TrackMetadata>) {
+export function connect<PeerMetadata, TrackMetadata>(
+  setStore: SetStore<PeerMetadata, TrackMetadata>,
+  clientRef?: MutableRefObject<JellyfishClient<PeerMetadata, TrackMetadata>>
+) {
   return (config: Config<PeerMetadata>): (() => void) => {
     const { peerMetadata } = config;
 
-    const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
+    // const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
 
-    client.on("onSocketOpen", () => {
+    clientRef?.current.on("onSocketOpen", () => {
       setStore(onSocketOpen());
     });
 
-    client.on("onSocketError", () => {
+    clientRef?.current.on("onSocketError", () => {
       setStore(onSocketError());
     });
 
-    client.on("onAuthSuccess", () => {
+    clientRef?.current.on("onAuthSuccess", () => {
       setStore(onAuthSuccess());
     });
 
-    client.on("onAuthError", () => {
+    clientRef?.current.on("onAuthError", () => {
       setStore(onAuthError());
     });
 
-    client.on("onDisconnected", () => {
+    clientRef?.current.on("onDisconnected", () => {
       setStore(onDisconnected());
     });
 
-    client.on("onJoinSuccess", (peerId, peersInRoom) => {
+    clientRef?.current.on("onJoinSuccess", (peerId, peersInRoom) => {
       setStore(onJoinSuccess(peersInRoom, peerId, peerMetadata));
     });
     // todo handle state and handle callback
-    client.on("onJoinError", (metadata) => {
+    clientRef?.current.on("onJoinError", (metadata) => {
       setStore(onJoinError(metadata));
     });
-    client.on("onRemoved", (reason) => {
+    clientRef?.current.on("onRemoved", (reason) => {
       setStore(onPeerRemoved(reason));
     });
-    client.on("onPeerJoined", (peer) => setStore(onPeerJoined(peer)));
-    client.on("onPeerUpdated", (peer) => {
+    clientRef?.current.on("onPeerJoined", (peer) => setStore(onPeerJoined(peer)));
+    clientRef?.current.on("onPeerUpdated", (peer) => {
       setStore(onPeerUpdated(peer));
     });
-    client.on("onPeerLeft", (peer) => {
+    clientRef?.current.on("onPeerLeft", (peer) => {
       setStore(onPeerLeft(peer));
     });
-    client.on("onTrackReady", (ctx) => {
+    clientRef?.current.on("onTrackReady", (ctx) => {
       setStore(onTrackReady(ctx));
     });
-    client.on("onTrackAdded", (ctx) => {
+    clientRef?.current.on("onTrackAdded", (ctx) => {
       setStore(onTrackAdded(ctx));
 
       // todo remove listeners
@@ -91,24 +96,24 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         setStore(onVoiceActivityChanged(ctx));
       });
     });
-    client.on("onTrackRemoved", (ctx) => {
+    clientRef?.current.on("onTrackRemoved", (ctx) => {
       setStore(onTrackRemoved(ctx));
     });
-    client.on("onTrackUpdated", (ctx) => {
+    clientRef?.current.on("onTrackUpdated", (ctx) => {
       setStore(onTrackUpdated(ctx));
     });
-    client.on("onBandwidthEstimationChanged", (estimation) => {
+    clientRef?.current.on("onBandwidthEstimationChanged", (estimation) => {
       setStore(onBandwidthEstimationChanged(estimation));
     });
-    client.on("onTrackEncodingChanged", (peerId, trackId, encoding) => {
+    clientRef?.current.on("onTrackEncodingChanged", (peerId, trackId, encoding) => {
       setStore(onTrackEncodingChanged(peerId, trackId, encoding));
     });
     // todo handle state
-    client.on("onTracksPriorityChanged", (enabledTracks, disabledTracks) => {
+    clientRef?.current.on("onTracksPriorityChanged", (enabledTracks, disabledTracks) => {
       setStore(onTracksPriorityChanged(enabledTracks, disabledTracks));
     });
 
-    client.connect(config);
+    clientRef?.current.connect(config);
 
     setStore((prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
       return {
@@ -116,15 +121,16 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
         status: "connecting",
         connectivity: {
           ...prevState.connectivity,
-          api: client ? createApiWrapper(client, setStore) : null,
-          client: client,
+          api: clientRef?.current ? createApiWrapper(clientRef?.current, setStore) : null,
+          client: clientRef?.current || null,
         },
       };
     });
 
     return () => {
       setStore(() => DEFAULT_STORE);
-      client.cleanUp();
+      // todo remove all callbacks
+      clientRef?.current.cleanUp();
     };
   };
 }

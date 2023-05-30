@@ -23,6 +23,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateNoContextJellyfishC
   return {
     useConnect: () => {
       return useMemo(() => {
+        // todo fix connect second argument
         return connect(store.setStore);
       }, []);
     },
