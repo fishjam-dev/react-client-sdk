@@ -1,5 +1,6 @@
 import type { SetStore, State } from "../state.types";
 import { DEFAULT_STORE } from "../state";
+import { createDefaultState } from "../create";
 
 export type ExternalState<PeerMetadata, TrackMetadata> = {
   getSnapshot: () => State<PeerMetadata, TrackMetadata>;
@@ -19,7 +20,7 @@ export const createStore = <PeerMetadata, TrackMetadata>(): ExternalState<PeerMe
   type StateType = State<PeerMetadata, TrackMetadata>;
 
   let listeners: Listener[] = [];
-  let store: State<PeerMetadata, TrackMetadata> = DEFAULT_STORE;
+  let store: State<PeerMetadata, TrackMetadata> = createDefaultState();
 
   const getSnapshot = (): StateType => {
     return store;

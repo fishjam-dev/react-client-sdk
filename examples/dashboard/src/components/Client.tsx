@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PeerMetadata, TrackMetadata } from "../jellyfish.types";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
@@ -51,6 +51,47 @@ export const Client = ({
   }));
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
+
+  useEffect(() => {
+    console.log({ name: "Try register callback", client: jellyfishClient });
+    if (!jellyfishClient) return;
+
+    const onSocketError = () => {
+      console.log("onSocketError");
+    };
+
+    const onConnectionError = (message: string) => {
+      console.log("onConnectionError");
+    };
+    const onJoinError = (metadata: unknown) => {
+      console.log("onJoinError");
+      console.error(metadata);
+    };
+    const onAuthError = () => {
+      console.log("onAuthError");
+    };
+
+    const onSocketClose = () => {
+      console.log("onSocketClose");
+    };
+
+    jellyfishClient.on("onSocketError", onSocketError);
+    jellyfishClient.on("onConnectionError", onConnectionError);
+    jellyfishClient.on("onJoinError", onJoinError);
+    jellyfishClient.on("onAuthError", onAuthError);
+    jellyfishClient.on("onSocketClose", onSocketClose);
+
+    return () => {
+      console.log("Unregister!")
+      jellyfishClient.off("onSocketError", onSocketError);
+      jellyfishClient.off("onConnectionError", onConnectionError);
+      jellyfishClient.off("onJoinError", onJoinError);
+      jellyfishClient.off("onAuthError", onAuthError);
+      jellyfishClient.off("onSocketClose", onSocketClose);
+    };
+  }, [client]);
+
+
   const { peerWebsocket } = useServerSdk();
 
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
@@ -127,6 +168,7 @@ export const Client = ({
                 onClick={() => {
                   disconnect();
                   setDisconnect(() => null);
+                  setTrackId(null);
                   setTimeout(() => {
                     refetchIfNeeded();
                   }, 500);

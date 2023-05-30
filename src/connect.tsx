@@ -25,7 +25,7 @@ import {
 import { State } from "./state.types";
 import { createApiWrapper } from "./api";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
-import { DEFAULT_STORE } from "./state";
+import { createDefaultState } from "./create";
 
 /**
  * Connects to the Jellyfish server.
@@ -34,11 +34,23 @@ import { DEFAULT_STORE } from "./state";
  * @param setStore - function that sets the store
  * @returns function that disconnects from the Jellyfish server
  */
-export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMetadata, TrackMetadata>) {
+export function connect<PeerMetadata, TrackMetadata>(
+  setStore: SetStore<PeerMetadata, TrackMetadata>,
+  clientWrapper?: {
+    current: JellyfishClient<PeerMetadata, TrackMetadata> | null;
+  }
+) {
   return (config: Config<PeerMetadata>): (() => void) => {
     const { peerMetadata } = config;
 
-    const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
+    console.log({name: "Better client", client: clientWrapper?.current})
+
+    // const client = new JellyfishClient<PeerMetadata, TrackMetadata>();
+    if (!clientWrapper?.current) return () => {
+      console.log("Empty cleanup function");
+    };
+
+    const client = clientWrapper.current;
 
     client.on("onSocketOpen", () => {
       setStore(onSocketOpen());
@@ -122,7 +134,7 @@ export function connect<PeerMetadata, TrackMetadata>(setStore: SetStore<PeerMeta
     });
 
     return () => {
-      setStore(() => DEFAULT_STORE);
+      setStore(() => createDefaultState<PeerMetadata, TrackMetadata>());
       client.cleanUp();
     };
   };

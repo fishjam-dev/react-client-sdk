@@ -1,7 +1,7 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
 import type { State, Selector } from "./state.types";
 import { connect } from "./connect";
-import { Config } from "@jellyfish-dev/ts-client-sdk";
+import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { DEFAULT_STORE } from "./state";
 
 export type JellyfishContextProviderProps = {
@@ -21,6 +21,21 @@ type JellyfishContextType<PeerMetadata, TrackMetadata> = {
 };
 
 export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => void;
+
+export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => {
+  console.log("Creating new client");
+
+  return {
+    local: null,
+    remote: {},
+    status: null,
+    bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
+    connectivity: {
+      api: null,
+      client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
+    },
+  };
+};
 
 /**
  * Create a client that can be used with a context.
@@ -51,6 +66,7 @@ export const create = <PeerMetadata, TrackMetadata>() => {
 
   const useConnect = (): UseConnect<PeerMetadata> => {
     const { setState }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
+    const clientRef = useRef<JellyfishClient<PeerMetadata, TrackMetadata>>(new JellyfishClient<PeerMetadata, TrackMetadata>())
 
     return useMemo(() => connect(setState), [setState]);
   };
