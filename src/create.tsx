@@ -68,7 +68,7 @@ export const create = <PeerMetadata, TrackMetadata>() => {
     const { setState }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
     const clientRef = useRef<JellyfishClient<PeerMetadata, TrackMetadata>>(new JellyfishClient<PeerMetadata, TrackMetadata>())
 
-    return useMemo(() => connect(setState), [setState]);
+    return useMemo(() => connect(setState, clientRef), [setState]);
   };
 
   return {
