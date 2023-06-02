@@ -52,7 +52,7 @@ export const VideoroomConnect: FC<Props> = ({ refetchIfNeeded }) => {
             className={`btn btn-sm btn-success mx-1 my-1`}
             onClick={() => {
               axios
-                .get(`http://localhost:4002/api/room/${state}`)
+                .get(`http://localhost:3001/api/room/${state}`)
                 .then((respo) => {
                   const token = respo.data.data.token;
                   if (token) {

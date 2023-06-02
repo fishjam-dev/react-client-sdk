@@ -41,14 +41,16 @@ export const ServerSDKProvider = ({ children }: Props) => {
   const roomApi = useMemo(() => new RoomApi(undefined, serverAddress, client), [serverAddress]);
   const peerApi = useMemo(() => new PeerApi(undefined, serverAddress, client), [serverAddress]);
 
-  const peerWebsocket: string = useMemo(
-    () => serverAddress.replace("http", "ws") + "/socket/peer/websocket",
-    [serverAddress]
-  );
-  const serverWebsocket: string = useMemo(
-    () => peerWebsocket.replace("/socket/peer/websocket", "/socket/server/websocket"),
-    [peerWebsocket]
-  );
+  // const peerWebsocket: string = useMemo(
+  //   () => serverAddress.replace("http", "ws") + "/socket/peer/websocket",
+  //   [serverAddress]
+  // );
+  const peerWebsocket: string = "ws://localhost:3001/socket/peer/websocket"
+  // const serverWebsocket: string = useMemo(
+  //   () => peerWebsocket.replace("/socket/peer/websocket", "/socket/server/websocket"),
+  //   [peerWebsocket]
+  // );
+  const serverWebsocket: string = "ws://localhost:3001/socket/server/websocket"
 
   return (
     <ServerSdkContext.Provider
