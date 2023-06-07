@@ -1,12 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { PeerApi, RoomApi } from "../server-sdk";
 import axios from "axios";
-
-const client = axios.create({
-  headers: {
-    Authorization: "Bearer development",
-  },
-});
+import { useLocalStorageStateString } from "./LogSelector";
 
 const localStorageServerAddress = "serverAddress";
 
@@ -17,6 +12,8 @@ export type ServerSdkType = {
   serverWebsocket: string;
   roomApi: RoomApi;
   peerApi: PeerApi;
+  serverToken: string | null;
+  setServerToken: (value: string | null) => void;
 };
 
 const ServerSdkContext = React.createContext<ServerSdkType | undefined>(undefined);
@@ -31,6 +28,8 @@ export const ServerSDKProvider = ({ children }: Props) => {
     return serverAddress ? serverAddress : "localhost:4000";
   });
 
+  const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
+
   const setServerAddress = useCallback(
     (value: string) => {
       setServerAddressState(value);
@@ -38,8 +37,19 @@ export const ServerSDKProvider = ({ children }: Props) => {
     },
     [setServerAddressState]
   );
-  const roomApi = useMemo(() => new RoomApi(undefined, `http://${serverAddress}`, client), [serverAddress]);
-  const peerApi = useMemo(() => new PeerApi(undefined, `http://${serverAddress}`, client), [serverAddress]);
+
+  const client = useMemo(
+    () =>
+      axios.create({
+        headers: {
+          Authorization: `Bearer ${serverToken}`,
+        },
+      }),
+    [serverToken]
+  );
+
+  const roomApi = useMemo(() => new RoomApi(undefined, `http://${serverAddress}`, client), [client, serverAddress]);
+  const peerApi = useMemo(() => new PeerApi(undefined, `http://${serverAddress}`, client), [client, serverAddress]);
 
   const peerWebsocket: string = useMemo(() => serverAddress, [serverAddress]);
   const serverWebsocket: string = useMemo(() => `ws://"${peerWebsocket}/socket/server/websocket`, [peerWebsocket]);
@@ -53,6 +63,8 @@ export const ServerSDKProvider = ({ children }: Props) => {
         setServerAddress,
         roomApi,
         peerApi,
+        serverToken,
+        setServerToken,
       }}
     >
       {children}
