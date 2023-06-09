@@ -143,10 +143,12 @@ export const Client = ({
                     showToastError("Cannot connect to Jellyfish server because token is empty");
                     return;
                   }
+
+                  console.log("Connecting to", peerWebsocket);
                   const disconnect = connect({
                     peerMetadata: { name },
                     token,
-                    serverAddress: peerWebsocket,
+                    websocketUrl: `ws://${peerWebsocket}/socket/peer/websocket`,
                   });
                   setTimeout(() => {
                     refetchIfNeeded();

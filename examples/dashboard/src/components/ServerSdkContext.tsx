@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { PeerApi, RoomApi } from "../server-sdk";
 import axios from "axios";
 import { useLocalStorageStateString } from "./LogSelector";
@@ -7,7 +7,7 @@ const localStorageServerAddress = "serverAddress";
 
 export type ServerSdkType = {
   setServerAddress: (value: string) => void;
-  serverAddress: string;
+  serverAddress: string | null;
   peerWebsocket: string;
   serverWebsocket: string;
   roomApi: RoomApi;
@@ -23,11 +23,7 @@ type Props = {
 };
 
 export const ServerSDKProvider = ({ children }: Props) => {
-  const [serverAddress, setServerAddressState] = useState<string>(() => {
-    const serverAddress = localStorage.getItem(localStorageServerAddress);
-    return serverAddress ? serverAddress : "localhost:4000";
-  });
-
+  const [serverAddress, setServerAddressState] = useLocalStorageStateString("serverAddress", "localhost:4000");
   const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
 
   const setServerAddress = useCallback(
@@ -51,8 +47,18 @@ export const ServerSDKProvider = ({ children }: Props) => {
   const roomApi = useMemo(() => new RoomApi(undefined, `http://${serverAddress}`, client), [client, serverAddress]);
   const peerApi = useMemo(() => new PeerApi(undefined, `http://${serverAddress}`, client), [client, serverAddress]);
 
-  const peerWebsocket: string = useMemo(() => serverAddress, [serverAddress]);
-  const serverWebsocket: string = useMemo(() => `ws://"${peerWebsocket}/socket/server/websocket`, [peerWebsocket]);
+  const peerWebsocket: string = useMemo(() => serverAddress ?? "", [serverAddress]);
+  const serverWebsocket: string = useMemo(() => `ws://${peerWebsocket}/socket/server/websocket`, [peerWebsocket]);
+
+  useEffect(() => {
+    console.log("serverAddress", serverAddress);
+  }, [serverAddress]);
+  useEffect(() => {
+    console.log(peerApi);
+  }, [peerApi]);
+  useEffect(() => {
+    console.log("peerWebsocket", peerWebsocket);
+  }, [peerWebsocket]);
 
   return (
     <ServerSdkContext.Provider

@@ -152,7 +152,7 @@ export const App = () => {
               type="text"
               placeholder="Type here"
               className="input input-bordered w-full max-w-xs"
-              value={serverAddress}
+              value={serverAddress || ""}
               onChange={(event) => {
                 setServerAddress(event.target.value);
               }}
@@ -194,6 +194,7 @@ export const App = () => {
                 className={`btn btn-sm btn-success mx-1 my-0`}
                 disabled={serverEventsState === "connected"}
                 onClick={() => {
+                  console.log("connecting to server", serverWebsocket);
                   const ws = new WebSocket(serverWebsocket);
                   const handler = (event: unknown) => {
                     if (event instanceof MessageEvent) {
@@ -208,7 +209,7 @@ export const App = () => {
                     ws.send(
                       JSON.stringify({
                         type: "controlMessage",
-                        data: { type: "authRequest", token: "development" },
+                        data: { type: "authRequest", token: serverToken },
                       })
                     );
                   });
