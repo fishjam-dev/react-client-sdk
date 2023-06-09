@@ -28,7 +28,14 @@ export const ServerSDKProvider = ({ children }: Props) => {
 
   const setServerAddress = useCallback(
     (value: string) => {
-      setServerAddressState(value);
+      try {
+        const url = new URL(value);
+        const parsedVal = url.host + url.pathname;
+        setServerAddressState(parsedVal);
+      } catch (e) {
+        if (!(e instanceof TypeError)) throw e;
+        setServerAddressState(value);
+      }
       localStorage.setItem(localStorageServerAddress, value);
     },
     [setServerAddressState]
