@@ -8,6 +8,7 @@ const localStorageServerAddress = "serverAddress";
 export type ServerSdkType = {
   setServerAddress: (value: string) => void;
   serverAddress: string | null;
+  protocol: string | null;
   peerWebsocket: string;
   serverWebsocket: string;
   roomApi: RoomApi;
@@ -25,21 +26,37 @@ type Props = {
 export const ServerSDKProvider = ({ children }: Props) => {
   const [serverAddress, setServerAddressState] = useLocalStorageStateString("serverAddress", "localhost:4000");
   const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
+  const [protocol, setProtocol] = useLocalStorageStateString("protocol", "http");
 
   const setServerAddress = useCallback(
     (value: string) => {
       try {
         const url = new URL(value);
+        console.log(url);
         const parsedVal = url.host + url.pathname;
+        const protocol = url.protocol;
+        setProtocol(protocol.replace(":", ""));
         setServerAddressState(parsedVal);
       } catch (e) {
-        if (!(e instanceof TypeError)) throw e;
+        // if (!(e instanceof TypeError)) throw e;
         setServerAddressState(value);
       }
       localStorage.setItem(localStorageServerAddress, value);
     },
-    [setServerAddressState]
+    [setProtocol, setServerAddressState]
   );
+
+  useEffect(() => {
+    console.log("serverAddress changed", serverAddress);
+    if (!serverAddress) return;
+    try {
+      const url = new URL(serverAddress);
+      const protocol = url.protocol;
+      setProtocol(protocol.replace(":", ""));
+    } catch (e) {
+      if (!(e instanceof TypeError)) throw e;
+    }
+  }, [serverAddress, setProtocol]);
 
   const client = useMemo(
     () =>
@@ -51,8 +68,14 @@ export const ServerSDKProvider = ({ children }: Props) => {
     [serverToken]
   );
 
-  const roomApi = useMemo(() => new RoomApi(undefined, `http://${serverAddress}`, client), [client, serverAddress]);
-  const peerApi = useMemo(() => new PeerApi(undefined, `http://${serverAddress}`, client), [client, serverAddress]);
+  const roomApi = useMemo(
+    () => new RoomApi(undefined, `${protocol}://${serverAddress}`, client),
+    [client, protocol, serverAddress]
+  );
+  const peerApi = useMemo(
+    () => new PeerApi(undefined, `${protocol}://${serverAddress}`, client),
+    [client, protocol, serverAddress]
+  );
 
   const peerWebsocket: string = useMemo(() => serverAddress ?? "", [serverAddress]);
   const serverWebsocket: string = useMemo(() => `ws://${peerWebsocket}/socket/server/websocket`, [peerWebsocket]);
@@ -66,6 +89,9 @@ export const ServerSDKProvider = ({ children }: Props) => {
   useEffect(() => {
     console.log("peerWebsocket", peerWebsocket);
   }, [peerWebsocket]);
+  useEffect(() => {
+    console.log("protocol", protocol);
+  }, [protocol]);
 
   return (
     <ServerSdkContext.Provider
@@ -77,6 +103,7 @@ export const ServerSDKProvider = ({ children }: Props) => {
         roomApi,
         peerApi,
         serverToken,
+        protocol,
         setServerToken,
       }}
     >
