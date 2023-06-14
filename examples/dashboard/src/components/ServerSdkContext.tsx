@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { PeerApi, RoomApi } from "../server-sdk";
 import axios from "axios";
 import { useLocalStorageStateString } from "./LogSelector";
@@ -14,6 +14,7 @@ export type ServerSdkType = {
   roomApi: RoomApi;
   peerApi: PeerApi;
   serverToken: string | null;
+  websocketProtocol: string;
   setServerToken: (value: string | null) => void;
 };
 
@@ -27,6 +28,16 @@ export const ServerSDKProvider = ({ children }: Props) => {
   const [serverAddress, setServerAddressState] = useLocalStorageStateString("serverAddress", "localhost:4000");
   const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
   const [protocol, setProtocol] = useLocalStorageStateString("protocol", "http");
+
+  const [websocketProtocol, setWebsocketProtocol] = useState<string>("ws");
+
+  useEffect(() => {
+    if (protocol === "https") {
+      setWebsocketProtocol("wss");
+    } else {
+      setWebsocketProtocol("ws");
+    }
+  }, [protocol]);
 
   const setServerAddress = useCallback(
     (value: string) => {
@@ -78,7 +89,10 @@ export const ServerSDKProvider = ({ children }: Props) => {
   );
 
   const peerWebsocket: string = useMemo(() => serverAddress ?? "", [serverAddress]);
-  const serverWebsocket: string = useMemo(() => `ws://${peerWebsocket}/socket/server/websocket`, [peerWebsocket]);
+  const serverWebsocket: string = useMemo(
+    () => `${websocketProtocol}://${peerWebsocket}/socket/server/websocket`,
+    [peerWebsocket, websocketProtocol]
+  );
 
   useEffect(() => {
     console.log("serverAddress", serverAddress);
@@ -105,6 +119,7 @@ export const ServerSDKProvider = ({ children }: Props) => {
         serverToken,
         protocol,
         setServerToken,
+        websocketProtocol,
       }}
     >
       {children}
