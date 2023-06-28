@@ -24,13 +24,13 @@ export const App = () => {
   const [serverEventsState, setServerEventsState] = useState<"connected" | "disconnected">("disconnected");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
-  const { serverAddress, setServerAddress, roomApi, serverWebsocket, serverToken, setServerToken, protocol } =
+  const { serverAddressInput, setServerAddressInput, roomApi, serverMessagesWebsocket, serverToken, setServerToken } =
     useServerSdk();
   const [serverMessages, setServerMessages] = useState<{ data: unknown; id: string }[]>([]);
 
   const refetchAll = useCallback(() => {
     roomApi
-      .jellyfishWebRoomControllerIndex()
+      ?.jellyfishWebRoomControllerIndex()
       .then((response) => {
         setRoom(response.data.data);
       })
@@ -58,7 +58,7 @@ export const App = () => {
       <div className="flex flex-row justify-between m-2">
         <div className="flex flex-row justify-start items-center flex-wrap">
           <button
-            className="btn btn-sm btn-info mx-1 my-0"
+            className="btn btn-sm btn-info m-1"
             onClick={() => {
               refetchAll();
             }}
@@ -66,9 +66,9 @@ export const App = () => {
             Get all
           </button>
           <button
-            className="btn btn-sm btn-success mx-1 my-0"
+            className="btn btn-sm btn-success m-1"
             onClick={() => {
-              roomApi.jellyfishWebRoomControllerCreate({ maxPeers: 10 }).then(() => {
+              roomApi?.jellyfishWebRoomControllerCreate({ maxPeers: 10 }).then(() => {
                 refetchIfNeeded();
               });
             }}
@@ -76,7 +76,7 @@ export const App = () => {
             Create room
           </button>
           <button
-            className={`btn btn-sm mx-1 my-0 ${showLogSelector ? "btn-ghost" : ""}`}
+            className={`btn btn-sm m-1 ${showLogSelector ? "btn-ghost" : ""}`}
             onClick={() => {
               setShowLogSelector(!showLogSelector);
             }}
@@ -85,7 +85,7 @@ export const App = () => {
           </button>
 
           <button
-            className={`btn btn-sm mx-1 my-0 ${showServerEvents ? "btn-ghost" : ""}`}
+            className={`btn btn-sm m-1 ${showServerEvents ? "btn-ghost" : ""}`}
             onClick={() => {
               setShowServerEvents(!showServerEvents);
             }}
@@ -94,7 +94,7 @@ export const App = () => {
           </button>
 
           <button
-            className={`btn btn-sm mx-1 my-0 ${showDeviceSelector ? "btn-ghost" : ""}`}
+            className={`btn btn-sm m-1 ${showDeviceSelector ? "btn-ghost" : ""}`}
             onClick={() => {
               setShowDeviceSelector(!showDeviceSelector);
             }}
@@ -103,7 +103,7 @@ export const App = () => {
           </button>
 
           <button
-            className={`btn btn-sm mx-1 my-0 ${showServerState ? "btn-ghost" : ""}`}
+            className={`btn btn-sm m-1 ${showServerState ? "btn-ghost" : ""}`}
             onClick={() => {
               setShow(!showServerState);
             }}
@@ -112,7 +112,7 @@ export const App = () => {
           </button>
 
           <button
-            className={`btn btn-sm mx-1 my-0 ${showVideoroom ? "btn-ghost" : ""}`}
+            className={`btn btn-sm m-1 ${showVideoroom ? "btn-ghost" : ""}`}
             onClick={() => {
               setShowVideoroom(!showVideoroom);
             }}
@@ -120,7 +120,7 @@ export const App = () => {
             {showVideoroom ? "Hide videoroom" : "Show videoroom"}
           </button>
 
-          <div className="form-control mx-1 my-0 flex flex-row items-center">
+          <div className="form-control m-1 flex flex-row items-center">
             <input
               type="text"
               placeholder="Server token"
@@ -148,15 +148,7 @@ export const App = () => {
             </div>
           </div>
 
-          <div className="form-control mx-1 my-0 flex flex-row items-center">
-            <input
-              type="text"
-              placeholder="Protocol"
-              className="input input-bordered w-20 max-w-xs"
-              value={protocol || ""}
-              disabled
-              readOnly
-            />
+          <div className="form-control m-1 flex flex-row items-center">
             <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Protocol">
               <svg
                 fill="none"
@@ -175,14 +167,14 @@ export const App = () => {
             </div>
           </div>
 
-          <div className="form-control mx-1 my-0 flex flex-row items-center">
+          <div className="form-control m-1 flex flex-row items-center">
             <input
               type="text"
               placeholder="Type here"
               className="input input-bordered w-full max-w-xs"
-              value={serverAddress || ""}
+              value={serverAddressInput || ""}
               onChange={(event) => {
-                setServerAddress(event.target.value);
+                setServerAddressInput(event.target.value);
               }}
             />
             <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Jellyfish server address">
@@ -202,10 +194,10 @@ export const App = () => {
               </svg>
             </div>
           </div>
-          <div className="flex flex-row w-[150px] mx-1 my-0">
+          <div className="flex flex-row w-[150px] m-1">
             <PersistentInput name={REFETCH_ON_SUCCESS} />
           </div>
-          <div className="flex flex-row w-[150px] mx-1 my-0">
+          <div className="flex flex-row w-[150px] m-1">
             <PersistentInput name={REFETCH_ON_MOUNT} />
           </div>
         </div>
@@ -219,20 +211,41 @@ export const App = () => {
             <div className="flex flex-row">
               <span className="card-title">Server events</span>
               <button
-                className={`btn btn-sm btn-success mx-1 my-0`}
+                className={`btn btn-sm btn-success m-1`}
                 disabled={serverEventsState === "connected"}
                 onClick={() => {
-                  console.log("connecting to server", serverWebsocket);
-                  const ws = new WebSocket(serverWebsocket);
+                  if (!serverMessagesWebsocket) {
+                    showToastError("serverMessagesWebsocket websocket is null");
+                    return;
+                  }
+
+
+
+                  console.log("connecting to server", serverMessagesWebsocket);
+                  const ws = new WebSocket(serverMessagesWebsocket);
                   const handler = (event: unknown) => {
+                    console.log(event);
                     if (event instanceof MessageEvent) {
                       const newData = JSON.parse(event.data);
-                      setServerMessages((prevState) => [...prevState, { data: newData, id: crypto.randomUUID() }]);
+                      setServerMessages((prevState) => [
+                        ...prevState,
+                        {
+                          data: newData,
+                          id: crypto.randomUUID(),
+                        },
+                      ]);
                     }
                   };
                   ws.addEventListener("message", handler);
+                  ws.addEventListener("close", () => {
+                    console.warn("close");
+                  });
+                  ws.addEventListener("error", () => {
+                    console.warn("error");
+                  });
 
                   ws.addEventListener("open", () => {
+                    console.log("Opened!");
                     setServerEventsState("connected");
                     ws.send(
                       JSON.stringify({

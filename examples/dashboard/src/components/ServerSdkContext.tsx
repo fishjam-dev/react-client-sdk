@@ -6,15 +6,13 @@ import { useLocalStorageStateString } from "./LogSelector";
 const localStorageServerAddress = "serverAddress";
 
 export type ServerSdkType = {
-  setServerAddress: (value: string) => void;
-  serverAddress: string | null;
-  protocol: string | null;
-  peerWebsocket: string;
-  serverWebsocket: string;
-  roomApi: RoomApi;
-  peerApi: PeerApi;
+  setServerAddressInput: (value: string) => void;
+  serverAddressInput: string | null;
+  signalingWebsocket: string | null;
+  serverMessagesWebsocket: string | null;
+  roomApi: RoomApi | null;
+  peerApi: PeerApi | null;
   serverToken: string | null;
-  websocketProtocol: string;
   setServerToken: (value: string | null) => void;
 };
 
@@ -24,50 +22,59 @@ type Props = {
   children: React.ReactNode;
 };
 
-export const ServerSDKProvider = ({ children }: Props) => {
-  const [serverAddress, setServerAddressState] = useLocalStorageStateString("serverAddress", "localhost:4000");
-  const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
-  const [protocol, setProtocol] = useLocalStorageStateString("protocol", "http");
-
-  const [websocketProtocol, setWebsocketProtocol] = useState<string>("ws");
-
-  useEffect(() => {
-    if (protocol === "https") {
-      setWebsocketProtocol("wss");
-    } else {
-      setWebsocketProtocol("ws");
+const prepareHostPort = (input: string) => {
+  try {
+    const url = new URL(input);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url;
     }
-  }, [protocol]);
+    return new URL(`http://${input}`);
+  } catch (e) {
+    return null;
+  }
+};
 
-  const setServerAddress = useCallback(
+export const ServerSDKProvider = ({ children }: Props) => {
+  const [serverAddressInput, setServerAddressState] = useLocalStorageStateString(
+    localStorageServerAddress,
+    "localhost:5002"
+  );
+
+  const [signalingWebsocket, setSignalingWebsocket] = useState<string | null>(null);
+  const [serverMessagesWebsocket, setServerMessagesWebsocket] = useState<string | null>(null);
+  const [httpApiUrl, setHttpApiUrl] = useState<string | null>(null);
+
+  const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
+
+  const setServerAddressInput = useCallback(
     (value: string) => {
-      try {
-        const url = new URL(value);
-        console.log(url);
-        const parsedVal = url.host + url.pathname;
-        const protocol = url.protocol;
-        setProtocol(protocol.replace(":", ""));
-        setServerAddressState(parsedVal);
-      } catch (e) {
-        // if (!(e instanceof TypeError)) throw e;
-        setServerAddressState(value);
-      }
+      setServerAddressState(value);
       localStorage.setItem(localStorageServerAddress, value);
     },
-    [setProtocol, setServerAddressState]
+    [setServerAddressState]
   );
 
   useEffect(() => {
-    console.log("serverAddress changed", serverAddress);
-    if (!serverAddress) return;
-    try {
-      const url = new URL(serverAddress);
-      const protocol = url.protocol;
-      setProtocol(protocol.replace(":", ""));
-    } catch (e) {
-      if (!(e instanceof TypeError)) throw e;
+    if (!serverAddressInput) return;
+    const url = prepareHostPort(serverAddressInput);
+
+    if (!url) {
+      setServerMessagesWebsocket(null);
+      setSignalingWebsocket(null);
+      setHttpApiUrl(null);
+      return;
     }
-  }, [serverAddress, setProtocol]);
+
+    const hostPort = url.host + url.pathname;
+    const protocol = url?.protocol === "https:" || url?.protocol === "http:" ? url.protocol : null;
+    if (!protocol) {
+      return;
+    }
+    const websocketProtocol = protocol === "https:" ? "wss" : "ws";
+    setServerMessagesWebsocket(`${websocketProtocol}://${hostPort}socket/server/websocket`);
+    setSignalingWebsocket(`${websocketProtocol}://${hostPort}socket/peer/websocket`);
+    setHttpApiUrl(`${protocol}//${hostPort}`);
+  }, [serverAddressInput]);
 
   const client = useMemo(
     () =>
@@ -80,46 +87,40 @@ export const ServerSDKProvider = ({ children }: Props) => {
   );
 
   const roomApi = useMemo(
-    () => new RoomApi(undefined, `${protocol}://${serverAddress}`, client),
-    [client, protocol, serverAddress]
+    () => (httpApiUrl ? new RoomApi(undefined, httpApiUrl || "", client) : null),
+    [client, httpApiUrl]
   );
   const peerApi = useMemo(
-    () => new PeerApi(undefined, `${protocol}://${serverAddress}`, client),
-    [client, protocol, serverAddress]
-  );
-
-  const peerWebsocket: string = useMemo(() => serverAddress ?? "", [serverAddress]);
-  const serverWebsocket: string = useMemo(
-    () => `${websocketProtocol}://${peerWebsocket}/socket/server/websocket`,
-    [peerWebsocket, websocketProtocol]
+    () => (httpApiUrl ? new PeerApi(undefined, httpApiUrl || "", client) : null),
+    [client, httpApiUrl]
   );
 
   useEffect(() => {
-    console.log("serverAddress", serverAddress);
-  }, [serverAddress]);
+    console.log({ name: "roomApi", roomApi });
+  }, [roomApi]);
+
   useEffect(() => {
-    console.log(peerApi);
-  }, [peerApi]);
+    console.log({ name: "httpApiUrl", httpApiUrl });
+  }, [httpApiUrl]);
+
   useEffect(() => {
-    console.log("peerWebsocket", peerWebsocket);
-  }, [peerWebsocket]);
+    console.log({ name: "serverMessagesWebsocket", serverMessagesWebsocket });
+  }, [serverMessagesWebsocket]);
   useEffect(() => {
-    console.log("protocol", protocol);
-  }, [protocol]);
+    console.log({ name: "signalingWebsocket", signalingWebsocket });
+  }, [signalingWebsocket]);
 
   return (
     <ServerSdkContext.Provider
       value={{
-        peerWebsocket,
-        serverWebsocket,
-        serverAddress,
-        setServerAddress,
         roomApi,
         peerApi,
         serverToken,
-        protocol,
         setServerToken,
-        websocketProtocol,
+        serverAddressInput,
+        setServerAddressInput,
+        serverMessagesWebsocket,
+        signalingWebsocket,
       }}
     >
       {children}

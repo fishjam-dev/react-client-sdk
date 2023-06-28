@@ -51,7 +51,7 @@ export const Client = ({
   }));
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
-  const { peerWebsocket, websocketProtocol } = useServerSdk();
+  const { signalingWebsocket } = useServerSdk();
 
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
 
@@ -144,11 +144,16 @@ export const Client = ({
                     return;
                   }
 
-                  console.log("Connecting to", peerWebsocket);
+                  if (!signalingWebsocket) {
+                    showToastError("Signaling websocket is null");
+                    return;
+                  }
+
+                  console.log("Connecting to", signalingWebsocket);
                   const disconnect = connect({
                     peerMetadata: { name },
                     token,
-                    websocketUrl: `${websocketProtocol}://${peerWebsocket}/socket/peer/websocket`,
+                    websocketUrl: signalingWebsocket,
                   });
                   setTimeout(() => {
                     refetchIfNeeded();
