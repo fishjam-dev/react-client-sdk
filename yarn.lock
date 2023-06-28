@@ -53,20 +53,22 @@
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@jellyfish-dev/membrane-webrtc-js@^0.4.6":
-  version "0.4.6"
-  resolved "https://registry.npmjs.org/@jellyfish-dev/membrane-webrtc-js/-/membrane-webrtc-js-0.4.6.tgz"
-  integrity sha512-CHGzJBDPQ3Y+ezA1MsrTkt96UG9JjYkVsDCtq0xbQ/yBRK3jZxM3J/ilpSs2/GGiI8UO6ju9XjCeNNBOi2hImQ==
+"@jellyfish-dev/membrane-webrtc-js@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.npmjs.org/@jellyfish-dev/membrane-webrtc-js/-/membrane-webrtc-js-0.5.0.tgz"
+  integrity sha512-cUHlkXcMKt47omd0Q50kEPlKsBMNytLs3fFCybyT7ri4BL1X6K/+PMyWv6Ul9Y0d6O79YJmGPHI/nVabMaS70g==
   dependencies:
     events "^3.3.0"
+    typed-emitter "^2.1.0"
     uuid "^8.3.2"
 
-"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#v0.1.2":
+"@jellyfish-dev/ts-client-sdk@file:../ts-client-sdk":
   version "0.1.2"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#95aa3519960edc649f14f1c988f7dce40b2e3d9c"
+  resolved "file:../ts-client-sdk"
   dependencies:
-    "@jellyfish-dev/membrane-webrtc-js" "^0.4.6"
+    "@jellyfish-dev/membrane-webrtc-js" "0.5.0"
     events "^3.3.0"
+    ts-proto "^1.147.2"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

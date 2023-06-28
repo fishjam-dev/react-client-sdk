@@ -1,6 +1,5 @@
-import type { TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
+import type { TrackEncoding, VadStatus } from "@jellyfish-dev/membrane-webrtc-js";
 import type { Api } from "./api";
-import { VadStatus } from "@jellyfish-dev/membrane-webrtc-js/dist/membraneWebRTC";
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
 export type TrackId = string;
