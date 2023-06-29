@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@jellyfish-dev/membrane-webrtc-js": "0.5.0",
-    "@jellyfish-dev/ts-client-sdk": "file:../ts-client-sdk",
+    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#bugfix/fix-resource-cleanup",
     "events": "^3.3.0"
   },
   "directories": {
