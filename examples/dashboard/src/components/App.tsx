@@ -24,8 +24,18 @@ export const App = () => {
   const [serverEventsState, setServerEventsState] = useState<"connected" | "disconnected">("disconnected");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
-  const { serverAddressInput, setServerAddressInput, roomApi, serverMessagesWebsocket, serverToken, setServerToken } =
-    useServerSdk();
+  const {
+    setSignalingProtocol,
+    signalingProtocol,
+    setSignalingHost,
+    signalingHost,
+    setSignalingPath,
+    signalingPath,
+    roomApi,
+    serverMessagesWebsocket,
+    serverToken,
+    setServerToken,
+  } = useServerSdk();
   const [serverMessages, setServerMessages] = useState<{ data: unknown; id: string }[]>([]);
 
   const refetchAll = useCallback(() => {
@@ -149,6 +159,15 @@ export const App = () => {
           </div>
 
           <div className="form-control m-1 flex flex-row items-center">
+            <input
+                type="text"
+                placeholder="Type here"
+                className="input input-bordered w-full max-w-xs"
+                value={signalingProtocol || ""}
+                onChange={(event) => {
+                  setSignalingProtocol(event.target.value);
+                }}
+            />
             <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Protocol">
               <svg
                 fill="none"
@@ -169,15 +188,15 @@ export const App = () => {
 
           <div className="form-control m-1 flex flex-row items-center">
             <input
-              type="text"
-              placeholder="Type here"
-              className="input input-bordered w-full max-w-xs"
-              value={serverAddressInput || ""}
-              onChange={(event) => {
-                setServerAddressInput(event.target.value);
-              }}
+                type="text"
+                placeholder="Type here"
+                className="input input-bordered w-full max-w-xs"
+                value={signalingHost || ""}
+                onChange={(event) => {
+                  setSignalingHost(event.target.value);
+                }}
             />
-            <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Jellyfish server address">
+            <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Jellyfish host">
               <svg
                 fill="none"
                 stroke="currentColor"
@@ -194,6 +213,35 @@ export const App = () => {
               </svg>
             </div>
           </div>
+
+          <div className="form-control m-1 flex flex-row items-center">
+            <input
+                type="text"
+                placeholder="Type here"
+                className="input input-bordered w-full max-w-xs"
+                value={signalingPath || ""}
+                onChange={(event) => {
+                  setSignalingPath(event.target.value);
+                }}
+            />
+            <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Signaling path">
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+
           <div className="flex flex-row w-[150px] m-1">
             <PersistentInput name={REFETCH_ON_SUCCESS} />
           </div>
@@ -218,8 +266,6 @@ export const App = () => {
                     showToastError("serverMessagesWebsocket websocket is null");
                     return;
                   }
-
-
 
                   console.log("connecting to server", serverMessagesWebsocket);
                   const ws = new WebSocket(serverMessagesWebsocket);

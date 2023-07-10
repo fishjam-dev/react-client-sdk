@@ -209,7 +209,7 @@ export const onTracksPriorityChanged =
   };
 
 export const onJoinSuccess =
-  <PeerMetadata, TrackMetadata>(peersInRoom: [Endpoint], peerId: PeerId, peerMetadata: PeerMetadata) =>
+  <PeerMetadata, TrackMetadata>(peersInRoom: Endpoint[], peerId: PeerId, peerMetadata: PeerMetadata) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     const peersMap = new Map(
       peersInRoom.map((peer) => [
@@ -290,7 +290,7 @@ export const replaceTrack =
     const prevLocalPeer = prevState.local;
     if (!prevLocalPeer) return prevState;
 
-    const prevMetadata = prevLocalPeer.tracks[trackId].metadata
+    const prevMetadata = prevLocalPeer.tracks[trackId].metadata;
 
     return {
       ...prevState,

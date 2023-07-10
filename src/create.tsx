@@ -6,6 +6,7 @@ import {
   onAuthError,
   onAuthSuccess,
   onBandwidthEstimationChanged,
+  onEncodingChanged,
   onJoinError,
   onJoinSuccess,
   onPeerJoined,
@@ -20,6 +21,7 @@ import {
   onTrackRemoved,
   onTracksPriorityChanged,
   onTrackUpdated,
+  onVoiceActivityChanged,
   removeTrack,
   replaceTrack,
   updateTrackMetadata,
@@ -77,7 +79,7 @@ export type OnAuthErrorAction = {
 export type OnJoinSuccessAction<PeerMetadata> = {
   type: "onJoinSuccess";
   peerMetadata: PeerMetadata;
-  peersInRoom: [Endpoint];
+  peersInRoom: Endpoint[];
   peerId: string;
 };
 
@@ -107,26 +109,29 @@ export type OnTrackReadyAction = {
   ctx: TrackContext;
 };
 
+export type OnTrackUpdatedAction = {
+  type: "onTrackUpdated";
+  ctx: TrackContext;
+};
+
 export type OnTrackRemovedAction = {
   type: "onTrackRemoved";
   ctx: TrackContext;
 };
 
-export type OnTrackUpdatedAction = {
-  type: "onTrackUpdated";
+export type OnTrackEncodingChange = {
+  type: "encodingChanged";
+  ctx: TrackContext;
+};
+
+export type OnTrackVoiceActivityChanged = {
+  type: "voiceActivityChanged";
   ctx: TrackContext;
 };
 
 export type OnBandwidthEstimationChangedAction = {
   type: "onBandwidthEstimationChanged";
   estimation: bigint;
-};
-
-export type OnTrackEncodingChangedAction = {
-  type: "onTrackEncodingChanged";
-  peerId: string;
-  trackId: string;
-  encoding: TrackEncoding;
 };
 
 export type OnTracksPriorityChangedAction = {
@@ -193,8 +198,9 @@ export type Action<PeerMetadata, TrackMetadata> =
   | OnTrackAddedAction
   | OnTrackUpdatedAction
   | OnTrackRemovedAction
+  | OnTrackEncodingChange
+  | OnTrackVoiceActivityChanged
   | OnBandwidthEstimationChangedAction
-  | OnTrackEncodingChangedAction
   | OnTracksPriorityChangedAction
   | OnPeerUpdatedAction
   | OnPeerLeftAction
@@ -232,73 +238,70 @@ const onConnect = <PeerMetadata, TrackMetadata>(
     };
   }
 
-  client.on("onSocketOpen", () => {
+  client.on("socketOpen", () => {
     action.dispatch({ type: "onSocketOpen" });
   });
 
-  client.on("onSocketError", () => {
+  client.on("socketError", () => {
     action.dispatch({ type: "onSocketError" });
   });
 
-  client.on("onAuthSuccess", () => {
+  client.on("authSuccess", () => {
     action.dispatch({ type: "onAuthSuccess" });
   });
 
-  client.on("onAuthError", () => {
+  client.on("authError", () => {
     action.dispatch({ type: "onAuthError" });
   });
 
-  client.on("onDisconnected", () => {
+  client.on("disconnected", () => {
     action.dispatch({ type: "onDisconnected" });
   });
 
-  client.on("onJoinSuccess", (peerId, peersInRoom) => {
+  client.on("joined", (peerId: string, peersInRoom: Endpoint[]) => {
     action.dispatch({ type: "onJoinSuccess", peersInRoom, peerId, peerMetadata });
   });
   // todo handle state and handle callback
-  client.on("onJoinError", (metadata) => {
+  client.on("joinError", (metadata) => {
     action.dispatch({ type: "onJoinError", metadata });
   });
-  client.on("onRemoved", (reason) => {
-    action.dispatch({ type: "onRemoved", reason });
-  });
-  client.on("onPeerJoined", (peer) => {
+  // client.on("onRemoved", (reason) => {
+  //   action.dispatch({ type: "onRemoved", reason });
+  // });
+  client.on("peerJoined", (peer) => {
     action.dispatch({ type: "onPeerJoined", peer });
   });
-  client.on("onPeerUpdated", (peer) => {
+  client.on("peerUpdated", (peer) => {
     action.dispatch({ type: "onPeerUpdated", peer });
   });
-  client.on("onPeerLeft", (peer) => {
+  client.on("peerLeft", (peer) => {
     action.dispatch({ type: "onPeerLeft", peer });
   });
-  client.on("onTrackReady", (ctx) => {
+  client.on("trackReady", (ctx) => {
     action.dispatch({ type: "onTrackReady", ctx });
   });
-  client.on("onTrackAdded", (ctx) => {
+  client.on("trackAdded", (ctx) => {
     action.dispatch({ type: "onTrackAdded", ctx });
 
-    // setStore(onTrackAdded(ctx));
-    // ctx.on("onEncodingChanged", () => {
-    //   setStore(onEncodingChanged(ctx));
-    // });
-    // ctx.on("onVoiceActivityChanged", () => {
-    //   setStore(onVoiceActivityChanged(ctx));
-    // });
+    ctx.on("encodingChanged", () => {
+      action.dispatch({ type: "encodingChanged", ctx });
+    });
+    ctx.on("voiceActivityChanged", () => {
+      action.dispatch({ type: "voiceActivityChanged", ctx });
+    });
   });
-  client.on("onTrackRemoved", (ctx) => {
+  client.on("trackRemoved", (ctx) => {
     action.dispatch({ type: "onTrackRemoved", ctx });
+    ctx.removeAllListeners();
   });
-  client.on("onTrackUpdated", (ctx) => {
+  client.on("trackUpdated", (ctx) => {
     action.dispatch({ type: "onTrackUpdated", ctx });
   });
-  client.on("onBandwidthEstimationChanged", (estimation) => {
+  client.on("bandwidthEstimationChanged", (estimation) => {
     action.dispatch({ type: "onBandwidthEstimationChanged", estimation });
   });
-  client.on("onTrackEncodingChanged", (peerId, trackId, encoding) => {
-    action.dispatch({ type: "onTrackEncodingChanged", peerId, trackId, encoding });
-  });
   // todo handle state
-  client.on("onTracksPriorityChanged", (enabledTracks, disabledTracks) => {
+  client.on("tracksPriorityChanged", (enabledTracks, disabledTracks) => {
     action.dispatch({ type: "onTracksPriorityChanged", enabledTracks, disabledTracks });
   });
 
@@ -308,9 +311,8 @@ const onConnect = <PeerMetadata, TrackMetadata>(
     ...state,
     status: "connecting",
     connectivity: {
-      ...state.connectivity,
       api,
-      client: client,
+      client,
     },
   };
 };
@@ -366,8 +368,10 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return onTrackUpdated<PeerMetadata, TrackMetadata>(action.ctx)(state);
     case "onTrackRemoved":
       return onTrackRemoved<PeerMetadata, TrackMetadata>(action.ctx)(state);
-    case "onTrackEncodingChanged":
-      return onTrackEncodingChanged<PeerMetadata, TrackMetadata>(action.peerId, action.trackId, action.encoding)(state);
+    case "encodingChanged":
+      return onEncodingChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
+    case "voiceActivityChanged":
+      return onVoiceActivityChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
     // local track events
     case "localAddTrack":
       return addTrack<PeerMetadata, TrackMetadata>(
@@ -391,7 +395,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "onTracksPriorityChanged":
       return onTracksPriorityChanged<PeerMetadata, TrackMetadata>(action.enabledTracks, action.disabledTracks)(state);
   }
-  throw Error("Nie obslugiwany blad");
+  throw Error("Unhandled Action");
 };
 
 type Reducer<PeerMetadata, TrackMetadata> = (

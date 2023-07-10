@@ -13,6 +13,7 @@ import { useServerSdk } from "./ServerSdkContext";
 import { useLogging } from "./useLogging";
 import { useConnectionToasts } from "./useConnectionToasts";
 import { showToastError } from "./Toasts";
+import { SignalingUrl } from "../../../../../ts-client-sdk/src";
 
 type ClientProps = {
   roomId: string;
@@ -51,7 +52,7 @@ export const Client = ({
   }));
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
-  const { signalingWebsocket } = useServerSdk();
+  const { signalingHost, signalingPath, signalingProtocol } = useServerSdk();
 
   const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
 
@@ -144,16 +145,19 @@ export const Client = ({
                     return;
                   }
 
-                  if (!signalingWebsocket) {
-                    showToastError("Signaling websocket is null");
-                    return;
-                  }
-
-                  console.log("Connecting to", signalingWebsocket);
+                  const singling: SignalingUrl | undefined =
+                    signalingHost && signalingProtocol && signalingPath
+                      ? {
+                          host: signalingHost,
+                          protocol: signalingProtocol,
+                          path: signalingPath,
+                        }
+                      : undefined;
+                  console.log("Connecting!");
                   const disconnect = connect({
                     peerMetadata: { name },
                     token,
-                    websocketUrl: signalingWebsocket,
+                    signaling: singling,
                   });
                   setTimeout(() => {
                     refetchIfNeeded();
