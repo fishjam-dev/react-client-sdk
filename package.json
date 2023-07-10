@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "@jellyfish-dev/membrane-webrtc-js": "0.5.0",
-    "@jellyfish-dev/ts-client-sdk": "file:../ts-client-sdk",
+    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#main",
     "events": "^3.3.0"
   },
   "directories": {
