@@ -10,6 +10,7 @@ import { useServerSdk } from "./ServerSdkContext";
 import { showToastError } from "./Toasts";
 import { getBooleanValue } from "../utils/localStorageUtils";
 import { VideoroomConnect } from "./VideoroomConnect";
+import HlsPlayback from "./HlsPlayback";
 
 export const REFETCH_ON_SUCCESS = "refetch on success";
 export const REFETCH_ON_MOUNT = "refetch on mount";
@@ -21,6 +22,7 @@ export const App = () => {
   const [showVideoroom, setShowVideoroom] = useLocalStorageState("showVideoroom-log-selector");
   const [showDeviceSelector, setShowDeviceSelector] = useLocalStorageState("showDeviceSelector");
   const [showServerEvents, setShowServerEvents] = useLocalStorageState("showServerEvents");
+  const [showHlsPlayer, setShowHlsPlayer] = useLocalStorageState("showHlsPlayer");
   const [serverEventsState, setServerEventsState] = useState<"connected" | "disconnected">("disconnected");
   const [selectedVideoStream, setSelectedVideoStream] = useState<StreamInfo | null>(null);
   const [activeVideoStreams, setActiveVideoStreams] = useState<DeviceIdToStream | null>(null);
@@ -128,6 +130,15 @@ export const App = () => {
             }}
           >
             {showVideoroom ? "Hide videoroom" : "Show videoroom"}
+          </button>
+
+          <button
+            className={`btn btn-sm mx-1 my-0 ${showHlsPlayer ? "btn-ghost" : ""}`}
+            onClick={() => {
+              setShowHlsPlayer(!showHlsPlayer);
+            }}
+          >
+            {showHlsPlayer ? "Hide HLS player" : "Show HLS player"}
           </button>
 
           <div className="form-control m-1 flex flex-row items-center">
@@ -270,7 +281,6 @@ export const App = () => {
                   console.log("connecting to server", serverMessagesWebsocket);
                   const ws = new WebSocket(serverMessagesWebsocket);
                   const handler = (event: unknown) => {
-                    console.log(event);
                     if (event instanceof MessageEvent) {
                       const newData = JSON.parse(event.data);
                       setServerMessages((prevState) => [
@@ -353,6 +363,16 @@ export const App = () => {
           />
         ))}
       </div>
+      {showHlsPlayer && (
+        <div className="flex flex-row m-2 h-full items-start">
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <span className="card-title">HLS.js playback</span>
+              <HlsPlayback />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
