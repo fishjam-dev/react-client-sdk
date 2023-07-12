@@ -145,7 +145,7 @@ export const Client = ({
                     return;
                   }
 
-                  const singling: SignalingUrl | undefined =
+                  const signaling: SignalingUrl | undefined =
                     signalingHost && signalingProtocol && signalingPath
                       ? {
                           host: signalingHost,
