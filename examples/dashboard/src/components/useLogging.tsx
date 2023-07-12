@@ -136,7 +136,6 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
 
     client.on("joined", onJoinSuccess);
     client.on("joinError", onJoinError);
-    // client.on("onRemoved", onJoinRemove);
     client.on("peerJoined", onPeerJoined);
     client.on("peerUpdated", onPeerUpdated);
     client.on("peerLeft", onPeerLeft);
@@ -154,7 +153,6 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     return () => {
       client.off("joined", onJoinSuccess);
       client.off("joinError", onJoinError);
-      // client.off("onRemoved", onJoinRemove);
       client.off("peerJoined", onPeerJoined);
       client.off("peerUpdated", onPeerUpdated);
       client.off("peerLeft", onPeerLeft);
