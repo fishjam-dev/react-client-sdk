@@ -14,7 +14,7 @@ export type Track<TrackMetadata> = {
   stream: MediaStream | null;
   encoding: TrackEncoding | null;
   trackId: TrackId;
-  metadata: TrackMetadata | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+  metadata: TrackMetadata | null;
   simulcastConfig: SimulcastConfig | null;
   vadStatus: VadStatus;
   track: MediaStreamTrack | null;

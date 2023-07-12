@@ -6,12 +6,8 @@ import { useLocalStorageStateString } from "./LogSelector";
 const LOCAL_STORAGE_HOST_KEY = "host";
 const LOCAL_STORAGE_PROTOCOL_KEY = "signaling-protocol";
 const LOCAL_STORAGE_PATH_KEY = "signaling-path";
-export const LOCAL_STORAGE_IS_SECURE_KEY = "secure";
 
 export type ServerSdkType = {
-  // setServerAddressInput: (value: string) => void;
-  // serverAddressInput: string | null;
-
   setSignalingHost: (value: string) => void;
   signalingHost: string | null;
 
@@ -33,18 +29,6 @@ const ServerSdkContext = React.createContext<ServerSdkType | undefined>(undefine
 
 type Props = {
   children: React.ReactNode;
-};
-
-const prepareHostPort = (input: string) => {
-  try {
-    const url = new URL(input);
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      return url;
-    }
-    return new URL(`http://${input}`);
-  } catch (e) {
-    return null;
-  }
 };
 
 export const ServerSDKProvider = ({ children }: Props) => {
@@ -73,30 +57,6 @@ export const ServerSDKProvider = ({ children }: Props) => {
     setPath(value);
     localStorage.setItem(LOCAL_STORAGE_PATH_KEY, value);
   }, []);
-
-  // useEffect(() => {
-  //   if (!host) return;
-  //   const url = prepareHostPort(host);
-  //
-  //   if (!url) {
-  //     setServerMessagesWebsocket(null);
-  //     setSignalingWebsocket(null);
-  //     setHttpApiUrl(null);
-  //     return;
-  //   }
-  //
-  //   const hostPort = url.host + url.pathname;
-  //   const protocol = url?.protocol === "https:" || url?.protocol === "http:" ? url.protocol : null;
-  //   if (!protocol) {
-  //     return;
-  //   }
-  //   // setIsSecure(protocol === "https:")
-  //   const websocketProtocol = protocol === "https:" ? "wss" : "ws";
-  //
-  //   setServerMessagesWebsocket(`${websocketProtocol}://${hostPort}socket/server/websocket`);
-  //   setSignalingWebsocket(`${websocketProtocol}://${hostPort}socket/peer/websocket`);
-  //   setHttpApiUrl(`${protocol}//${hostPort}`);
-  // }, [host]);
 
   useEffect(() => {
     const restProtocol = protocol === "wss" ? "https" : "http";

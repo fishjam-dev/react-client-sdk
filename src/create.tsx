@@ -16,7 +16,6 @@ import {
   onSocketError,
   onSocketOpen,
   onTrackAdded,
-  onTrackEncodingChanged,
   onTrackReady,
   onTrackRemoved,
   onTracksPriorityChanged,
