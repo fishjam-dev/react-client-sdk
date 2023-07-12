@@ -77,7 +77,7 @@ export const ServerSDKProvider = ({ children }: Props) => {
   );
 
   const roomApi = useMemo(
-    () => (httpApiUrl ? new RoomApi(undefined, httpApiUrl || "", client) : null),
+    () => httpApiUrl ? new RoomApi(undefined, httpApiUrl || "", client) : null,
     [client, httpApiUrl]
   );
   const peerApi = useMemo(
