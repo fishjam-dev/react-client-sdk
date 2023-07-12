@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
-import { Endpoint } from "@jellyfish-dev/membrane-webrtc-js";
+import type { Endpoint } from "@jellyfish-dev/membrane-webrtc-js";
 import { REFETCH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
 import { Client } from "./Client";
