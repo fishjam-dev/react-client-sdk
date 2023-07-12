@@ -171,13 +171,13 @@ export const App = () => {
 
           <div className="form-control m-1 flex flex-row items-center">
             <input
-                type="text"
-                placeholder="Type here"
-                className="input input-bordered w-full max-w-xs"
-                value={signalingProtocol || ""}
-                onChange={(event) => {
-                  setSignalingProtocol(event.target.value);
-                }}
+              type="text"
+              placeholder="Type here"
+              className="input input-bordered w-full max-w-xs"
+              value={signalingProtocol || ""}
+              onChange={(event) => {
+                setSignalingProtocol(event.target.value);
+              }}
             />
             <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Protocol">
               <svg
@@ -199,13 +199,13 @@ export const App = () => {
 
           <div className="form-control m-1 flex flex-row items-center">
             <input
-                type="text"
-                placeholder="Type here"
-                className="input input-bordered w-full max-w-xs"
-                value={signalingHost || ""}
-                onChange={(event) => {
-                  setSignalingHost(event.target.value);
-                }}
+              type="text"
+              placeholder="Type here"
+              className="input input-bordered w-full max-w-xs"
+              value={signalingHost || ""}
+              onChange={(event) => {
+                setSignalingHost(event.target.value);
+              }}
             />
             <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Jellyfish host">
               <svg
@@ -227,13 +227,13 @@ export const App = () => {
 
           <div className="form-control m-1 flex flex-row items-center">
             <input
-                type="text"
-                placeholder="Type here"
-                className="input input-bordered w-full max-w-xs"
-                value={signalingPath || ""}
-                onChange={(event) => {
-                  setSignalingPath(event.target.value);
-                }}
+              type="text"
+              placeholder="Type here"
+              className="input input-bordered w-full max-w-xs"
+              value={signalingPath || ""}
+              onChange={(event) => {
+                setSignalingPath(event.target.value);
+              }}
             />
             <div className="tooltip tooltip-bottom w-[32px] h-full m-2" data-tip="Signaling path">
               <svg
