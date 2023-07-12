@@ -13,7 +13,7 @@ import { useServerSdk } from "./ServerSdkContext";
 import { useLogging } from "./useLogging";
 import { useConnectionToasts } from "./useConnectionToasts";
 import { showToastError } from "./Toasts";
-import { SignalingUrl } from "../../../../../ts-client-sdk/src";
+import { SignalingUrl } from "@jellyfish-dev/ts-client-sdk";
 
 type ClientProps = {
   roomId: string;
