@@ -153,7 +153,6 @@ export const Client = ({
                           path: signalingPath,
                         }
                       : undefined;
-                  console.log("Connecting!");
                   const disconnect = connect({
                     peerMetadata: { name },
                     token,

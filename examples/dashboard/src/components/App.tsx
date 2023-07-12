@@ -278,7 +278,6 @@ export const App = () => {
                     return;
                   }
 
-                  console.log("connecting to server", serverMessagesWebsocket);
                   const ws = new WebSocket(serverMessagesWebsocket);
                   const handler = (event: unknown) => {
                     if (event instanceof MessageEvent) {
@@ -301,7 +300,6 @@ export const App = () => {
                   });
 
                   ws.addEventListener("open", () => {
-                    console.log("Opened!");
                     setServerEventsState("connected");
                     ws.send(
                       JSON.stringify({

@@ -264,9 +264,6 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   client.on("joinError", (metadata) => {
     action.dispatch({ type: "onJoinError", metadata });
   });
-  // client.on("onRemoved", (reason) => {
-  //   action.dispatch({ type: "onRemoved", reason });
-  // });
   client.on("peerJoined", (peer) => {
     action.dispatch({ type: "onPeerJoined", peer });
   });

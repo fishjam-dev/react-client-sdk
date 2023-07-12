@@ -55,7 +55,6 @@ export const createApiWrapper = <PeerMetadata, TrackMetadata>(
   },
 
   replaceTrack: (trackId, newTrack, stream, newTrackMetadata) => {
-    console.log({ name: "createApiWrapper", newTrackMetadata });
     const promise = webrtc.replaceTrack(trackId, newTrack, newTrackMetadata);
     dispatch({ type: "localReplaceTrack", trackId, newTrack, stream, newTrackMetadata });
     return promise;
@@ -81,5 +80,5 @@ export const createApiWrapper = <PeerMetadata, TrackMetadata>(
 
   setTargetTrackEncoding: (trackId, encoding) => {
     webrtc.setTargetTrackEncoding(trackId, encoding);
-  }
+  },
 });
