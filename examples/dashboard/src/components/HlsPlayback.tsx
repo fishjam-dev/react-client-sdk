@@ -1,19 +1,20 @@
 import { useCallback, useRef, useState } from "react";
 import Hls from "hls.js";
+import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 
 const BIG_BUCK_BUNNY_SRC = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
 
 export default function HlsPlayback() {
   const hls = useRef<Hls | null>(null);
-  const [src, setSrc] = useState(BIG_BUCK_BUNNY_SRC);
-  const [srcInput, setSrcInput] = useState(src);
+  const [src, setSrc] = useLocalStorageStateString("hls-url", BIG_BUCK_BUNNY_SRC);
+  const [srcInput, setSrcInput] = useState(src || "");
 
   const loadUrl = useCallback(
     (media: HTMLVideoElement | null) => {
       hls.current?.destroy();
       if (!media) return;
       hls.current = new Hls();
-      hls.current.loadSource(src);
+      hls.current.loadSource(src || "");
       hls.current.attachMedia(media);
     },
     [src]
