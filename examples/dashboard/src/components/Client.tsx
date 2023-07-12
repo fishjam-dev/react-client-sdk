@@ -156,7 +156,7 @@ export const Client = ({
                   const disconnect = connect({
                     peerMetadata: { name },
                     token,
-                    signaling: singling,
+                    signaling,
                   });
                   setTimeout(() => {
                     refetchIfNeeded();

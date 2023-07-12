@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { PeerApi, RoomApi } from "../server-sdk";
 import axios from "axios";
 import { useLocalStorageStateString } from "./LogSelector";
@@ -33,13 +33,9 @@ type Props = {
 
 export const ServerSDKProvider = ({ children }: Props) => {
   const [host, setHost] = useLocalStorageStateString(LOCAL_STORAGE_HOST_KEY, "localhost:5002");
-  const [protocol, setProtocol] = useLocalStorageStateString(LOCAL_STORAGE_PROTOCOL_KEY, "wss");
+  const [protocol, setProtocol] = useLocalStorageStateString(LOCAL_STORAGE_PROTOCOL_KEY, "ws");
   const [path, setPath] = useLocalStorageStateString(LOCAL_STORAGE_PATH_KEY, "/socket/peer/websocket");
-  const [isSecure, setIsSecure] = useLocalStorageStateString(LOCAL_STORAGE_PROTOCOL_KEY, "wss");
-
-  const [signalingWebsocket, setSignalingWebsocket] = useState<string | null>(null);
   const [serverMessagesWebsocket, setServerMessagesWebsocket] = useState<string | null>(null);
-  const [httpApiUrl, setHttpApiUrl] = useState<string | null>(null);
 
   const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
 
@@ -58,13 +54,7 @@ export const ServerSDKProvider = ({ children }: Props) => {
     localStorage.setItem(LOCAL_STORAGE_PATH_KEY, value);
   }, []);
 
-  useEffect(() => {
-    const restProtocol = protocol === "wss" ? "https" : "http";
-
-    const abc = `${restProtocol}://${host}`;
-    console.log({ abc });
-    setHttpApiUrl(abc);
-  }, [host, protocol]);
+  const httpApiUrl = `${protocol === "wss" ? "https" : "http"}://${host}`;
 
   const client = useMemo(
     () =>
@@ -77,7 +67,7 @@ export const ServerSDKProvider = ({ children }: Props) => {
   );
 
   const roomApi = useMemo(
-    () => httpApiUrl ? new RoomApi(undefined, httpApiUrl || "", client) : null,
+    () => (httpApiUrl ? new RoomApi(undefined, httpApiUrl || "", client) : null),
     [client, httpApiUrl]
   );
   const peerApi = useMemo(
