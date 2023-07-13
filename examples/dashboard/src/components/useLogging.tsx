@@ -36,6 +36,13 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onComponentAdded = (component: any) => {
+      if (getBooleanValue("onComponentAdded")) {
+        console.log({ name: "onComponentAdded", component });
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerUpdated = (peer: any) => {
       if (getBooleanValue("onPeerUpdated")) {
         console.log({ name: "onPeerUpdated", peer });
@@ -43,9 +50,23 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onComponentUpdated = (component: any) => {
+      if (getBooleanValue("onComponentUpdated")) {
+        console.log({ name: "onComponentUpdated", component });
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerLeft = (peer: any) => {
       if (getBooleanValue("onPeerLeft")) {
         console.log({ name: "onPeerLeft", peer });
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onComponentRemoved = (component: any) => {
+      if (getBooleanValue("onComponentRemoved")) {
+        console.log({ name: "onComponentRemoved", component });
       }
     };
 
@@ -136,13 +157,20 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
 
     client.on("joined", onJoinSuccess);
     client.on("joinError", onJoinError);
+
     client.on("peerJoined", onPeerJoined);
     client.on("peerUpdated", onPeerUpdated);
     client.on("peerLeft", onPeerLeft);
+
+    client.on("componentAdded", onComponentAdded);
+    client.on("componentUpdated", onComponentUpdated);
+    client.on("componentRemoved", onComponentRemoved);
+
     client.on("trackReady", onTrackReady);
     client.on("trackAdded", onTrackAdded);
     client.on("trackRemoved", onTrackRemoved);
     client.on("trackUpdated", onTrackUpdated);
+
     client.on("bandwidthEstimationChanged", onBandwidthEstimationChanged);
     client.on("tracksPriorityChanged", onTracksPriorityChanged);
 
@@ -153,13 +181,20 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     return () => {
       client.off("joined", onJoinSuccess);
       client.off("joinError", onJoinError);
+
       client.off("peerJoined", onPeerJoined);
       client.off("peerUpdated", onPeerUpdated);
       client.off("peerLeft", onPeerLeft);
+
+      client.off("componentAdded", onComponentAdded);
+      client.off("componentUpdated", onComponentUpdated);
+      client.off("componentRemoved", onComponentRemoved);
+
       client.off("trackReady", onTrackReady);
       client.off("trackAdded", onTrackAdded);
       client.off("trackRemoved", onTrackRemoved);
       client.off("trackUpdated", onTrackUpdated);
+
       client.off("bandwidthEstimationChanged", onBandwidthEstimationChanged);
       client.off("tracksPriorityChanged", onTracksPriorityChanged);
 

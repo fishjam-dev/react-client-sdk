@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocalStorageState } from "./LogSelector";
-import type { Endpoint } from "@jellyfish-dev/membrane-webrtc-js";
 import { REFETCH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
 import { Client } from "./Client";
@@ -10,17 +9,7 @@ import { CopyToClipboardButton } from "./CopyButton";
 import { Room as RoomAPI } from "../server-sdk";
 import { useServerSdk } from "./ServerSdkContext";
 import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "../utils/localStorageUtils";
-
-type RoomConfig = {
-  maxPeers: number;
-};
-
-export type RoomType = {
-  components: unknown;
-  config: RoomConfig;
-  id: string;
-  peers: Endpoint[];
-};
+import AddRtspComponent from "./AddRtspComponent";
 
 type RoomProps = {
   roomId: string;
@@ -33,7 +22,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
   const [room, setRoom] = useState<RoomAPI | null>(initial);
   const [show, setShow] = useLocalStorageState(`show-json-${roomId}`);
   const [token, setToken] = useState<Record<string, string>>({});
-  const { roomApi, peerApi } = useServerSdk();
+  const { roomApi, peerApi, componentApi } = useServerSdk();
 
   const refetch = () => {
     roomApi?.jellyfishWebRoomControllerShow(roomId).then((response) => {
@@ -81,6 +70,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
     <div className="flex flex-col items-start mr-4">
       <div className="flex flex-col w-full border-opacity-50 m-2">
         <div className="divider p-2">Room: {roomId}</div>
+        <AddRtspComponent roomId={roomId} refetchIfNeeded={refetchIfNeeded} />
       </div>
 
       <div className="flex flex-row items-start">
@@ -128,6 +118,17 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                   }}
                 >
                   Create peer
+                </button>
+
+                <button
+                  className="btn btn-sm btn-success m-1"
+                  onClick={() => {
+                    componentApi?.jellyfishWebComponentControllerCreate(roomId, { type: "hls" }).then(() => {
+                      refetchIfNeeded();
+                    });
+                  }}
+                >
+                  Create hls
                 </button>
                 <button
                   className="btn btn-sm mx-1 my-0"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PeerMetadata, TrackMetadata } from "../jellyfish.types";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
@@ -50,6 +50,13 @@ export const Client = ({
     bandwidthEstimation: snapshot.bandwidthEstimation,
     status: snapshot.status,
   }));
+
+  const fullState2 = client.useSelector((snapshot) => snapshot);
+
+  useEffect(() => {
+    console.log({ fullState2 });
+  }, [fullState2]);
+
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
   const { signalingHost, signalingPath, signalingProtocol } = useServerSdk();

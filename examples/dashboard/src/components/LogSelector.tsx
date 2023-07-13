@@ -44,14 +44,22 @@ export const LogSelector = () => {
       <div className="card-body mt-4">
         <PersistentInput name="onJoinSuccess" />
         <PersistentInput name="onJoinError" />
+
         <PersistentInput name="onRemoved" />
+
         <PersistentInput name="onPeerJoined" />
-        <PersistentInput name="onPeerLeft" />
         <PersistentInput name="onPeerUpdated" />
-        <PersistentInput name="onTrackReady" />
+        <PersistentInput name="onPeerLeft" />
+
+        <PersistentInput name="onComponentAdded" />
+        <PersistentInput name="onComponentUpdated" />
+        <PersistentInput name="onComponentRemoved" />
+
         <PersistentInput name="onTrackAdded" />
-        <PersistentInput name="onTrackRemoved" />
+        <PersistentInput name="onTrackReady" />
         <PersistentInput name="onTrackUpdated" />
+        <PersistentInput name="onTrackRemoved" />
+
         <PersistentInput name="onTrackEncodingChanged" />
         <PersistentInput name="onTracksPriorityChanged" />
         <PersistentInput name="onBandwidthEstimationChanged" />

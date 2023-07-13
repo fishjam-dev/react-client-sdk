@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { PeerApi, RoomApi } from "../server-sdk";
+import { ComponentApi, PeerApi, RoomApi } from "../server-sdk";
 import axios from "axios";
 import { useLocalStorageStateString } from "./LogSelector";
 
@@ -21,6 +21,8 @@ export type ServerSdkType = {
   serverMessagesWebsocket: string | null;
   roomApi: RoomApi | null;
   peerApi: PeerApi | null;
+  componentApi: ComponentApi | null;
+
   serverToken: string | null;
   setServerToken: (value: string | null) => void;
 };
@@ -74,12 +76,17 @@ export const ServerSDKProvider = ({ children }: Props) => {
     () => (httpApiUrl ? new PeerApi(undefined, httpApiUrl || "", client) : null),
     [client, httpApiUrl]
   );
+  const componentApi = useMemo(
+    () => (httpApiUrl ? new ComponentApi(undefined, httpApiUrl || "", client) : null),
+    [client, httpApiUrl]
+  );
 
   return (
     <ServerSdkContext.Provider
       value={{
         roomApi,
         peerApi,
+        componentApi,
         serverToken,
         setServerToken,
 
