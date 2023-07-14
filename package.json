@@ -63,7 +63,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@jellyfish-dev/ts-client-sdk": "file:../ts-client-sdk",
+    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#feature/separate-endpoints-to-components-and-peers",
     "events": "^3.3.0"
   },
   "directories": {
