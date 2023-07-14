@@ -73,7 +73,7 @@ export const Client = ({
   useConnectionToasts(jellyfishClient);
 
   return (
-    <div className="card w-150 bg-base-100 shadow-xl m-2 indicator">
+    <div className="card w-150 bg-base-100 shadow-xl indicator">
       <CloseButton
         onClick={() => {
           remove(roomId);

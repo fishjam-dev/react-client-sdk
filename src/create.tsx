@@ -1,4 +1,4 @@
-import { createContext, Dispatch, useContext, useMemo, useReducer } from "react";
+import { createContext, Dispatch, ReactNode, useContext, useMemo, useReducer } from "react";
 import type { Selector, State } from "./state.types";
 import { DEFAULT_STORE } from "./state";
 import {
@@ -6,6 +6,11 @@ import {
   onAuthError,
   onAuthSuccess,
   onBandwidthEstimationChanged,
+  onComponentAdded,
+  onComponentRemoved,
+  onComponentTrackAdded,
+  onComponentTrackReady,
+  onComponentUpdated,
   onEncodingChanged,
   onJoinError,
   onJoinSuccess,
@@ -26,11 +31,11 @@ import {
   updateTrackMetadata,
 } from "./stateMappers";
 import { createApiWrapper } from "./api";
-import { Endpoint, SimulcastConfig, TrackContext, TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
+import { Component, Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
 export type JellyfishContextProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 type JellyfishContextType<PeerMetadata, TrackMetadata> = {
@@ -43,6 +48,7 @@ export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => v
 export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => ({
   local: null,
   remote: {},
+  components: {},
   status: null,
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
   connectivity: {
@@ -154,6 +160,21 @@ export type OnPeerUpdatedAction = {
   peer: Endpoint;
 };
 
+export type ComponentAdded = {
+  type: "componentAdded";
+  component: Component;
+};
+
+export type ComponentUpdated = {
+  type: "componentUpdated";
+  component: Component;
+};
+
+export type ComponentRemoved = {
+  type: "componentRemoved";
+  component: Component;
+};
+
 // Local
 export type LocalAddTrackAction<TrackMetadata> = {
   type: "localAddTrack";
@@ -188,9 +209,9 @@ export type Action<PeerMetadata, TrackMetadata> =
   | DisconnectAction
   | OnJoinSuccessAction<PeerMetadata>
   | OnAuthSuccessAction
+  | OnAuthErrorAction
   | OnSocketOpenAction
   | OnSocketErrorAction
-  | OnAuthErrorAction
   | OnDisconnectedAction
   | OnRemovedAction
   | OnTrackReadyAction
@@ -201,10 +222,13 @@ export type Action<PeerMetadata, TrackMetadata> =
   | OnTrackVoiceActivityChanged
   | OnBandwidthEstimationChangedAction
   | OnTracksPriorityChangedAction
+  | OnPeerJoinedAction
   | OnPeerUpdatedAction
   | OnPeerLeftAction
-  | OnPeerJoinedAction
   | OnJoinErrorAction
+  | ComponentAdded
+  | ComponentUpdated
+  | ComponentRemoved
   | LocalReplaceTrackAction<TrackMetadata>
   | LocalRemoveTrackAction
   | LocalUpdateTrackMetadataAction<TrackMetadata>
@@ -272,6 +296,15 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   });
   client.on("peerLeft", (peer) => {
     action.dispatch({ type: "onPeerLeft", peer });
+  });
+  client.on("componentAdded", (component: Component) => {
+    action.dispatch({ type: "componentAdded", component });
+  });
+  client.on("componentUpdated", (component: Component) => {
+    action.dispatch({ type: "componentUpdated", component });
+  });
+  client.on("componentRemoved", (component: Component) => {
+    action.dispatch({ type: "componentRemoved", component });
   });
   client.on("trackReady", (ctx) => {
     action.dispatch({ type: "onTrackReady", ctx });
@@ -351,19 +384,45 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     // remote peers events
     case "onPeerJoined":
       return onPeerJoined<PeerMetadata, TrackMetadata>(action.peer)(state);
-    case "onPeerLeft":
-      return onPeerLeft<PeerMetadata, TrackMetadata>(action.peer)(state);
     case "onPeerUpdated":
       return onPeerUpdated<PeerMetadata, TrackMetadata>(action.peer)(state);
+    case "onPeerLeft":
+      return onPeerLeft<PeerMetadata, TrackMetadata>(action.peer)(state);
+    // remote component events
+    case "componentAdded":
+      return onComponentAdded<PeerMetadata, TrackMetadata>(action.component)(state);
+    case "componentUpdated":
+      return onComponentUpdated<PeerMetadata, TrackMetadata>(action.component)(state);
+    case "componentRemoved":
+      return onComponentRemoved<PeerMetadata, TrackMetadata>(action.component)(state);
     // remote track events
     case "onTrackAdded":
-      return onTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      if (action.ctx.endpoint.type === "webrtc") {
+        return onTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      } else {
+        return onComponentTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      }
+
     case "onTrackReady":
-      return onTrackReady<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      if (action.ctx.endpoint.type === "webrtc") {
+        return onTrackReady<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      } else {
+        return onComponentTrackReady<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      }
     case "onTrackUpdated":
-      return onTrackUpdated<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      if (action.ctx.endpoint.type === "webrtc") {
+        return onTrackUpdated<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      } else {
+        return state;
+      }
+
     case "onTrackRemoved":
-      return onTrackRemoved<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      if (action.ctx.endpoint.type === "webrtc") {
+        return onTrackRemoved<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      } else {
+        return state;
+      }
+
     case "encodingChanged":
       return onEncodingChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
     case "voiceActivityChanged":

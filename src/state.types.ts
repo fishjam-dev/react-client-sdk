@@ -1,9 +1,10 @@
-import type { TrackEncoding, VadStatus } from "@jellyfish-dev/membrane-webrtc-js";
+import type { TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
 import type { Api } from "./api";
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
 export type TrackId = string;
 export type PeerId = string;
+export type ComponentId = string;
 
 export type SimulcastConfig = {
   enabled: boolean | null;
@@ -26,6 +27,13 @@ export type Peer<PeerMetadata, TrackMetadata> = {
   tracks: Record<TrackId, Track<TrackMetadata>>;
 };
 
+export type Component = {
+  id: ComponentId;
+  metadata: any;
+  type: string;
+  tracks: Record<TrackId, any>
+};
+
 export type Connectivity<PeerMetadata, TrackMetadata> = {
   api: Api<TrackMetadata> | null;
   client: JellyfishClient<PeerMetadata, TrackMetadata> | null;
@@ -35,6 +43,7 @@ export type PeerStatus = "connecting" | "connected" | "authenticated" | "joined"
 export type State<PeerMetadata, TrackMetadata> = {
   local: Peer<PeerMetadata, TrackMetadata> | null;
   remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>>;
+  components: Record<ComponentId, Component>;
   bandwidthEstimation: bigint;
   status: PeerStatus;
   connectivity: Connectivity<PeerMetadata, TrackMetadata>;
