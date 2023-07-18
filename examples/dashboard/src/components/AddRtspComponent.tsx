@@ -1,9 +1,8 @@
-import React, { FC, useMemo, useState } from "react";
+import React, { FC } from "react";
 import { useServerSdk } from "./ServerSdkContext";
-import { useLocalStorageStateString } from "./LogSelector";
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { parseString } from "typedoc/dist/lib/converter/comments/declarationReference";
+import { isNumeric } from "../utils/utils";
 
 type Props = {
   roomId: string;
@@ -13,8 +12,6 @@ type Props = {
 const urlAtom = atomWithStorage("rtsp-url", "");
 const portAtom = atomWithStorage("rtsp-port", "7000");
 const portAutoIncrementAtom = atomWithStorage("rtsp-port-auto-increment", true);
-
-const isNumeric = (str: string) => !isNaN(parseInt(str));
 
 const AddRtspComponent: FC<Props> = ({ roomId, refetchIfNeeded }) => {
   const { componentApi } = useServerSdk();
@@ -56,7 +53,7 @@ const AddRtspComponent: FC<Props> = ({ roomId, refetchIfNeeded }) => {
                     ?.jellyfishWebComponentControllerCreate(roomId, {
                       type: "rtsp",
                       options: {
-                        rtpPort: "",
+                        rtpPort: port,
                         sourceUri: url,
                       },
                     })
