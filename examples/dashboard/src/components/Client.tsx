@@ -47,6 +47,7 @@ export const Client = ({
   const fullState = client.useSelector((snapshot) => ({
     local: snapshot.local,
     remote: snapshot.remote,
+    components: snapshot.components,
     bandwidthEstimation: snapshot.bandwidthEstimation,
     status: snapshot.status,
   }));
@@ -68,6 +69,9 @@ export const Client = ({
 
   const isThereAnyTrack =
     Object.values(fullState?.remote || {}).flatMap(({ tracks }) => Object.values(tracks)).length > 0;
+
+  const isThereAnyComponent =
+    Object.values(fullState?.components || {}).flatMap(({ tracks }) => Object.values(tracks)).length > 0;
 
   useLogging(jellyfishClient);
   useConnectionToasts(jellyfishClient);
@@ -237,6 +241,19 @@ export const Client = ({
                       <VideoPlayer key={trackId} stream={stream} />
                     ))}
                   </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {isThereAnyComponent && (
+          <div>
+            Remote components:
+            {Object.values(fullState?.components || {}).map(({ id, metadata, tracks }) => {
+              return (
+                <div key={id}>
+                  <h4>{id}</h4>
+                  <div>{Object.values(tracks || {}).map(({ trackId }) => trackId)}</div>
                 </div>
               );
             })}

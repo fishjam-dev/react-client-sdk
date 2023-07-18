@@ -20,6 +20,33 @@ export const getStringValue = (name: string, defaultValue: string | null = null)
   return stringValue;
 };
 
+export const getLocalStorage = <Value extends string>(name: string, defaultValue: Value): Value => {
+  const stringValue = localStorage.getItem(name);
+  if (stringValue === null || stringValue === undefined) {
+    return defaultValue;
+  }
+  // todo remove `as`
+  return stringValue as Value;
+};
+
+export const usePersistentRadio = <Value extends string>(
+  name: string,
+  defaultValue: Value
+): [Value, (newValue: Value) => void] => {
+  const [innerValue, setInnerValue] = useState<Value>(getLocalStorage<Value>(name, defaultValue));
+
+  const setValue = (newValue: Value) => {
+    setInnerValue(newValue);
+    if (newValue === null) {
+      localStorage.removeItem(name);
+    } else {
+      localStorage.setItem(name, newValue);
+    }
+  };
+
+  return [innerValue, setValue];
+};
+
 export const useLocalStorageStateString = (
   name: string,
   defaultValue?: string

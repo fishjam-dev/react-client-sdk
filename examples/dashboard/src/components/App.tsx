@@ -11,6 +11,7 @@ import { showToastError } from "./Toasts";
 import { getBooleanValue } from "../utils/localStorageUtils";
 import { VideoroomConnect } from "./VideoroomConnect";
 import HlsPlayback from "./HlsPlayback";
+import CreateRoom from "./CreateRoom";
 
 export const REFETCH_ON_SUCCESS = "refetch on success";
 export const REFETCH_ON_MOUNT = "refetch on mount";
@@ -77,16 +78,7 @@ export const App = () => {
           >
             Get all
           </button>
-          <button
-            className="btn btn-sm btn-success m-1"
-            onClick={() => {
-              roomApi?.jellyfishWebRoomControllerCreate({ maxPeers: 10 }).then(() => {
-                refetchIfNeeded();
-              });
-            }}
-          >
-            Create room
-          </button>
+
           <button
             className={`btn btn-sm m-1 ${showLogSelector ? "btn-ghost" : ""}`}
             onClick={() => {
@@ -329,7 +321,7 @@ export const App = () => {
           </div>
         </div>
       )}
-      <div className="flex flex-row m-2 h-full items-start">
+      <div className="flex flex-row m-2 h-full items-start gap-4">
         {showLogSelector && <LogSelector />}
         {showVideoroom && <VideoroomConnect refetchIfNeeded={refetchIfNeeded} />}
         {showDeviceSelector && (
@@ -340,17 +332,18 @@ export const App = () => {
             setSelectedVideoStream={setSelectedVideoStream}
           />
         )}
-
-        {showServerState && (
-          <div>
+        <div>
+          <CreateRoom refetchIfNeeded={refetchIfNeeded} />
+          {showServerState && (
             <div className="w-[600px] m-2 card bg-base-100 shadow-xl">
               <div className="card-body">
                 <h2 className="card-title">Server state:</h2>
                 <JsonComponent state={room} />
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
         {room?.map((room) => (
           <Room
             key={room.id}

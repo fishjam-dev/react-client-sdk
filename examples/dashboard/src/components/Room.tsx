@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useLocalStorageState } from "./LogSelector";
+import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
 import { REFETCH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
 import { Client } from "./Client";
@@ -10,7 +10,8 @@ import { Room as RoomAPI } from "../server-sdk";
 import { useServerSdk } from "./ServerSdkContext";
 import { getBooleanValue, loadObject, removeSavedItem, saveObject } from "../utils/localStorageUtils";
 import AddRtspComponent from "./AddRtspComponent";
-import RoomComponents from "./RoomComponents";
+import ComponentsInRoom from "./ComponentsInRoom";
+import AddHlsComponent from "./AddHlsComponent";
 
 type RoomProps = {
   roomId: string;
@@ -119,16 +120,6 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
                     </button>
 
                     <button
-                      className="btn btn-sm btn-success"
-                      onClick={() => {
-                        componentApi?.jellyfishWebComponentControllerCreate(roomId, { type: "hls" }).then(() => {
-                          refetchIfNeededInner();
-                        });
-                      }}
-                    >
-                      Create hls
-                    </button>
-                    <button
                       className="btn btn-sm mx-1 my-0"
                       onClick={() => {
                         setShow(!show);
@@ -143,7 +134,8 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
               </div>
             </div>
             <AddRtspComponent roomId={roomId} refetchIfNeeded={refetchIfNeededInner} />
-            <RoomComponents roomId={roomId} components={room?.components} refetchIfNeeded={refetchIfNeededInner} />
+            <AddHlsComponent roomId={roomId} refetchIfNeeded={refetchIfNeededInner} />
+            <ComponentsInRoom roomId={roomId} components={room?.components} refetchIfNeeded={refetchIfNeededInner} />
           </div>
           <div className="flex flex-col gap-2">
             {room?.peers?.map(({ id }) => {
