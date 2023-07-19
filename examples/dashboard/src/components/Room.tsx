@@ -22,7 +22,7 @@ type RoomProps = {
 
 export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: RoomProps) => {
   const [room, setRoom] = useState<RoomAPI | null>(initial);
-  const [show, setShow] = useLocalStorageState(`show-json-${roomId}`);
+  const [show, setShow] = useLocalStorageState(`show-json-${roomId}`, false);
   const [token, setToken] = useState<Record<string, string>>({});
   const { roomApi, peerApi, componentApi } = useServerSdk();
 

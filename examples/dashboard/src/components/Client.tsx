@@ -62,7 +62,7 @@ export const Client = ({
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
   const { signalingHost, signalingPath, signalingProtocol } = useServerSdk();
 
-  const [show, setShow] = useLocalStorageState(`show-json-${peerId}`);
+  const [show, setShow] = useLocalStorageState(`show-json-${peerId}`, false);
 
   const [trackId, setTrackId] = useState<string | null>(null);
   const [tokenInput, setTokenInput] = useState<string>("");

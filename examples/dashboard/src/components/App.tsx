@@ -332,10 +332,10 @@ export const App = () => {
             setSelectedVideoStream={setSelectedVideoStream}
           />
         )}
-        <div>
+        <div className="flex flex-col gap-2">
           <CreateRoom refetchIfNeeded={refetchIfNeeded} />
           {showServerState && (
-            <div className="w-[600px] m-2 card bg-base-100 shadow-xl">
+            <div className="w-[600px] card bg-base-100 shadow-xl">
               <div className="card-body">
                 <h2 className="card-title">Server state:</h2>
                 <JsonComponent state={room} />

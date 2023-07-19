@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { useServerSdk } from "./ServerSdkContext";
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { isNumeric } from "../utils/utils";
+import { isInt } from "../utils/utils";
 
 type Props = {
   roomId: string;
@@ -12,13 +12,25 @@ type Props = {
 const urlAtom = atomWithStorage("rtsp-url", "");
 const portAtom = atomWithStorage("rtsp-port", "7000");
 const portAutoIncrementAtom = atomWithStorage("rtsp-port-auto-increment", true);
+const keepAliveIntervalAtom = atomWithStorage("rtsp-keep-alive-interval", "");
+const pierceNatAtom = atomWithStorage("rtsp-pierce-nat", false);
+const reconnectDelayAtom = atomWithStorage("rtsp-reconnect-delay", "");
 
 const AddRtspComponent: FC<Props> = ({ roomId, refetchIfNeeded }) => {
   const { componentApi } = useServerSdk();
   const [url, setUrl] = useAtom(urlAtom);
+
   const [port, setPort] = useAtom(portAtom);
-  const parsedPort = isNumeric(port);
+  const parsedPort = parseInt(port);
   const [autoIncrement, setAutoIncrement] = useAtom(portAutoIncrementAtom);
+
+  const [keepAliveInterval, setKeepAliveInterval] = useAtom(keepAliveIntervalAtom);
+  const parsedKeepAliveInterval = parseInt(keepAliveInterval);
+
+  const [pierceNat, setPierceNat] = useAtom(pierceNatAtom);
+
+  const [reconnectDelay, setReconnectDelay] = useAtom(reconnectDelayAtom);
+  const parsedReconnectDelay = parseInt(keepAliveInterval);
 
   return (
     <div className="w-full card bg-base-100 shadow-xl indicator">
@@ -31,6 +43,28 @@ const AddRtspComponent: FC<Props> = ({ roomId, refetchIfNeeded }) => {
               className="input input-bordered w-full"
               placeholder="URL"
             />
+            <div className="flex w-full gap-2">
+              <input
+                value={keepAliveInterval}
+                onChange={(e) => setKeepAliveInterval(e.target.value)}
+                className="input input-bordered flex-1"
+                placeholder="Keep alive interval"
+              />
+              <input
+                value={reconnectDelay}
+                onChange={(e) => setReconnectDelay(e.target.value)}
+                className="input input-bordered flex-1"
+                placeholder="Reconnect delay"
+              />
+              <div className="flex flex-col justify-center tooltip" data-tip="Pierce NAT">
+                <input
+                  className="checkbox"
+                  type="checkbox"
+                  checked={pierceNat}
+                  onChange={() => setPierceNat((prev) => !prev)}
+                />
+              </div>
+            </div>
             <div className="flex w-full gap-2">
               <input
                 value={port}
@@ -53,8 +87,11 @@ const AddRtspComponent: FC<Props> = ({ roomId, refetchIfNeeded }) => {
                     ?.jellyfishWebComponentControllerCreate(roomId, {
                       type: "rtsp",
                       options: {
-                        rtpPort: port,
+                        rtpPort: parsedPort,
                         sourceUri: url,
+                        keepAliveInterval: keepAliveInterval === "" ? undefined : parsedKeepAliveInterval,
+                        pierceNat: pierceNat,
+                        reconnectDelay: reconnectDelay === "" ? undefined : parsedReconnectDelay,
                       },
                     })
                     .then(() => {

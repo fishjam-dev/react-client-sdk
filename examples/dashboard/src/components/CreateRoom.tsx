@@ -1,21 +1,21 @@
 import React, { ChangeEvent, FC } from "react";
 import { useServerSdk } from "./ServerSdkContext";
-import { usePersistentRadio } from "./LogSelector";
-import { RoomConfigEnforceEncodingEnum } from "../server-sdk";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
 type Props = {
   refetchIfNeeded: () => void;
 };
 
-const isRoomEnforceEncoding = (value: string): value is RoomConfigEnforceEncodingEnum =>
-  value === RoomConfigEnforceEncodingEnum.Vp8 || value === RoomConfigEnforceEncodingEnum.H264;
+type EnforceEncoding = "h264" | "vp8";
+
+const enforceEncodingAtom = atomWithStorage<EnforceEncoding>("enforce-encoding", "vp8");
+
+const isRoomEnforceEncoding = (value: string): value is EnforceEncoding => value === "h264" || value === "vp8";
 
 const CreateRoom: FC<Props> = ({ refetchIfNeeded }) => {
   const { roomApi } = useServerSdk();
-  const [enforceEncodingInput, setEnforceEncodingInput] = usePersistentRadio<RoomConfigEnforceEncodingEnum>(
-    "enforce-encoding",
-    "vp8"
-  );
+  const [enforceEncodingInput, setEnforceEncodingInput] = useAtom(enforceEncodingAtom);
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (isRoomEnforceEncoding(event.target.value)) {
