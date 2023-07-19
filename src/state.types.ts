@@ -27,11 +27,19 @@ export type Peer<PeerMetadata, TrackMetadata> = {
   tracks: Record<TrackId, Track<TrackMetadata>>;
 };
 
+export type ComponentTrack = {
+  // stream: MediaStream | null,
+  // track: MediaStreamTrack | null,
+  trackId: TrackId,
+  vadStatus: VadStatus,
+}
+
 export type Component = {
   id: ComponentId;
   metadata: any;
   type: string;
-  tracks: Record<TrackId, any>
+  // todo for now only RTSP track because simulcast doesn't work
+  tracks: Record<TrackId, ComponentTrack>
 };
 
 export type Connectivity<PeerMetadata, TrackMetadata> = {

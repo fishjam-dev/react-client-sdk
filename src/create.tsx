@@ -10,6 +10,7 @@ import {
   onComponentRemoved,
   onComponentTrackAdded,
   onComponentTrackReady,
+  onComponentTrackRemoved,
   onComponentUpdated,
   onEncodingChanged,
   onJoinError,
@@ -21,6 +22,7 @@ import {
   onSocketError,
   onSocketOpen,
   onTrackAdded,
+  onTrackComponentUpdated,
   onTrackReady,
   onTrackRemoved,
   onTracksPriorityChanged,
@@ -397,30 +399,36 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return onComponentRemoved<PeerMetadata, TrackMetadata>(action.component)(state);
     // remote track events
     case "onTrackAdded":
+      console.log({ name: "onTrackAdded-generic", ctx: action.ctx });
+
       if (action.ctx.endpoint.type === "webrtc") {
+        console.log({ name: "onTrackAdded-webrtc", ctx: action.ctx });
+
         return onTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
       } else {
-        return onComponentTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
+        console.log({ name: "onTrackAdded-component", ctx: action.ctx });
+
+        return onComponentTrackAdded<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
 
     case "onTrackReady":
       if (action.ctx.endpoint.type === "webrtc") {
         return onTrackReady<PeerMetadata, TrackMetadata>(action.ctx)(state);
       } else {
-        return onComponentTrackReady<PeerMetadata, TrackMetadata>(action.ctx)(state);
+        return onComponentTrackReady<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
     case "onTrackUpdated":
       if (action.ctx.endpoint.type === "webrtc") {
-        return onTrackUpdated<PeerMetadata, TrackMetadata>(action.ctx)(state);
+        return onTrackUpdated<PeerMetadata, TrackMetadata>(state, action.ctx);
       } else {
-        return state;
+        return onTrackComponentUpdated<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
 
     case "onTrackRemoved":
       if (action.ctx.endpoint.type === "webrtc") {
-        return onTrackRemoved<PeerMetadata, TrackMetadata>(action.ctx)(state);
+        return onTrackRemoved<PeerMetadata, TrackMetadata>(state, action.ctx);
       } else {
-        return state;
+        return onComponentTrackRemoved<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
 
     case "encodingChanged":

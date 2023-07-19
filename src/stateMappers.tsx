@@ -4,7 +4,7 @@ import type {
   SimulcastConfig,
   TrackContext,
 } from "@jellyfish-dev/ts-client-sdk";
-import type { Component, ComponentId, Peer, PeerId, State, Track, TrackId } from "./state.types";
+import type { Component, ComponentId, Peer, PeerId, ComponentTrack, State, Track, TrackId } from "./state.types";
 
 export const onSocketOpen =
   <PeerMetadata, TrackMetadata>() =>
@@ -160,32 +160,38 @@ export const onTrackReady =
     };
   };
 
-export const onComponentTrackReady =
-  <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    if (!ctx.stream) return prevState;
-    if (!ctx.endpoint) return prevState;
-    if (!ctx.trackId) return prevState;
+export const onComponentTrackReady = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  if (!ctx.stream) return prevState;
+  if (!ctx.endpoint) return prevState;
+  if (!ctx.trackId) return prevState;
 
-    console.log({ name: "onComponentTrackReady!!!", ctx });
+  console.log({ name: "onComponentTrackReady!!!", ctx });
 
-    const component = prevState.components[ctx.endpoint.id];
+  const component = prevState.components[ctx.endpoint.id];
 
-    return {
-      ...prevState,
-      components: {
-        ...prevState.components,
-        [ctx.endpoint.id]: {
-          ...component,
-          tracks: {
-            ...component.tracks,
-            // [ctx.trackId]: createTrack(ctx),
-            [ctx.trackId]: ctx,
+  return {
+    ...prevState,
+    components: {
+      ...prevState.components,
+      [ctx.endpoint.id]: {
+        ...component,
+        tracks: {
+          ...component.tracks,
+          // [ctx.trackId]: createTrack(ctx),
+          [ctx.trackId]: {
+            // track: ctx.track,
+            // stream: ctx.stream,
+            vadStatus: ctx.vadStatus,
+            trackId: ctx.trackId,
           },
         },
       },
-    };
+    },
   };
+};
 
 export const onTrackAdded =
   <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>
@@ -210,44 +216,85 @@ export const onTrackAdded =
     };
   };
 
-export const onComponentTrackAdded =
-    <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>
-        (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-            if (!ctx.endpoint) return prevState;
-            if (!ctx.trackId) return prevState;
+export const onComponentTrackAdded = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  console.log("Hello from fn");
 
-            const component = prevState.components[ctx.endpoint.id];
+  if (!ctx.endpoint) {
+    console.log("endpoint");
+    return prevState;
+  }
+  if (!ctx.trackId) {
+    console.log("trackid");
+    return prevState;
+  }
 
-            return {
-                ...prevState,
-                components: {
-                    ...prevState.components,
-                    [ctx.endpoint.id]: {
-                        ...component,
-                        tracks: {
-                            ...component.tracks,
-                            // [ctx.trackId]: createTrack(ctx),
-                            [ctx.trackId]: ctx,
-                        },
-                    },
-                },
-            };
-        };
+  const component = prevState.components[ctx.endpoint.id];
 
-export const onTrackRemoved =
-  <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    if (!ctx.endpoint) return prevState;
-    if (!ctx.trackId) return prevState;
-
-    const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = {
-      ...prevState.remote,
-    };
-
-    delete remote[ctx.endpoint.id].tracks[ctx.trackId];
-
-    return { ...prevState, remote: remote };
+  const track: ComponentTrack = {
+    vadStatus: ctx.vadStatus,
+    trackId: ctx.trackId,
   };
+
+  const componentObj: Component = {
+    ...component,
+    tracks: {
+      ...component.tracks,
+      [ctx.trackId]: track,
+    },
+  };
+
+  console.log({
+    name: "onComponentTrackAdded",
+    stream: ctx.stream,
+    track: ctx.track,
+    ctx,
+    newTrack: track,
+    componentObj,
+  });
+
+  return {
+    ...prevState,
+    components: {
+      ...prevState.components,
+      [ctx.endpoint.id]: componentObj,
+    },
+  };
+};
+
+export const onTrackRemoved = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  if (!ctx.endpoint) return prevState;
+  if (!ctx.trackId) return prevState;
+
+  const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = {
+    ...prevState.remote,
+  };
+
+  delete remote[ctx.endpoint.id].tracks[ctx.trackId];
+
+  return { ...prevState, remote };
+};
+
+export const onComponentTrackRemoved = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  if (!ctx.endpoint) return prevState;
+  if (!ctx.trackId) return prevState;
+
+  const components: Record<ComponentId, Component> = {
+    ...prevState.components,
+  };
+
+  delete components[ctx.endpoint.id].tracks[ctx.trackId];
+
+  return { ...prevState, components };
+};
 
 export const onTrackEncodingChanged =
   <PeerMetadata, TrackMetadata>(peerId: PeerId, trackId: TrackId, encoding: "l" | "m" | "h") =>
@@ -274,29 +321,60 @@ export const onTrackEncodingChanged =
     };
   };
 
-export const onTrackUpdated =
-  <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = {
-      ...prevState.remote,
-    };
-
-    const peer = remote[ctx.endpoint.id];
-
-    const track: Track<TrackMetadata> = {
-      ...peer.tracks[ctx.trackId],
-      stream: ctx.stream,
-      metadata: ctx.metadata,
-    };
-
-    return {
-      ...prevState,
-      remote: {
-        ...prevState.remote,
-        [ctx.endpoint.id]: { ...peer, tracks: { ...peer.tracks, [ctx.trackId]: track } },
-      },
-    };
+export const onTrackUpdated = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = {
+    ...prevState.remote,
   };
+
+  const peer = remote[ctx.endpoint.id];
+
+  const track: Track<TrackMetadata> = {
+    ...peer.tracks[ctx.trackId],
+    stream: ctx.stream,
+    metadata: ctx.metadata,
+  };
+
+  return {
+    ...prevState,
+    remote: {
+      ...prevState.remote,
+      [ctx.endpoint.id]: { ...peer, tracks: { ...peer.tracks, [ctx.trackId]: track } },
+    },
+  };
+};
+
+export const onTrackComponentUpdated = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  const components: Record<ComponentId, Component> = {
+    ...prevState.components,
+  };
+
+  const component = components[ctx.endpoint.id];
+
+  const track: ComponentTrack = {
+    ...component.tracks[ctx.trackId],
+    ...ctx,
+  };
+
+  return {
+    ...prevState,
+    components: {
+      ...prevState.components,
+      [ctx.endpoint.id]: {
+        ...component,
+        tracks: {
+          ...component.tracks,
+          [ctx.trackId]: track,
+        },
+      },
+    },
+  };
+};
 
 // todo handle state
 export const onTracksPriorityChanged =
@@ -327,7 +405,9 @@ export const onJoinSuccess =
       tracks: {},
     };
 
-    return { ...prevState, local, remote, status: "joined" };
+    const components: Record<ComponentId, Component> = {};
+
+    return { ...prevState, local, remote, components, status: "joined" };
   };
 
 // todo handle state and handle callback
