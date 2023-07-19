@@ -9,13 +9,13 @@ type Props = {
 
 type EnforceEncoding = "h264" | "vp8";
 
-const enforceEncodingAtom = atomWithStorage<EnforceEncoding>("enforce-encoding", "vp8");
+const videoCodecAtom = atomWithStorage<EnforceEncoding>("enforce-encoding", "vp8");
 
 const isRoomEnforceEncoding = (value: string): value is EnforceEncoding => value === "h264" || value === "vp8";
 
 const CreateRoom: FC<Props> = ({ refetchIfNeeded }) => {
   const { roomApi } = useServerSdk();
-  const [enforceEncodingInput, setEnforceEncodingInput] = useAtom(enforceEncodingAtom);
+  const [videoCodec, setEnforceEncodingInput] = useAtom(videoCodecAtom);
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (isRoomEnforceEncoding(event.target.value)) {
@@ -36,7 +36,7 @@ const CreateRoom: FC<Props> = ({ refetchIfNeeded }) => {
                 value="h264"
                 className="radio"
                 onChange={onChange}
-                checked={enforceEncodingInput === "h264"}
+                checked={videoCodec === "h264"}
               />
             </label>
           </div>
@@ -49,7 +49,7 @@ const CreateRoom: FC<Props> = ({ refetchIfNeeded }) => {
                 value="vp8"
                 className="radio"
                 onChange={onChange}
-                checked={enforceEncodingInput === "vp8"}
+                checked={videoCodec === "vp8"}
               />
             </label>
           </div>
@@ -60,7 +60,7 @@ const CreateRoom: FC<Props> = ({ refetchIfNeeded }) => {
             roomApi
               ?.jellyfishWebRoomControllerCreate({
                 maxPeers: 10,
-                enforceEncoding: enforceEncodingInput,
+                videoCodec: videoCodec,
               })
               .then(() => {
                 refetchIfNeeded();

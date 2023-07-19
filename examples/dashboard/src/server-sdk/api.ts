@@ -255,25 +255,25 @@ export interface Room {
  */
 export interface RoomConfig {
     /**
-     * Enforces video codec for each peer in the room
-     * @type {string}
-     * @memberof RoomConfig
-     */
-    'enforceEncoding'?: RoomConfigEnforceEncodingEnum;
-    /**
      * Maximum amount of peers allowed into the room
      * @type {number}
      * @memberof RoomConfig
      */
     'maxPeers'?: number | null;
+    /**
+     * Enforces video codec for each peer in the room
+     * @type {string}
+     * @memberof RoomConfig
+     */
+    'videoCodec'?: RoomConfigVideoCodecEnum;
 }
 
-export const RoomConfigEnforceEncodingEnum = {
+export const RoomConfigVideoCodecEnum = {
     H264: 'h264',
     Vp8: 'vp8'
 } as const;
 
-export type RoomConfigEnforceEncodingEnum = typeof RoomConfigEnforceEncodingEnum[keyof typeof RoomConfigEnforceEncodingEnum];
+export type RoomConfigVideoCodecEnum = typeof RoomConfigVideoCodecEnum[keyof typeof RoomConfigVideoCodecEnum];
 
 /**
  * Response containing room details
