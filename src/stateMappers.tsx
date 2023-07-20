@@ -141,8 +141,6 @@ export const onTrackReady =
     if (!ctx.endpoint) return prevState;
     if (!ctx.trackId) return prevState;
 
-    console.log({ name: "onTrackReady!!!", ctx });
-
     const peer = prevState.remote[ctx.endpoint.id];
 
     return {
@@ -168,8 +166,6 @@ export const onComponentTrackReady = <PeerMetadata, TrackMetadata>(
   if (!ctx.endpoint) return prevState;
   if (!ctx.trackId) return prevState;
 
-  console.log({ name: "onComponentTrackReady!!!", ctx });
-
   const component = prevState.components[ctx.endpoint.id];
 
   return {
@@ -180,10 +176,7 @@ export const onComponentTrackReady = <PeerMetadata, TrackMetadata>(
         ...component,
         tracks: {
           ...component.tracks,
-          // [ctx.trackId]: createTrack(ctx),
           [ctx.trackId]: {
-            // track: ctx.track,
-            // stream: ctx.stream,
             vadStatus: ctx.vadStatus,
             trackId: ctx.trackId,
           },
@@ -220,16 +213,8 @@ export const onComponentTrackAdded = <PeerMetadata, TrackMetadata>(
   prevState: State<PeerMetadata, TrackMetadata>,
   ctx: TrackContext
 ): State<PeerMetadata, TrackMetadata> => {
-  console.log("Hello from fn");
-
-  if (!ctx.endpoint) {
-    console.log("endpoint");
-    return prevState;
-  }
-  if (!ctx.trackId) {
-    console.log("trackid");
-    return prevState;
-  }
+  if (!ctx.endpoint) return prevState;
+  if (!ctx.trackId) return prevState;
 
   const component = prevState.components[ctx.endpoint.id];
 
@@ -245,15 +230,6 @@ export const onComponentTrackAdded = <PeerMetadata, TrackMetadata>(
       [ctx.trackId]: track,
     },
   };
-
-  console.log({
-    name: "onComponentTrackAdded",
-    stream: ctx.stream,
-    track: ctx.track,
-    ctx,
-    newTrack: track,
-    componentObj,
-  });
 
   return {
     ...prevState,

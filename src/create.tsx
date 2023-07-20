@@ -399,15 +399,9 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return onComponentRemoved<PeerMetadata, TrackMetadata>(action.component)(state);
     // remote track events
     case "onTrackAdded":
-      console.log({ name: "onTrackAdded-generic", ctx: action.ctx });
-
       if (action.ctx.endpoint.type === "webrtc") {
-        console.log({ name: "onTrackAdded-webrtc", ctx: action.ctx });
-
         return onTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
       } else {
-        console.log({ name: "onTrackAdded-component", ctx: action.ctx });
-
         return onComponentTrackAdded<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
 
