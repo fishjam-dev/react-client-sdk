@@ -3,6 +3,7 @@ import type {
   Component as JellyfishClientComponent,
   SimulcastConfig,
   TrackContext,
+  Endpoint,
 } from "@jellyfish-dev/ts-client-sdk";
 import type { Component, ComponentId, Peer, PeerId, ComponentTrack, State, Track, TrackId } from "./state.types";
 
@@ -272,30 +273,33 @@ export const onComponentTrackRemoved = <PeerMetadata, TrackMetadata>(
   return { ...prevState, components };
 };
 
-export const onTrackEncodingChanged =
-  <PeerMetadata, TrackMetadata>(peerId: PeerId, trackId: TrackId, encoding: "l" | "m" | "h") =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = {
+export const onTrackEncodingChanged = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  peerId: PeerId,
+  trackId: TrackId,
+  encoding: "l" | "m" | "h"
+): State<PeerMetadata, TrackMetadata> => {
+  const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = {
+    ...prevState.remote,
+  };
+
+  const peer = remote[peerId];
+  const track = { ...peer.tracks[trackId], encoding };
+
+  return {
+    ...prevState,
+    remote: {
       ...prevState.remote,
-    };
-
-    const peer = remote[peerId];
-    const track = { ...peer.tracks[trackId], encoding };
-
-    return {
-      ...prevState,
-      remote: {
-        ...prevState.remote,
-        [peerId]: {
-          ...peer,
-          tracks: {
-            ...peer.tracks,
-            [trackId]: track,
-          },
+      [peerId]: {
+        ...peer,
+        tracks: {
+          ...peer.tracks,
+          [trackId]: track,
         },
       },
-    };
+    },
   };
+};
 
 export const onTrackUpdated = <PeerMetadata, TrackMetadata>(
   prevState: State<PeerMetadata, TrackMetadata>,
@@ -359,29 +363,33 @@ export const onTracksPriorityChanged =
     return prevState;
   };
 
+const toEndpointsMap = (endpoints: Endpoint[]) =>
+  new Map(
+    endpoints.map((endpoint) => [
+      endpoint.id,
+      {
+        id: endpoint.id,
+        type: endpoint.type,
+        metadata: endpoint.metadata,
+        tracks: {},
+      },
+    ])
+  );
+
 export const onJoinSuccess =
   <PeerMetadata, TrackMetadata>(peersInRoom: JellyfishClientPeer[], peerId: PeerId, peerMetadata: PeerMetadata) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    const peersMap = new Map(
-      peersInRoom.map((peer) => [
-        peer.id,
-        {
-          id: peer.id,
-          metadata: peer.metadata,
-          tracks: {},
-        },
-      ])
-    );
+    const peersMap = toEndpointsMap(peersInRoom.filter((e) => e.type === "webrtc"));
+    const componentsMap = toEndpointsMap(peersInRoom.filter((e) => e.type !== "webrtc"));
 
     const remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>> = Object.fromEntries(peersMap);
+    const components: Record<ComponentId, Component> = Object.fromEntries(componentsMap);
 
     const local: Peer<PeerMetadata, TrackMetadata> = {
       id: peerId,
       metadata: peerMetadata,
       tracks: {},
     };
-
-    const components: Record<ComponentId, Component> = {};
 
     return { ...prevState, local, remote, components, status: "joined" };
   };
@@ -514,12 +522,13 @@ export const onBandwidthEstimationChanged =
     };
   };
 
-export const onEncodingChanged =
-  <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    if (!ctx.encoding) return prevState;
-    return onTrackEncodingChanged<PeerMetadata, TrackMetadata>(ctx.endpoint.id, ctx.trackId, ctx.encoding)(prevState);
-  };
+export const onEncodingChanged = <PeerMetadata, TrackMetadata>(
+  prevState: State<PeerMetadata, TrackMetadata>,
+  ctx: TrackContext
+): State<PeerMetadata, TrackMetadata> => {
+  if (!ctx.encoding) return prevState;
+  return onTrackEncodingChanged<PeerMetadata, TrackMetadata>(prevState, ctx.endpoint.id, ctx.trackId, ctx.encoding);
+};
 
 export const onVoiceActivityChanged =
   <PeerMetadata, TrackMetadata>(ctx: TrackContext) =>

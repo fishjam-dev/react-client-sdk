@@ -85,14 +85,14 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
 
       // todo remove this callback in useEffect return
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ctx.on("onEncodingChanged", (context: any) => {
+      ctx.on("encodingChanged", (context: any) => {
         if (getBooleanValue("onEncodingChanged")) {
           console.log({ name: "onEncodingChanged", context });
         }
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ctx.on("onVoiceActivityChanged", (context: any) => {
+      ctx.on("voiceActivityChanged", (context: any) => {
         if (getBooleanValue("onVoiceActivityChanged")) {
           console.log({ name: "onVoiceActivityChanged", context });
         }

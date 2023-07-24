@@ -52,12 +52,6 @@ export const Client = ({
     status: snapshot.status,
   }));
 
-  const fullState2 = client.useSelector((snapshot) => snapshot);
-
-  useEffect(() => {
-    console.log({ fullState2 });
-  }, [fullState2]);
-
   const api = client.useSelector((snapshot) => snapshot.connectivity.api);
   const jellyfishClient = client.useSelector((snapshot) => snapshot.connectivity.client);
   const { signalingHost, signalingPath, signalingProtocol } = useServerSdk();

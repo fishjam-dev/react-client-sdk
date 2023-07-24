@@ -426,9 +426,17 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       }
 
     case "encodingChanged":
-      return onEncodingChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      if (action.ctx.endpoint.type === "webrtc") {
+        return onEncodingChanged<PeerMetadata, TrackMetadata>(state, action.ctx);
+      } else {
+        return state;
+      }
     case "voiceActivityChanged":
-      return onVoiceActivityChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      if (action.ctx.endpoint.type === "webrtc") {
+        return onVoiceActivityChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
+      } else {
+        return state;
+      }
     // local track events
     case "localAddTrack":
       return addTrack<PeerMetadata, TrackMetadata>(
