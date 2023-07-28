@@ -4,10 +4,15 @@ import { useSelector } from "./useSelector";
 import type { Selector } from "../state.types";
 import { useMemo } from "react";
 import { Config } from "@jellyfish-dev/ts-client-sdk";
+import { TrackEncoding } from "@jellyfish-dev/membrane-webrtc-js";
 
 export type CreateNoContextJellyfishClient<PeerMetadata, TrackMetadata> = {
   useConnect: () => (config: Config<PeerMetadata>) => () => void;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
+  useBandwidthEstimation: () => bigint;
+  updateTrackMetadata: ((trackId: string, trackMetadata: TrackMetadata) => void) | null;
+  setTrackBandwidth: ((trackId: string, bandwidth: number) => Promise<boolean>) | null;
+  setTargetTrackEncoding: ((trackId: string, encoding: TrackEncoding) => void) | null;
 };
 
 /**
@@ -35,5 +40,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateNoContextJellyfishC
     useSelector: <Result,>(selector: Selector<PeerMetadata, TrackMetadata, Result>): Result => {
       return useSelector(store, selector);
     },
+    useBandwidthEstimation: () => useSelector(store, (snapshot) => snapshot.bandwidthEstimation),
+    updateTrackMetadata: useSelector(store, (snapshot) => snapshot.connectivity.client?.updateTrackMetadata) ?? null,
+    setTrackBandwidth: useSelector(store, (snapshot) => snapshot.connectivity.client?.setTrackBandwidth) ?? null,
+    setTargetTrackEncoding: useSelector(store, (snapshot) => snapshot.connectivity.client?.setTargetTrackEncoding) ?? null
   };
 };
