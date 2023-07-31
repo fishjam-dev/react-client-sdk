@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PeerMetadata, TrackMetadata } from "../jellyfish.types";
 import VideoPlayer from "./VideoPlayer";
 import { JsonComponent } from "./JsonComponent";
@@ -243,7 +243,7 @@ export const Client = ({
         {isThereAnyComponent && (
           <div>
             Remote components:
-            {Object.values(fullState?.components || {}).map(({ id, metadata, tracks }) => {
+            {Object.values(fullState?.components || {}).map(({ id, tracks }) => {
               return (
                 <div key={id}>
                   <h4>{id}</h4>

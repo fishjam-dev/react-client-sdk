@@ -2,7 +2,6 @@ import React, { FC } from "react";
 import { useServerSdk } from "./ServerSdkContext";
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { isInt } from "../utils/utils";
 
 type Props = {
   roomId: string;

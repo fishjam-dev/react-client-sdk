@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useLocalStorageState, useLocalStorageStateString } from "./LogSelector";
+import { useLocalStorageState } from "./LogSelector";
 import { REFETCH_ON_SUCCESS } from "./App";
 import { JsonComponent } from "./JsonComponent";
 import { Client } from "./Client";
@@ -24,7 +24,7 @@ export const Room = ({ roomId, initial, refetchIfNeeded, selectedVideoStream }: 
   const [room, setRoom] = useState<RoomAPI | null>(initial);
   const [show, setShow] = useLocalStorageState(`show-json-${roomId}`, false);
   const [token, setToken] = useState<Record<string, string>>({});
-  const { roomApi, peerApi, componentApi } = useServerSdk();
+  const { roomApi, peerApi } = useServerSdk();
 
   const refetch = () => {
     roomApi?.jellyfishWebRoomControllerShow(roomId).then((response) => {

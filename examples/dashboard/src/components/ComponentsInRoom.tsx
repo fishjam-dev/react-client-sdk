@@ -1,13 +1,7 @@
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import { useServerSdk } from "./ServerSdkContext";
-import { useLocalStorageStateString } from "./LogSelector";
 import { Component } from "../server-sdk";
-import { ComponentId } from "../../../../src";
 import { CloseButton } from "./CloseButton";
-import { removeSavedItem } from "../utils/localStorageUtils";
-import { CopyToClipboardButton } from "./CopyButton";
-import { JsonComponent } from "./JsonComponent";
-import { Client } from "./Client";
 
 type RoomComponentProps = {
   roomId: string;
@@ -22,7 +16,7 @@ const ComponentInRoom: FC<RoomComponentProps> = ({ component, roomId, refetchIfN
     <div className="w-full card bg-base-100 shadow-xl indicator">
       <CloseButton
         onClick={() => {
-          componentApi?.jellyfishWebComponentControllerDelete(roomId, component.id).then((response) => {
+          componentApi?.jellyfishWebComponentControllerDelete(roomId, component.id).then(() => {
             refetchIfNeeded();
           });
         }}

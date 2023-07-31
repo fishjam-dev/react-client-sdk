@@ -37,24 +37,33 @@ export const ServerSDKProvider = ({ children }: Props) => {
   const [host, setHost] = useLocalStorageStateString(LOCAL_STORAGE_HOST_KEY, "localhost:5002");
   const [protocol, setProtocol] = useLocalStorageStateString(LOCAL_STORAGE_PROTOCOL_KEY, "ws");
   const [path, setPath] = useLocalStorageStateString(LOCAL_STORAGE_PATH_KEY, "/socket/peer/websocket");
-  const [serverMessagesWebsocket, setServerMessagesWebsocket] = useState<string | null>(null);
+  const [serverMessagesWebsocket] = useState<string | null>(null);
 
   const [serverToken, setServerToken] = useLocalStorageStateString("serverToken", "development");
 
-  const setHostInput = useCallback((value: string) => {
-    setHost(value);
-    localStorage.setItem(LOCAL_STORAGE_HOST_KEY, value);
-  }, []);
+  const setHostInput = useCallback(
+    (value: string) => {
+      setHost(value);
+      localStorage.setItem(LOCAL_STORAGE_HOST_KEY, value);
+    },
+    [setHost]
+  );
 
-  const setProtocolInput = useCallback((value: string) => {
-    setProtocol(value);
-    localStorage.setItem(LOCAL_STORAGE_PROTOCOL_KEY, value);
-  }, []);
+  const setProtocolInput = useCallback(
+    (value: string) => {
+      setProtocol(value);
+      localStorage.setItem(LOCAL_STORAGE_PROTOCOL_KEY, value);
+    },
+    [setProtocol]
+  );
 
-  const setPathInput = useCallback((value: string) => {
-    setPath(value);
-    localStorage.setItem(LOCAL_STORAGE_PATH_KEY, value);
-  }, []);
+  const setPathInput = useCallback(
+    (value: string) => {
+      setPath(value);
+      localStorage.setItem(LOCAL_STORAGE_PATH_KEY, value);
+    },
+    [setPath]
+  );
 
   const httpApiUrl = `${protocol === "wss" ? "https" : "http"}://${host}`;
 

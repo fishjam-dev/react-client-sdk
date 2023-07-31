@@ -22,23 +22,9 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onJoinRemove = (reason: any) => {
-      if (getBooleanValue("onRemoved")) {
-        console.log({ name: "onRemoved", reason });
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerJoined = (peer: any) => {
       if (getBooleanValue("onPeerJoined")) {
         console.log({ name: "onPeerJoined", peer });
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onComponentAdded = (component: any) => {
-      if (getBooleanValue("onComponentAdded")) {
-        console.log({ name: "onComponentAdded", component });
       }
     };
 
@@ -50,23 +36,9 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onComponentUpdated = (component: any) => {
-      if (getBooleanValue("onComponentUpdated")) {
-        console.log({ name: "onComponentUpdated", component });
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPeerLeft = (peer: any) => {
       if (getBooleanValue("onPeerLeft")) {
         console.log({ name: "onPeerLeft", peer });
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onComponentRemoved = (component: any) => {
-      if (getBooleanValue("onComponentRemoved")) {
-        console.log({ name: "onComponentRemoved", component });
       }
     };
 
@@ -117,18 +89,6 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     const onBandwidthEstimationChanged = (estimation: any) => {
       if (getBooleanValue("onBandwidthEstimationChanged")) {
         console.log({ name: "onBandwidthEstimationChanged", estimation });
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onTrackEncodingChanged = (peerId: any, trackId: any, encoding: any) => {
-      if (getBooleanValue("onTrackEncodingChanged")) {
-        console.log({
-          name: "onTrackEncodingChanged",
-          peerId,
-          trackId,
-          encoding,
-        });
       }
     };
 
