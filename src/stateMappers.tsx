@@ -1,6 +1,5 @@
 import type {
   Peer as JellyfishClientPeer,
-  Component as JellyfishClientComponent,
   SimulcastConfig,
   TrackContext,
   Endpoint,
@@ -73,45 +72,6 @@ export const onPeerLeft =
     delete remote[peer.id];
 
     return { ...prevState, remote };
-  };
-
-export const onComponentAdded =
-  <PeerMetadata, TrackMetadata>(component: JellyfishClientComponent) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    const components: Record<ComponentId, Component> = {
-      ...prevState.components,
-      [component.id]: { id: component.id, type: component.type, metadata: component.metadata, tracks: {} },
-    };
-
-    return { ...prevState, components };
-  };
-
-export const onComponentUpdated =
-  <PeerMetadata, TrackMetadata>(component: JellyfishClientComponent) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    return {
-      ...prevState,
-      components: {
-        ...prevState.components,
-        [component.id]: {
-          ...prevState.components[component.id],
-          id: component.id,
-          metadata: component.metadata,
-        },
-      },
-    };
-  };
-
-export const onComponentRemoved =
-  <PeerMetadata, TrackMetadata>(component: JellyfishClientComponent) =>
-  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    const components: Record<ComponentId, Component> = {
-      ...prevState.components,
-    };
-
-    delete components[component.id];
-
-    return { ...prevState, components };
   };
 
 export const onPeerRemoved =

@@ -162,10 +162,6 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
     client.on("peerUpdated", onPeerUpdated);
     client.on("peerLeft", onPeerLeft);
 
-    client.on("componentAdded", onComponentAdded);
-    client.on("componentUpdated", onComponentUpdated);
-    client.on("componentRemoved", onComponentRemoved);
-
     client.on("trackReady", onTrackReady);
     client.on("trackAdded", onTrackAdded);
     client.on("trackRemoved", onTrackRemoved);
@@ -185,10 +181,6 @@ export const useLogging = <P, T>(client: JellyfishClient<P, T> | null) => {
       client.off("peerJoined", onPeerJoined);
       client.off("peerUpdated", onPeerUpdated);
       client.off("peerLeft", onPeerLeft);
-
-      client.off("componentAdded", onComponentAdded);
-      client.off("componentUpdated", onComponentUpdated);
-      client.off("componentRemoved", onComponentRemoved);
 
       client.off("trackReady", onTrackReady);
       client.off("trackAdded", onTrackAdded);

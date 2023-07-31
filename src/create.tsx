@@ -6,12 +6,9 @@ import {
   onAuthError,
   onAuthSuccess,
   onBandwidthEstimationChanged,
-  onComponentAdded,
-  onComponentRemoved,
   onComponentTrackAdded,
   onComponentTrackReady,
   onComponentTrackRemoved,
-  onComponentUpdated,
   onEncodingChanged,
   onJoinError,
   onJoinSuccess,
@@ -33,7 +30,7 @@ import {
   updateTrackMetadata,
 } from "./stateMappers";
 import { createApiWrapper } from "./api";
-import { Component, Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
+import { Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
 export type JellyfishContextProviderProps = {
@@ -162,21 +159,6 @@ export type OnPeerUpdatedAction = {
   peer: Endpoint;
 };
 
-export type ComponentAdded = {
-  type: "componentAdded";
-  component: Component;
-};
-
-export type ComponentUpdated = {
-  type: "componentUpdated";
-  component: Component;
-};
-
-export type ComponentRemoved = {
-  type: "componentRemoved";
-  component: Component;
-};
-
 // Local
 export type LocalAddTrackAction<TrackMetadata> = {
   type: "localAddTrack";
@@ -228,9 +210,6 @@ export type Action<PeerMetadata, TrackMetadata> =
   | OnPeerUpdatedAction
   | OnPeerLeftAction
   | OnJoinErrorAction
-  | ComponentAdded
-  | ComponentUpdated
-  | ComponentRemoved
   | LocalReplaceTrackAction<TrackMetadata>
   | LocalRemoveTrackAction
   | LocalUpdateTrackMetadataAction<TrackMetadata>
@@ -298,15 +277,6 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   });
   client.on("peerLeft", (peer) => {
     action.dispatch({ type: "onPeerLeft", peer });
-  });
-  client.on("componentAdded", (component: Component) => {
-    action.dispatch({ type: "componentAdded", component });
-  });
-  client.on("componentUpdated", (component: Component) => {
-    action.dispatch({ type: "componentUpdated", component });
-  });
-  client.on("componentRemoved", (component: Component) => {
-    action.dispatch({ type: "componentRemoved", component });
   });
   client.on("trackReady", (ctx) => {
     action.dispatch({ type: "onTrackReady", ctx });
@@ -390,13 +360,6 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return onPeerUpdated<PeerMetadata, TrackMetadata>(action.peer)(state);
     case "onPeerLeft":
       return onPeerLeft<PeerMetadata, TrackMetadata>(action.peer)(state);
-    // remote component events
-    case "componentAdded":
-      return onComponentAdded<PeerMetadata, TrackMetadata>(action.component)(state);
-    case "componentUpdated":
-      return onComponentUpdated<PeerMetadata, TrackMetadata>(action.component)(state);
-    case "componentRemoved":
-      return onComponentRemoved<PeerMetadata, TrackMetadata>(action.component)(state);
     // remote track events
     case "onTrackAdded":
       if (action.ctx.endpoint.type === "webrtc") {

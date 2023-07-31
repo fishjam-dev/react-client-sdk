@@ -78,10 +78,6 @@ export const LogSelector = () => {
         <PersistentInput name="onPeerUpdated" />
         <PersistentInput name="onPeerLeft" />
 
-        <PersistentInput name="onComponentAdded" />
-        <PersistentInput name="onComponentUpdated" />
-        <PersistentInput name="onComponentRemoved" />
-
         <PersistentInput name="onTrackAdded" />
         <PersistentInput name="onTrackReady" />
         <PersistentInput name="onTrackUpdated" />
