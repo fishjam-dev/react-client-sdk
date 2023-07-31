@@ -6,9 +6,6 @@ import {
   onAuthError,
   onAuthSuccess,
   onBandwidthEstimationChanged,
-  onComponentTrackAdded,
-  onComponentTrackReady,
-  onComponentTrackRemoved,
   onEncodingChanged,
   onJoinError,
   onJoinSuccess,
@@ -19,7 +16,6 @@ import {
   onSocketError,
   onSocketOpen,
   onTrackAdded,
-  onTrackComponentUpdated,
   onTrackReady,
   onTrackRemoved,
   onTracksPriorityChanged,
@@ -47,7 +43,6 @@ export type UseConnect<PeerMetadata> = (config: Config<PeerMetadata>) => () => v
 export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => ({
   local: null,
   remote: {},
-  components: {},
   status: null,
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
   connectivity: {
@@ -364,42 +359,33 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "onTrackAdded":
       if (action.ctx.endpoint.type === "webrtc") {
         return onTrackAdded<PeerMetadata, TrackMetadata>(action.ctx)(state);
-      } else {
-        return onComponentTrackAdded<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
-
+      return state;
     case "onTrackReady":
       if (action.ctx.endpoint.type === "webrtc") {
         return onTrackReady<PeerMetadata, TrackMetadata>(action.ctx)(state);
-      } else {
-        return onComponentTrackReady<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
+      return state;
     case "onTrackUpdated":
       if (action.ctx.endpoint.type === "webrtc") {
         return onTrackUpdated<PeerMetadata, TrackMetadata>(state, action.ctx);
-      } else {
-        return onTrackComponentUpdated<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
-
+      return state;
     case "onTrackRemoved":
       if (action.ctx.endpoint.type === "webrtc") {
         return onTrackRemoved<PeerMetadata, TrackMetadata>(state, action.ctx);
-      } else {
-        return onComponentTrackRemoved<PeerMetadata, TrackMetadata>(state, action.ctx);
       }
-
+      return state;
     case "encodingChanged":
       if (action.ctx.endpoint.type === "webrtc") {
         return onEncodingChanged<PeerMetadata, TrackMetadata>(state, action.ctx);
-      } else {
-        return state;
       }
+      return state;
     case "voiceActivityChanged":
       if (action.ctx.endpoint.type === "webrtc") {
         return onVoiceActivityChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
-      } else {
-        return state;
       }
+      return state;
     // local track events
     case "localAddTrack":
       return addTrack<PeerMetadata, TrackMetadata>(
