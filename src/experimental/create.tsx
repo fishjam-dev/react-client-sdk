@@ -40,9 +40,12 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateNoContextJellyfishC
     useSelector: <Result,>(selector: Selector<PeerMetadata, TrackMetadata, Result>): Result => {
       return useSelector(store, selector);
     },
+    /* eslint-disable react-hooks/rules-of-hooks */
     useBandwidthEstimation: () => useSelector(store, (snapshot) => snapshot.bandwidthEstimation),
     updateTrackMetadata: useSelector(store, (snapshot) => snapshot.connectivity.client?.updateTrackMetadata) ?? null,
     setTrackBandwidth: useSelector(store, (snapshot) => snapshot.connectivity.client?.setTrackBandwidth) ?? null,
-    setTargetTrackEncoding: useSelector(store, (snapshot) => snapshot.connectivity.client?.setTargetTrackEncoding) ?? null
+    setTargetTrackEncoding:
+      useSelector(store, (snapshot) => snapshot.connectivity.client?.setTargetTrackEncoding) ?? null,
+    /* eslint-enable react-hooks/rules-of-hooks */
   };
 };
