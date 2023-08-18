@@ -1,4 +1,4 @@
-import type { TrackEncoding, VadStatus, Endpoint } from "@jellyfish-dev/ts-client-sdk";
+import type { TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
 import type { Api } from "./api";
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 
@@ -27,8 +27,8 @@ export interface Origin {
 }
 
 export type TrackWithOrigin<TrackMetadata> = Track<TrackMetadata> & {
-  origin: Origin
-}
+  origin: Origin;
+};
 
 export type Peer<PeerMetadata, TrackMetadata> = {
   id: PeerId;
