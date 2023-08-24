@@ -28,7 +28,7 @@ import {
 import { Api, createApiWrapper } from "./api";
 import { Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
-import { PeerStatus } from "./state.types";
+import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -408,6 +408,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useApi: () => Api<TrackMetadata>;
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
+  useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
 };
 
 /**
@@ -466,6 +467,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
   const useApi = () => useSelector((s) => s.connectivity.api || createEmptyApi<TrackMetadata>());
   const useStatus = () => useSelector((s) => s.status);
+  const useTracks = () => useSelector((s) => s.tracks);
 
   return {
     JellyfishContextProvider,
@@ -474,5 +476,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     useDisconnect,
     useApi,
     useStatus,
+    useTracks,
   };
 };
