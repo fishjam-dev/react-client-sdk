@@ -49,6 +49,7 @@ export const createApiWrapper = <PeerMetadata, TrackMetadata>(
     simulcastConfig?: SimulcastConfig,
     maxBandwidth?: TrackBandwidthLimit
   ) => {
+    console.log({ name: "Add track!" });
     const remoteTrackId = webrtc.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
     dispatch({ type: "localAddTrack", remoteTrackId, track, stream, trackMetadata, simulcastConfig });
     return remoteTrackId;

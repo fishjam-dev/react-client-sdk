@@ -25,7 +25,7 @@ export type UseUserMediaConfig = {
   videoTrackConstraints: boolean | MediaTrackConstraints;
   audioTrackConstraints: boolean | MediaTrackConstraints;
   fetchOnMount?: boolean;
-  storage: boolean | DevicePersistence;
+  storage?: boolean | DevicePersistence;
 };
 
 export type DevicePersistence = {

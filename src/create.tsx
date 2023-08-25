@@ -1,4 +1,15 @@
-import { createContext, Dispatch, ReactNode, useContext, useMemo, useReducer, JSX, useCallback } from "react";
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  useContext,
+  useMemo,
+  useReducer,
+  JSX,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import type { Selector, State } from "./state.types";
 import { createEmptyApi, DEFAULT_STORE } from "./state";
 import {
@@ -29,6 +40,9 @@ import { Api, createApiWrapper } from "./api";
 import { Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
+import { useUserMedia } from "./useUserMedia";
+import { UseUserMedia, UseUserMediaConfig } from "./useUserMedia/types";
+import * as cluster from "cluster";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -259,6 +273,10 @@ const onConnect = <PeerMetadata, TrackMetadata>(
     action.dispatch({ type: "onDisconnected" });
   });
 
+  // important jeżeli użytkownik zapnie się na eventy z JellyfishClient
+  //  to one mogą się odpalić wcześniej niż te tutaj zasetupowane metody
+  //  tak się dzieje na przykład z eventem joined gdy chcę od razu zacząć
+  //  przesyłać tracki zaraz po dołączeniu
   client.on("joined", (peerId: string, peersInRoom: Endpoint[]) => {
     action.dispatch({ type: "onJoinSuccess", peersInRoom, peerId, peerMetadata });
   });
@@ -319,6 +337,8 @@ export const reducer = <PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,
   action: Action<PeerMetadata, TrackMetadata>
 ): State<PeerMetadata, TrackMetadata> => {
+  console.log({ name: "reducer", action });
+
   switch (action.type) {
     // Internal events
     case "connect":
@@ -372,13 +392,16 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return onVoiceActivityChanged<PeerMetadata, TrackMetadata>(action.ctx)(state);
     // local track events
     case "localAddTrack":
-      return addTrack<PeerMetadata, TrackMetadata>(
+      const newVar = addTrack<PeerMetadata, TrackMetadata>(
         action.remoteTrackId,
         action.track,
         action.stream,
         action.trackMetadata,
         action.simulcastConfig
       )(state);
+
+      console.log({ name: "new state after local add track", oldState: state, newState: newVar, action });
+      return newVar;
     case "localRemoveTrack":
       return removeTrack<PeerMetadata, TrackMetadata>(action.trackId)(state);
     case "localReplaceTrack":
@@ -401,6 +424,13 @@ type Reducer<PeerMetadata, TrackMetadata> = (
   action: Action<PeerMetadata, TrackMetadata>
 ) => State<PeerMetadata, TrackMetadata>;
 
+export type UseCameraAndMicrophoneConfig = UseUserMediaConfig & {
+  streamWhenConnected?: boolean;
+  startStreamingWhenDeviceReady?: boolean;
+};
+
+export type UseCameraAndMicrophoneResult = Omit<UseUserMedia, "">;
+
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element;
   useConnect: () => (config: Config<PeerMetadata>) => () => void;
@@ -409,6 +439,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
+  useCameraAndMicrophone: (config: UseCameraAndMicrophoneConfig) => UseCameraAndMicrophoneResult;
 };
 
 /**
@@ -468,6 +499,47 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useApi = () => useSelector((s) => s.connectivity.api || createEmptyApi<TrackMetadata>());
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
+  const useCameraAndMicrophone = (config: UseCameraAndMicrophoneConfig): UseCameraAndMicrophoneResult => {
+    const { state } = useJellyfishContext();
+    const result = useUserMedia(config);
+
+    useEffect(() => {
+      console.log({ result });
+    }, [result]);
+
+    const mediaRef = useRef(result);
+    const apiRef = useRef(state.connectivity.api);
+
+    useEffect(() => {
+      mediaRef.current = result;
+      apiRef.current = state.connectivity.api;
+    }, [result, state.connectivity.api]);
+
+    // Start streaming onJoined,
+    useEffect(() => {
+      if (!config.streamWhenConnected || state.status !== "joined") return;
+      const client = state.connectivity.client;
+
+      const videoTrack = mediaRef.current.data?.video.media?.track;
+      const videoStream = mediaRef.current.data?.video.media?.stream;
+
+      console.log({ name: "Adding track!", client, videoTrack, videoStream, api: apiRef.current });
+
+      if (videoTrack && videoStream) {
+        apiRef.current?.addTrack(
+          videoTrack,
+          videoStream,
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
+
+      return () => {};
+    }, [state.status, config.streamWhenConnected]);
+
+    return result;
+  };
 
   return {
     JellyfishContextProvider,
@@ -477,5 +549,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     useApi,
     useStatus,
     useTracks,
+    useCameraAndMicrophone,
   };
 };

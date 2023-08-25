@@ -229,7 +229,7 @@ export const useUserMedia = ({
   const videoConstraints = useMemo(() => toMediaTrackConstraints(videoTrackConstraints), [videoTrackConstraints]);
 
   const { getLastAudioDevice, saveLastAudioDevice, getLastVideoDevice, saveLastVideoDevice } = useMemo(() => {
-    if (storage === false) {
+    if (storage === undefined || storage === false) {
       return {
         getLastVideoDevice: null,
         getLastAudioDevice: null,
