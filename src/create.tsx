@@ -43,6 +43,7 @@ import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { useUserMedia } from "./useUserMedia";
 import { Type, UseUserMedia, UseUserMediaConfig } from "./useUserMedia/types";
 import * as cluster from "cluster";
+import * as stream from "stream";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -507,6 +508,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useApi = () => useSelector((s) => s.connectivity.api || createEmptyApi<TrackMetadata>());
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
+
+  // todo removeTrack when device is disabled
+  // todo replaceTrack when device is replaced
   const useCameraAndMicrophone = (
     config: UseCameraAndMicrophoneConfig
   ): UseCameraAndMicrophoneResult<TrackMetadata> => {
@@ -525,59 +529,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       apiRef.current = state.connectivity.api;
     }, [result, state.connectivity.api]);
 
-    // Start streaming onJoined,
-    useEffect(() => {
-      if (!config.streamWhenConnected || state.status !== "joined") return;
-      const client = state.connectivity.client;
-
-      const videoTrack = mediaRef.current.data?.video.media?.track;
-      const videoStream = mediaRef.current.data?.video.media?.stream;
-
-      console.log({ name: "Adding track-streamWhenConnected!", client, videoTrack, videoStream, api: apiRef.current });
-      console.log("%cHello!", "color:orange");
-      if (videoTrack && videoStream) {
-        apiRef.current?.addTrack(
-          videoTrack,
-          videoStream,
-          undefined, // todo handle metadata
-          undefined, // todo handle simulcast
-          undefined // todo handle maxBandwidth
-        );
-      }
-
-      return () => {};
-    }, [state.status, config.streamWhenConnected]);
-
-    // Start streaming when device ready,
-    useEffect(() => {
-      if (!config.startStreamingWhenDeviceReady || result.data?.video.status !== "OK") return;
-      const client = state.connectivity.client;
-
-      console.log({ result });
-      const videoTrack = result.data?.video.media?.track;
-      const videoStream = result.data?.video.media?.stream;
-
-      console.log({
-        name: "Adding track-startStreamingWhenDeviceReady!",
-        client,
-        videoTrack,
-        videoStream,
-        api: apiRef.current,
-      });
-
-      if (videoTrack && videoStream) {
-        apiRef.current?.addTrack(
-          videoTrack,
-          videoStream,
-          undefined, // todo handle metadata
-          undefined, // todo handle simulcast
-          undefined // todo handle maxBandwidth
-        );
-      }
-
-      return () => {};
-    }, [result.data?.video.status]);
-
     const videoTrackIdRef = useRef<string | null>(null);
     const audioTrackIdRef = useRef<string | null>(null);
 
@@ -590,10 +541,11 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       ) => {
         if (!apiRef.current) return;
 
+        const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
+        if (trackIdRef.current) return;
+
         const deviceState = result.data?.[type];
         if (!deviceState || deviceState.status !== "OK") return;
-
-        const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
 
         const track = deviceState.media?.track;
         const stream = deviceState.media?.stream;
@@ -605,12 +557,59 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       [result]
     );
 
+    // Start streaming onJoined,
+    useEffect(() => {
+      // todo implement audio track
+      if (!config.streamWhenConnected || state.status !== "joined") return;
+      const client = state.connectivity.client;
+
+      addTrack(
+        "video",
+        undefined, // todo handle metadata
+        undefined, // todo handle simulcast
+        undefined // todo handle maxBandwidth
+      );
+    }, [state.status, config.streamWhenConnected, addTrack]);
+
+    // Start streaming when device ready,
+    useEffect(() => {
+      // todo implement audio track
+      if (!config.startStreamingWhenDeviceReady || result.data?.video.status !== "OK") return;
+
+      addTrack(
+        "video",
+        undefined, // todo handle metadata
+        undefined, // todo handle simulcast
+        undefined // todo handle maxBandwidth
+      );
+
+      return () => {};
+    }, [result.data?.video.status]);
+
     const removeTrack = useCallback((type: Type) => {
       const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
       if (!trackIdRef.current || !apiRef.current) return;
       apiRef.current.removeTrack(trackIdRef.current);
       trackIdRef.current = null;
     }, []);
+
+    useEffect(() => {
+      console.log({ name: "Id changed!", deviceId: result.data?.video?.media?.deviceInfo?.deviceId });
+
+      if (!apiRef.current) return;
+      const track = result.data?.video?.media?.track;
+      const stream = result.data?.video?.media?.stream;
+      console.log({ name: "Api exist", track, stream, trackId: videoTrackIdRef.current });
+
+      if (videoTrackIdRef.current && track && stream) {
+        // obecnie jest nadawany track
+        console.log({ name: "Replace track" });
+        // todo track metadata
+        if (!videoTrackIdRef.current || !apiRef?.current) return;
+        apiRef.current.replaceTrack(videoTrackIdRef.current, track, stream, undefined);
+      }
+      // todo here implement track removing
+    }, [result.data?.video?.media?.deviceInfo?.deviceId]);
 
     return useMemo(
       () => ({
