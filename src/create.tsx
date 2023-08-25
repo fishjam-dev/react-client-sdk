@@ -37,11 +37,11 @@ import {
   updateTrackMetadata,
 } from "./stateMappers";
 import { Api, createApiWrapper } from "./api";
-import { Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
+import { Endpoint, SimulcastConfig, TrackBandwidthLimit, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { useUserMedia } from "./useUserMedia";
-import { UseUserMedia, UseUserMediaConfig } from "./useUserMedia/types";
+import { Type, UseUserMedia, UseUserMediaConfig } from "./useUserMedia/types";
 import * as cluster from "cluster";
 
 export type JellyfishContextProviderProps = {
@@ -429,7 +429,15 @@ export type UseCameraAndMicrophoneConfig = UseUserMediaConfig & {
   startStreamingWhenDeviceReady?: boolean;
 };
 
-export type UseCameraAndMicrophoneResult = Omit<UseUserMedia, "">;
+export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
+  addTrack: (
+    type: Type,
+    trackMetadata?: TrackMetadata,
+    simulcastConfig?: SimulcastConfig,
+    maxBandwidth?: TrackBandwidthLimit
+  ) => void;
+  removeTrack: (type: Type) => void;
+};
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element;
@@ -439,7 +447,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
-  useCameraAndMicrophone: (config: UseCameraAndMicrophoneConfig) => UseCameraAndMicrophoneResult;
+  useCameraAndMicrophone: (config: UseCameraAndMicrophoneConfig) => UseCameraAndMicrophoneResult<TrackMetadata>;
 };
 
 /**
@@ -499,7 +507,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useApi = () => useSelector((s) => s.connectivity.api || createEmptyApi<TrackMetadata>());
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
-  const useCameraAndMicrophone = (config: UseCameraAndMicrophoneConfig): UseCameraAndMicrophoneResult => {
+  const useCameraAndMicrophone = (
+    config: UseCameraAndMicrophoneConfig
+  ): UseCameraAndMicrophoneResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
     const result = useUserMedia(config);
 
@@ -568,7 +578,69 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       return () => {};
     }, [result.data?.video.status]);
 
-    return result;
+    const videoTrackIdRef = useRef<string | null>(null);
+    const audioTrackIdRef = useRef<string | null>(null);
+
+    const addTrack = useCallback(
+      (
+        type: Type,
+        trackMetadata?: TrackMetadata,
+        simulcastConfig?: SimulcastConfig,
+        maxBandwidth?: TrackBandwidthLimit
+      ) => {
+        if (!apiRef.current) return;
+
+        // todo merge video and audio path: result.data?.[type]?.media.track
+        if (type === "video" && result.data?.video?.status === "OK") {
+          const videoTrack = result.data?.video?.media?.track;
+          const videoStream = result.data?.video?.media?.stream;
+
+          if (videoTrack && videoStream) {
+            videoTrackIdRef.current = apiRef.current.addTrack(
+              videoTrack,
+              videoStream,
+              trackMetadata,
+              simulcastConfig,
+              maxBandwidth
+            );
+          }
+        } else if (type === "audio" && result.data?.audio?.status === "OK") {
+          const audioTrack = result.data?.audio?.media?.track;
+          const audioStream = result.data?.audio?.media?.stream;
+
+          if (audioTrack && audioStream) {
+            videoTrackIdRef.current = apiRef.current.addTrack(
+              audioTrack,
+              audioStream,
+              trackMetadata,
+              simulcastConfig,
+              maxBandwidth
+            );
+          }
+        }
+      },
+      [result]
+    );
+
+    const removeTrack = useCallback((type: Type) => {
+      const trackId = type === "video" ? videoTrackIdRef.current : audioTrackIdRef.current;
+      if (!trackId || !apiRef.current) return;
+      apiRef.current.removeTrack(trackId);
+      if(type === "video") {
+        videoTrackIdRef.current = null
+      } else {
+        audioTrackIdRef.current = null
+      }
+    }, []);
+
+    return useMemo(
+      () => ({
+        ...result,
+        addTrack,
+        removeTrack,
+      }),
+      [result, addTrack, removeTrack]
+    );
   };
 
   return {
