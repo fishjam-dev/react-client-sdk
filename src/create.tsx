@@ -590,47 +590,26 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       ) => {
         if (!apiRef.current) return;
 
-        // todo merge video and audio path: result.data?.[type]?.media.track
-        if (type === "video" && result.data?.video?.status === "OK") {
-          const videoTrack = result.data?.video?.media?.track;
-          const videoStream = result.data?.video?.media?.stream;
+        const deviceState = result.data?.[type];
+        if (!deviceState || deviceState.status !== "OK") return;
 
-          if (videoTrack && videoStream) {
-            videoTrackIdRef.current = apiRef.current.addTrack(
-              videoTrack,
-              videoStream,
-              trackMetadata,
-              simulcastConfig,
-              maxBandwidth
-            );
-          }
-        } else if (type === "audio" && result.data?.audio?.status === "OK") {
-          const audioTrack = result.data?.audio?.media?.track;
-          const audioStream = result.data?.audio?.media?.stream;
+        const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
 
-          if (audioTrack && audioStream) {
-            videoTrackIdRef.current = apiRef.current.addTrack(
-              audioTrack,
-              audioStream,
-              trackMetadata,
-              simulcastConfig,
-              maxBandwidth
-            );
-          }
-        }
+        const track = deviceState.media?.track;
+        const stream = deviceState.media?.stream;
+
+        if (!track || !stream) return;
+
+        trackIdRef.current = apiRef.current.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
       },
       [result]
     );
 
     const removeTrack = useCallback((type: Type) => {
-      const trackId = type === "video" ? videoTrackIdRef.current : audioTrackIdRef.current;
-      if (!trackId || !apiRef.current) return;
-      apiRef.current.removeTrack(trackId);
-      if(type === "video") {
-        videoTrackIdRef.current = null
-      } else {
-        audioTrackIdRef.current = null
-      }
+      const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
+      if (!trackIdRef.current || !apiRef.current) return;
+      apiRef.current.removeTrack(trackIdRef.current);
+      trackIdRef.current = null;
     }, []);
 
     return useMemo(
