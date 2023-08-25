@@ -523,8 +523,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       const videoTrack = mediaRef.current.data?.video.media?.track;
       const videoStream = mediaRef.current.data?.video.media?.stream;
 
-      console.log({ name: "Adding track!", client, videoTrack, videoStream, api: apiRef.current });
-
+      console.log({ name: "Adding track-streamWhenConnected!", client, videoTrack, videoStream, api: apiRef.current });
+      console.log("%cHello!", "color:orange");
       if (videoTrack && videoStream) {
         apiRef.current?.addTrack(
           videoTrack,
@@ -537,6 +537,36 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
       return () => {};
     }, [state.status, config.streamWhenConnected]);
+
+    // Start streaming when device ready,
+    useEffect(() => {
+      if (!config.startStreamingWhenDeviceReady || result.data?.video.status !== "OK") return;
+      const client = state.connectivity.client;
+
+      console.log({ result });
+      const videoTrack = result.data?.video.media?.track;
+      const videoStream = result.data?.video.media?.stream;
+
+      console.log({
+        name: "Adding track-startStreamingWhenDeviceReady!",
+        client,
+        videoTrack,
+        videoStream,
+        api: apiRef.current,
+      });
+
+      if (videoTrack && videoStream) {
+        apiRef.current?.addTrack(
+          videoTrack,
+          videoStream,
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
+
+      return () => {};
+    }, [result.data?.video.status]);
 
     return result;
   };

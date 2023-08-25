@@ -24,7 +24,7 @@ export type UseUserMediaState = {
 export type UseUserMediaConfig = {
   videoTrackConstraints: boolean | MediaTrackConstraints;
   audioTrackConstraints: boolean | MediaTrackConstraints;
-  fetchOnMount?: boolean;
+  startOnMount?: boolean;
   storage?: boolean | DevicePersistence;
 };
 

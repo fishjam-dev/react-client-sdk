@@ -220,7 +220,7 @@ export const useUserMedia = ({
   storage,
   videoTrackConstraints,
   audioTrackConstraints,
-  fetchOnMount = false,
+  startOnMount = false,
 }: UseUserMediaConfig): UseUserMedia => {
   const [state, setState] = useState<UseUserMediaState>(INITIAL_STATE);
   const skip = useRef<boolean>(false);
@@ -455,7 +455,7 @@ export const useUserMedia = ({
   }, []);
 
   useEffect(() => {
-    if (fetchOnMount) {
+    if (startOnMount) {
       init();
     }
     // eslint-disable-next-line
