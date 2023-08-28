@@ -36,8 +36,8 @@ export type DevicePersistence = {
 };
 
 export type UseUserMediaStartConfig = {
-  audioDeviceId?: string;
-  videoDeviceId?: string;
+  audioDeviceId?: string | boolean;
+  videoDeviceId?: string | boolean;
 };
 
 export type UseUserMedia = {

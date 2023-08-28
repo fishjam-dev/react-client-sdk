@@ -29,10 +29,11 @@ export const toMediaTrackConstraints = (
 };
 
 export const prepareMediaTrackConstraints = (
-  deviceId: string | undefined,
+  deviceId: string | undefined | boolean,
   constraints: MediaTrackConstraints | undefined
 ): MediaTrackConstraints | boolean => {
   if (!deviceId) return false;
+  if (deviceId === true) return { ...constraints };
   const exactId: Pick<MediaTrackConstraints, "deviceId"> = deviceId ? { deviceId: { exact: deviceId } } : {};
   return { ...constraints, ...exactId };
 };

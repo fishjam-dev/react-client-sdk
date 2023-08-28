@@ -1,16 +1,17 @@
 import {
   createContext,
   Dispatch,
+  JSX,
   ReactNode,
+  useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
-  JSX,
-  useCallback,
-  useEffect,
   useRef,
 } from "react";
 import type { Selector, State } from "./state.types";
+import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi, DEFAULT_STORE } from "./state";
 import {
   addTrack,
@@ -37,13 +38,22 @@ import {
   updateTrackMetadata,
 } from "./stateMappers";
 import { Api, createApiWrapper } from "./api";
-import { Endpoint, SimulcastConfig, TrackBandwidthLimit, TrackContext } from "@jellyfish-dev/ts-client-sdk";
-import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
-import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
+import {
+  Config,
+  Endpoint,
+  JellyfishClient,
+  SimulcastConfig,
+  TrackBandwidthLimit,
+  TrackContext,
+} from "@jellyfish-dev/ts-client-sdk";
 import { useUserMedia } from "./useUserMedia";
-import { Type, UseUserMedia, UseUserMediaConfig } from "./useUserMedia/types";
-import * as cluster from "cluster";
-import * as stream from "stream";
+import {
+  DevicePersistence,
+  Type,
+  UseUserMedia,
+  UseUserMediaConfig,
+  UseUserMediaStartConfig,
+} from "./useUserMedia/types";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -425,12 +435,28 @@ type Reducer<PeerMetadata, TrackMetadata> = (
   action: Action<PeerMetadata, TrackMetadata>
 ) => State<PeerMetadata, TrackMetadata>;
 
-export type UseCameraAndMicrophoneConfig<TrackMetadata> = UseUserMediaConfig & {
-  streamWhenConnected?: boolean;
-  startStreamingWhenDeviceReady?: boolean;
+export type UseCameraAndMicrophoneConfig<TrackMetadata> = {
+  camera: {
+    streamWhenConnected?: boolean;
+    startStreamingWhenDeviceReady?: boolean;
+    videoTrackConstraints: boolean | MediaTrackConstraints;
+  };
+  microphone: {
+    streamWhenConnected?: boolean;
+    startStreamingWhenDeviceReady?: boolean;
+    audioTrackConstraints: boolean | MediaTrackConstraints;
+  };
+  startOnMount?: boolean;
+  storage?: boolean | DevicePersistence;
 };
 
+// export type UseCameraAndMicrophoneConfig<TrackMetadata> = UseUserMediaConfig & {
+//   streamWhenConnected?: boolean;
+//   startStreamingWhenDeviceReady?: boolean;
+// };
+
 export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
+  startByType: (type: Type) => void
   addTrack: (
     type: Type,
     trackMetadata?: TrackMetadata,
@@ -523,7 +549,17 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     config: UseCameraAndMicrophoneConfig<TrackMetadata>
   ): UseCameraAndMicrophoneResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
-    const result = useUserMedia(config);
+
+    const userMediaConfig: UseUserMediaConfig = useMemo(() => {
+      return {
+        storage: config.storage,
+        startOnMount: config.startOnMount,
+        audioTrackConstraints: config.microphone.audioTrackConstraints,
+        videoTrackConstraints: config.camera.videoTrackConstraints,
+      };
+    }, [config]);
+
+    const result = useUserMedia(userMediaConfig);
 
     useEffect(() => {
       console.log({ result });
@@ -591,7 +627,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     // Start streaming onJoined,
     useEffect(() => {
       // todo implement audio track
-      if (!config.streamWhenConnected || state.status !== "joined") return;
+      if (!config.camera.streamWhenConnected || state.status !== "joined") return;
       const client = state.connectivity.client;
 
       addTrack(
@@ -600,12 +636,12 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         undefined, // todo handle simulcast
         undefined // todo handle maxBandwidth
       );
-    }, [state.status, config.streamWhenConnected, addTrack]);
+    }, [state.status, config.camera.streamWhenConnected, addTrack]);
 
     // Start streaming when device ready,
     useEffect(() => {
       // todo implement audio track
-      if (!config.startStreamingWhenDeviceReady || result.data?.video.status !== "OK") return;
+      if (!config.camera.startStreamingWhenDeviceReady || result.data?.video.status !== "OK") return;
 
       addTrack(
         "video",
@@ -636,15 +672,23 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         // obecnie jest nadawany track
         console.log({ name: "Replace track" });
         // todo track metadata
-        if (!videoTrackIdRef.current || !apiRef?.current) return;
-        apiRef.current.replaceTrack(videoTrackIdRef.current, track, stream, undefined);
+        if (!videoTrackIdRef.current) return;
+        replaceTrack("video", track, stream, undefined);
       }
       // todo here implement track removing
-    }, [result.data?.video?.media?.deviceInfo?.deviceId]);
+    }, [result.data?.video?.media?.deviceInfo?.deviceId, replaceTrack]);
+
+    const startByType = useCallback(
+      (type: Type) => {
+        result.start(type === "video" ? { videoDeviceId: true } : { audioDeviceId: true });
+      },
+      [result.start]
+    );
 
     return useMemo(
       () => ({
         ...result,
+        startByType,
         addTrack,
         removeTrack,
         replaceTrack,
