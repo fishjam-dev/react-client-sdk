@@ -425,7 +425,7 @@ type Reducer<PeerMetadata, TrackMetadata> = (
   action: Action<PeerMetadata, TrackMetadata>
 ) => State<PeerMetadata, TrackMetadata>;
 
-export type UseCameraAndMicrophoneConfig = UseUserMediaConfig & {
+export type UseCameraAndMicrophoneConfig<TrackMetadata> = UseUserMediaConfig & {
   streamWhenConnected?: boolean;
   startStreamingWhenDeviceReady?: boolean;
 };
@@ -438,6 +438,12 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
     maxBandwidth?: TrackBandwidthLimit
   ) => void;
   removeTrack: (type: Type) => void;
+  replaceTrack: (
+    type: Type,
+    newTrack: MediaStreamTrack,
+    stream: MediaStream,
+    newTrackMetadata?: TrackMetadata
+  ) => Promise<boolean>;
 };
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
@@ -448,7 +454,9 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
-  useCameraAndMicrophone: (config: UseCameraAndMicrophoneConfig) => UseCameraAndMicrophoneResult<TrackMetadata>;
+  useCameraAndMicrophone: (
+    config: UseCameraAndMicrophoneConfig<TrackMetadata>
+  ) => UseCameraAndMicrophoneResult<TrackMetadata>;
 };
 
 /**
@@ -512,7 +520,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   // todo removeTrack when device is disabled
   // todo replaceTrack when device is replaced
   const useCameraAndMicrophone = (
-    config: UseCameraAndMicrophoneConfig
+    config: UseCameraAndMicrophoneConfig<TrackMetadata>
   ): UseCameraAndMicrophoneResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
     const result = useUserMedia(config);
@@ -553,6 +561,29 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         if (!track || !stream) return;
 
         trackIdRef.current = apiRef.current.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
+      },
+      [result]
+    );
+
+    // todo test this method
+    const replaceTrack = useCallback(
+      (
+        type: Type,
+        newTrack: MediaStreamTrack,
+        stream: MediaStream,
+        newTrackMetadata?: TrackMetadata
+      ): Promise<boolean> => {
+        if (!apiRef.current) return Promise.resolve<boolean>(false);
+
+        const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
+        if (!trackIdRef.current) return Promise.resolve<boolean>(false);
+
+        const deviceState = result.data?.[type];
+        if (!deviceState || deviceState.status !== "OK") return Promise.resolve<boolean>(false);
+
+        if (!newTrack || !stream) return Promise.resolve<boolean>(false);
+
+        return apiRef.current?.replaceTrack(trackIdRef.current, newTrack, stream, newTrackMetadata);
       },
       [result]
     );
@@ -616,6 +647,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         ...result,
         addTrack,
         removeTrack,
+        replaceTrack,
       }),
       [result, addTrack, removeTrack]
     );

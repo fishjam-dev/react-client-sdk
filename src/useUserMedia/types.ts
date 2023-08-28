@@ -45,7 +45,7 @@ export type UseUserMedia = {
   start: (config: UseUserMediaStartConfig) => void;
   stop: (type: Type) => void;
   setEnable: (type: Type, value: boolean) => void;
-  init: (videoParam: boolean | MediaTrackConstraints, audioParam: boolean | MediaTrackConstraints) => void;
+  init: () => void;
 };
 
 export type DeviceError = { name: "OverconstrainedError" } | { name: "NotAllowedError" };
