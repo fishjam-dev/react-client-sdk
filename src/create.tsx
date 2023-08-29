@@ -612,6 +612,19 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       [result]
     );
 
+    const replaceTrackNull = useCallback(
+      (type: Type, newTrackMetadata?: TrackMetadata): Promise<boolean> => {
+        if (!apiRef.current) return Promise.resolve<boolean>(false);
+
+        const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
+        if (!trackIdRef.current) return Promise.resolve<boolean>(false);
+
+        // @ts-ignore
+        return apiRef.current?.replaceTrack(trackIdRef.current, null, null, newTrackMetadata);
+      },
+      [result]
+    );
+
     useEffect(() => {
       if (!config.camera.autoStreaming || state.status !== "joined") return;
       if (mediaRef.current.data?.video.status === "OK") {
@@ -665,12 +678,15 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       const videoTrack = result.data?.video?.media?.track;
       const videoStream = result.data?.video?.media?.stream;
 
+      console.log({ name: "This", videoTrack, videoStream });
       if (videoTrackIdRef.current && videoTrack && videoStream) {
         // todo track metadata
         if (!videoTrackIdRef.current) return;
         replaceTrack("video", videoTrack, videoStream, undefined);
+      } else if (videoTrackIdRef.current && !videoTrack && !videoStream) {
+        // todo add nullify option
+        removeTrack("video");
       }
-      // todo here implement track removing
 
       const audioTrack = result.data?.audio?.media?.track;
       const audioStream = result.data?.audio?.media?.stream;
@@ -679,8 +695,10 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         // todo track metadata
         if (!audioTrackIdRef.current) return;
         replaceTrack("audio", audioTrack, audioStream, undefined);
+      } else if (audioTrackIdRef.current && !audioTrack && !audioStream) {
+        // todo add nullify option
+        removeTrack("audio");
       }
-      // todo here implement track removing
     }, [result.data?.video?.media?.deviceInfo?.deviceId, replaceTrack]);
 
     const startByType = useCallback(
