@@ -10,7 +10,7 @@ import {
   useReducer,
   useRef,
 } from "react";
-import type { Selector, State } from "./state.types";
+import type { Selector, State, Track } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi, DEFAULT_STORE } from "./state";
 import {
@@ -438,11 +438,7 @@ export type UseCameraAndMicrophoneConfig<TrackMetadata> = {
   storage?: boolean | DevicePersistence;
 };
 
-// export type UseCameraAndMicrophoneConfig<TrackMetadata> = UseUserMediaConfig & {
-//   streamWhenConnected?: boolean;
-//   startStreamingWhenDeviceReady?: boolean;
-// };
-
+// todo
 export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
   startByType: (type: Type) => void;
   addTrack: (
@@ -458,6 +454,8 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
     stream: MediaStream,
     newTrackMetadata?: TrackMetadata
   ) => Promise<boolean>;
+  audio: Track<TrackMetadata> | null;
+  video: Track<TrackMetadata> | null;
 };
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
@@ -589,7 +587,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       []
     );
 
-    // todo test this method
     const replaceTrack = useCallback(
       (
         type: Type,
@@ -608,19 +605,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         if (!newTrack || !stream) return Promise.resolve<boolean>(false);
 
         return apiRef.current?.replaceTrack(trackIdRef.current, newTrack, stream, newTrackMetadata);
-      },
-      [result]
-    );
-
-    const replaceTrackNull = useCallback(
-      (type: Type, newTrackMetadata?: TrackMetadata): Promise<boolean> => {
-        if (!apiRef.current) return Promise.resolve<boolean>(false);
-
-        const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
-        if (!trackIdRef.current) return Promise.resolve<boolean>(false);
-
-        // @ts-ignore
-        return apiRef.current?.replaceTrack(trackIdRef.current, null, null, newTrackMetadata);
       },
       [result]
     );
@@ -678,7 +662,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       const videoTrack = result.data?.video?.media?.track;
       const videoStream = result.data?.video?.media?.stream;
 
-      console.log({ name: "This", videoTrack, videoStream });
       if (videoTrackIdRef.current && videoTrack && videoStream) {
         // todo track metadata
         if (!videoTrackIdRef.current) return;
@@ -708,6 +691,20 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       [result.start]
     );
 
+    useEffect(() => {
+      console.log({ name: "tracks in hook", state });
+    }, [state]);
+
+    const video = useMemo(
+      () => (videoTrackIdRef.current && state.local?.tracks ? state.local?.tracks[videoTrackIdRef.current] : null),
+      [state]
+    );
+
+    const audio = useMemo(
+      () => (!audioTrackIdRef.current || !state.local?.tracks ? null : state.local?.tracks[audioTrackIdRef.current]),
+      [state]
+    );
+
     return useMemo(
       () => ({
         ...result,
@@ -715,8 +712,10 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         addTrack,
         removeTrack,
         replaceTrack,
+        video,
+        audio,
       }),
-      [result, addTrack, removeTrack]
+      [result, addTrack, removeTrack, video, audio]
     );
   };
 
