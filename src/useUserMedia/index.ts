@@ -378,7 +378,7 @@ export const useUserMedia = ({
           state?.video.media?.track?.stop();
         }
 
-        const currentVideoDeviceId = result.stream.getVideoTracks()?.[0]?.getSettings()?.deviceId
+        const currentVideoDeviceId = result.stream.getVideoTracks()?.[0]?.getSettings()?.deviceId;
         const videoInfo = currentVideoDeviceId ? getDeviceInfo(currentVideoDeviceId, state.video.devices ?? []) : null;
         if (videoInfo) {
           saveLastVideoDevice?.(videoInfo);
@@ -388,7 +388,7 @@ export const useUserMedia = ({
           state?.audio.media?.track?.stop();
         }
 
-        const currentAudioDeviceId = result.stream.getAudioTracks()?.[0]?.getSettings()?.deviceId
+        const currentAudioDeviceId = result.stream.getAudioTracks()?.[0]?.getSettings()?.deviceId;
         const audioInfo = currentAudioDeviceId ? getDeviceInfo(currentAudioDeviceId, state.audio.devices ?? []) : null;
 
         if (audioInfo) {

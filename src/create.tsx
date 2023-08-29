@@ -613,35 +613,44 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     );
 
     useEffect(() => {
-      // todo implement audio track
-
       if (!config.camera.autoStreaming || state.status !== "joined") return;
-      if (mediaRef.current.data?.video.status !== "OK") return;
+      if (mediaRef.current.data?.video.status === "OK") {
+        addTrack(
+          "video",
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
 
-      console.log({ name: "autoStreaming", state, media: mediaRef.current });
-
-      addTrack(
-        "video",
-        undefined, // todo handle metadata
-        undefined, // todo handle simulcast
-        undefined // todo handle maxBandwidth
-      );
+      if (mediaRef.current.data?.audio.status === "OK") {
+        addTrack(
+          "audio",
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
     }, [state.status, config.camera.autoStreaming, addTrack]);
 
-    // Start streaming when device ready,
     useEffect(() => {
-      // todo implement audio track
-      const preview = config.camera.preview ?? true
-      if (preview || result.data?.video.status !== "OK") return;
-
-      addTrack(
-        "video",
-        undefined, // todo handle metadata
-        undefined, // todo handle simulcast
-        undefined // todo handle maxBandwidth
-      );
-
-      return () => {};
+      const preview = config.camera.preview ?? true;
+      if (preview || result.data?.video.status === "OK") {
+        addTrack(
+          "video",
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
+      if (preview || result.data?.video.status === "OK") {
+        addTrack(
+          "audio",
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
     }, [result.data?.video.status]);
 
     const removeTrack = useCallback((type: Type) => {
@@ -652,17 +661,24 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     }, []);
 
     useEffect(() => {
-      console.log({ name: "Id changed!", deviceId: result.data?.video?.media?.deviceInfo?.deviceId });
-
       if (!apiRef.current) return;
-      const track = result.data?.video?.media?.track;
-      const stream = result.data?.video?.media?.stream;
+      const videoTrack = result.data?.video?.media?.track;
+      const videoStream = result.data?.video?.media?.stream;
 
-      if (videoTrackIdRef.current && track && stream) {
-        // obecnie jest nadawany track
+      if (videoTrackIdRef.current && videoTrack && videoStream) {
         // todo track metadata
         if (!videoTrackIdRef.current) return;
-        replaceTrack("video", track, stream, undefined);
+        replaceTrack("video", videoTrack, videoStream, undefined);
+      }
+      // todo here implement track removing
+
+      const audioTrack = result.data?.audio?.media?.track;
+      const audioStream = result.data?.audio?.media?.stream;
+
+      if (audioTrackIdRef.current && audioTrack && audioStream) {
+        // todo track metadata
+        if (!audioTrackIdRef.current) return;
+        replaceTrack("audio", audioTrack, audioStream, undefined);
       }
       // todo here implement track removing
     }, [result.data?.video?.media?.deviceInfo?.deviceId, replaceTrack]);
