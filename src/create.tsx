@@ -678,29 +678,31 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       [result]
     );
 
-    // useEffect(() => {
-    //   if (state.status !== "joined") return;
-    //   if (config.camera.autoStreaming && mediaRef.current.data?.video.status === "OK") {
-    //     addTrack(
-    //       "video",
-    //       undefined, // todo handle metadata
-    //       undefined, // todo handle simulcast
-    //       undefined // todo handle maxBandwidth
-    //     );
-    //   }
-    //
-    //   if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
-    //     addTrack(
-    //       "audio",
-    //       undefined, // todo handle metadata
-    //       undefined, // todo handle simulcast
-    //       undefined // todo handle maxBandwidth
-    //     );
-    //   }
-    // }, [state.status, config.camera.autoStreaming, addTrack]);
+    useEffect(() => {
+      if (state.status !== "joined") return;
+
+      if (config.camera.autoStreaming && mediaRef.current.data?.video.status === "OK") {
+        addTrack(
+          "video",
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
+
+      if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
+        addTrack(
+          "audio",
+          undefined, // todo handle metadata
+          undefined, // todo handle simulcast
+          undefined // todo handle maxBandwidth
+        );
+      }
+    }, [state.status, config.camera.autoStreaming, config.microphone.autoStreaming, addTrack]);
 
     useEffect(() => {
       const cameraPreview = config.camera.preview ?? true;
+
       if (!cameraPreview && result.data?.video.status === "OK") {
         addTrack(
           "video",
@@ -709,9 +711,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           undefined // todo handle maxBandwidth
         );
       }
+
       const microphonePreview = config.microphone.preview ?? true;
 
-      console.log({ microphonePreview, result });
       if (!microphonePreview && result.data?.audio.status === "OK") {
         addTrack(
           "audio",
