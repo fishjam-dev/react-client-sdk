@@ -47,7 +47,17 @@ import {
   TrackContext,
 } from "@jellyfish-dev/ts-client-sdk";
 import { useUserMedia } from "./useUserMedia";
-import { DevicePersistence, Type, UseUserMedia, UseUserMediaConfig } from "./useUserMedia/types";
+import {
+  DeviceError,
+  DevicePersistence,
+  DeviceReturnType,
+  Media,
+  Type,
+  UseUserMedia,
+  UseUserMediaConfig,
+  UseUserMediaStartConfig,
+  UseUserMediaState,
+} from "./useUserMedia/types";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -438,8 +448,15 @@ export type UseCameraAndMicrophoneConfig<TrackMetadata> = {
   storage?: boolean | DevicePersistence;
 };
 
-// todo
-export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
+export type UseUserMediaOld = {
+  data: UseUserMediaState | null;
+  start: (config: UseUserMediaStartConfig) => void;
+  stop: (type: Type) => void;
+  setEnable: (type: Type, value: boolean) => void;
+  init: () => void;
+};
+
+export type UseCameraAndMicrophoneResultOld<TrackMetadata> = UseUserMedia & {
   startByType: (type: Type) => void;
   addTrack: (
     type: Type,
@@ -456,6 +473,61 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = UseUserMedia & {
   ) => Promise<boolean>;
   audio: Track<TrackMetadata> | null;
   video: Track<TrackMetadata> | null;
+};
+
+export type UseCameraAndMicrophoneResult<TrackMetadata> = {
+  // or camera
+  video: {
+    stop: () => void;
+    setEnable: (value: boolean) => void;
+    start: () => void; // startByType
+    addTrack: (
+      trackMetadata?: TrackMetadata,
+      simulcastConfig?: SimulcastConfig,
+      maxBandwidth?: TrackBandwidthLimit
+    ) => void; // remote
+    removeTrack: () => void; // remote
+    replaceTrack: (
+      newTrack: MediaStreamTrack,
+      stream: MediaStream,
+      newTrackMetadata?: TrackMetadata
+    ) => Promise<boolean>; // remote
+    broadcast: Track<TrackMetadata> | null;
+    status: DeviceReturnType | null; // todo how to remove null
+    stream: MediaStream | null;
+    track: MediaStreamTrack | null;
+    enabled: boolean;
+    deviceInfo: MediaDeviceInfo | null;
+    error: DeviceError | null;
+    devices: MediaDeviceInfo[] | null;
+  };
+  // or microphone
+  audio: {
+    stop: () => void;
+    setEnable: (value: boolean) => void;
+    start: () => void; // startByType
+    addTrack: (
+      trackMetadata?: TrackMetadata,
+      simulcastConfig?: SimulcastConfig,
+      maxBandwidth?: TrackBandwidthLimit
+    ) => void;
+    removeTrack: () => void;
+    replaceTrack: (
+      newTrack: MediaStreamTrack,
+      stream: MediaStream,
+      newTrackMetadata?: TrackMetadata
+    ) => Promise<boolean>;
+    broadcast: Track<TrackMetadata> | null;
+    status: DeviceReturnType | null;
+    stream: MediaStream | null;
+    track: MediaStreamTrack | null;
+    enabled: boolean;
+    deviceInfo: MediaDeviceInfo | null;
+    error: DeviceError | null;
+    devices: MediaDeviceInfo[] | null;
+  };
+  init: () => void;
+  start: (config: UseUserMediaStartConfig) => void;
 };
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
@@ -547,10 +619,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
     const result = useUserMedia(userMediaConfig);
 
-    useEffect(() => {
-      console.log({ result });
-    }, [result]);
-
     const mediaRef = useRef(result);
     const apiRef = useRef(state.connectivity.api);
 
@@ -610,8 +678,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     );
 
     useEffect(() => {
-      if (!config.camera.autoStreaming || state.status !== "joined") return;
-      if (mediaRef.current.data?.video.status === "OK") {
+      if (state.status !== "joined") return;
+      if (config.camera.autoStreaming && mediaRef.current.data?.video.status === "OK") {
         addTrack(
           "video",
           undefined, // todo handle metadata
@@ -620,7 +688,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         );
       }
 
-      if (mediaRef.current.data?.audio.status === "OK") {
+      if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
         addTrack(
           "audio",
           undefined, // todo handle metadata
@@ -631,8 +699,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     }, [state.status, config.camera.autoStreaming, addTrack]);
 
     useEffect(() => {
-      const preview = config.camera.preview ?? true;
-      if (preview || result.data?.video.status === "OK") {
+      const cameraPreview = config.camera.preview ?? true;
+      if (cameraPreview || result.data?.video.status === "OK") {
         addTrack(
           "video",
           undefined, // todo handle metadata
@@ -640,7 +708,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           undefined // todo handle maxBandwidth
         );
       }
-      if (preview || result.data?.video.status === "OK") {
+      const microphonePreview = config.microphone.preview ?? true;
+      if (microphonePreview || result.data?.audio.status === "OK") {
         addTrack(
           "audio",
           undefined, // todo handle metadata
@@ -691,10 +760,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       [result.start]
     );
 
-    useEffect(() => {
-      console.log({ name: "tracks in hook", state });
-    }, [state]);
-
     const video = useMemo(
       () => (videoTrackIdRef.current && state.local?.tracks ? state.local?.tracks[videoTrackIdRef.current] : null),
       [state]
@@ -707,15 +772,52 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
     return useMemo(
       () => ({
-        ...result,
-        startByType,
-        addTrack,
-        removeTrack,
-        replaceTrack,
-        video,
-        audio,
+        init: result.init,
+        start: result.start,
+        video: {
+          stop: () => result.stop("video"),
+          setEnable: (value: boolean) => result.setEnable("video", value),
+          start: () => startByType("video"),
+          addTrack: (
+            trackMetadata?: TrackMetadata,
+            simulcastConfig?: SimulcastConfig,
+            maxBandwidth?: TrackBandwidthLimit
+          ) => addTrack("video", trackMetadata, simulcastConfig, maxBandwidth),
+          removeTrack: () => removeTrack("video"),
+          replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
+            replaceTrack("video", newTrack, stream, newTrackMetadata),
+          broadcast: video,
+          status: result.data?.video?.status || null,
+          stream: result.data?.video.media?.stream || null,
+          track: result.data?.video.media?.track || null,
+          enabled: result.data?.video.media?.enabled || false,
+          deviceInfo: result.data?.video.media?.deviceInfo || null,
+          error: result.data?.video?.error || null,
+          devices: result.data?.video?.devices || null,
+        },
+        audio: {
+          stop: () => result.stop("audio"),
+          setEnable: (value: boolean) => result.setEnable("audio", value),
+          start: () => startByType("audio"),
+          addTrack: (
+            trackMetadata?: TrackMetadata,
+            simulcastConfig?: SimulcastConfig,
+            maxBandwidth?: TrackBandwidthLimit
+          ) => addTrack("audio", trackMetadata, simulcastConfig, maxBandwidth),
+          removeTrack: () => removeTrack("audio"),
+          replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
+            replaceTrack("audio", newTrack, stream, newTrackMetadata),
+          broadcast: audio,
+          status: result.data?.audio?.status || null,
+          stream: result.data?.audio.media?.stream || null,
+          track: result.data?.audio.media?.track || null,
+          enabled: result.data?.audio.media?.enabled || false,
+          deviceInfo: result.data?.audio.media?.deviceInfo || null,
+          error: result.data?.audio?.error || null,
+          devices: result.data?.audio?.devices || null,
+        },
       }),
-      [result, addTrack, removeTrack, video, audio]
+      [result, video, audio]
     );
   };
 
