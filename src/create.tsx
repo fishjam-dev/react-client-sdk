@@ -625,6 +625,13 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       []
     );
 
+    useEffect(() => {
+      if (state.status !== "joined") {
+        videoTrackIdRef.current = null;
+        audioTrackIdRef.current = null;
+      }
+    }, [state.status]);
+
     const replaceTrack = useCallback(
       (
         type: Type,
