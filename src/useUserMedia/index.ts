@@ -435,6 +435,7 @@ export const useUserMedia = ({
         });
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [state, audioConstraints, saveLastAudioDevice, videoConstraints, saveLastVideoDevice]
   );
 

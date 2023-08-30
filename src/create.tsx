@@ -51,12 +51,9 @@ import {
   DeviceError,
   DevicePersistence,
   DeviceReturnType,
-  Media,
   Type,
-  UseUserMedia,
   UseUserMediaConfig,
   UseUserMediaStartConfig,
-  UseUserMediaState,
 } from "./useUserMedia/types";
 
 export type JellyfishContextProviderProps = {
@@ -673,6 +670,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
         addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.status, config.camera.autoStreaming, config.microphone.autoStreaming, addTrack]);
 
     useEffect(() => {
@@ -692,6 +690,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       if (!microphonePreview && result.data?.audio.status === "OK") {
         addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [result.data?.video.status, result.data?.audio.status]);
 
     const removeTrack = useCallback((type: Type) => {
@@ -726,12 +725,14 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         // todo add nullify option
         removeTrack("audio");
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [result.data?.video?.media?.deviceInfo?.deviceId, replaceTrack]);
 
     const startByType = useCallback(
       (type: Type) => {
         result.start(type === "video" ? { videoDeviceId: true } : { audioDeviceId: true });
       },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [result.start]
     );
 
@@ -789,7 +790,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           devices: result.data?.audio?.devices || null,
         },
       }),
-      [result, video, audio]
+      [result, video, audio, startByType, addTrack, removeTrack, replaceTrack]
     );
   };
 
