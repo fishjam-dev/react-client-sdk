@@ -439,19 +439,21 @@ export type UseCameraAndMicrophoneConfig<TrackMetadata> = {
     preview?: boolean;
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
+    defaultSimulcastConfig?: SimulcastConfig;
+    defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   microphone: {
     autoStreaming?: boolean;
     preview?: boolean;
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
+    defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   startOnMount?: boolean;
   storage?: boolean | DevicePersistence;
 };
 
 export type UseCameraAndMicrophoneResult<TrackMetadata> = {
-  // or camera
   video: {
     stop: () => void;
     setEnable: (value: boolean) => void;
@@ -476,16 +478,11 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = {
     error: DeviceError | null;
     devices: MediaDeviceInfo[] | null;
   };
-  // or microphone
   audio: {
     stop: () => void;
     setEnable: (value: boolean) => void;
     start: () => void; // startByType
-    addTrack: (
-      trackMetadata?: TrackMetadata,
-      simulcastConfig?: SimulcastConfig,
-      maxBandwidth?: TrackBandwidthLimit
-    ) => void;
+    addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => void;
     removeTrack: () => void;
     replaceTrack: (
       newTrack: MediaStreamTrack,
@@ -657,18 +654,13 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         addTrack(
           "video",
           config.camera.defaultTrackMetadata,
-          undefined, // todo handle simulcast
-          undefined // todo handle maxBandwidth
+          config.camera.defaultSimulcastConfig,
+          config.camera.defaultMaxBandwidth
         );
       }
 
       if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
-        addTrack(
-          "audio",
-          config.microphone.defaultTrackMetadata,
-          undefined, // todo handle simulcast
-          undefined // todo handle maxBandwidth
-        );
+        addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
       }
     }, [state.status, config.camera.autoStreaming, config.microphone.autoStreaming, addTrack]);
 
@@ -679,20 +671,15 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         addTrack(
           "video",
           config.camera.defaultTrackMetadata,
-          undefined, // todo handle simulcast
-          undefined // todo handle maxBandwidth
+          config.camera.defaultSimulcastConfig,
+          config.camera.defaultMaxBandwidth
         );
       }
 
       const microphonePreview = config.microphone.preview ?? true;
 
       if (!microphonePreview && result.data?.audio.status === "OK") {
-        addTrack(
-          "audio",
-          config.microphone.defaultTrackMetadata,
-          undefined, // todo handle simulcast
-          undefined // todo handle maxBandwidth
-        );
+        addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
       }
     }, [result.data?.video.status, result.data?.audio.status]);
 
@@ -776,11 +763,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           stop: () => result.stop("audio"),
           setEnable: (value: boolean) => result.setEnable("audio", value),
           start: () => startByType("audio"),
-          addTrack: (
-            trackMetadata?: TrackMetadata,
-            simulcastConfig?: SimulcastConfig,
-            maxBandwidth?: TrackBandwidthLimit
-          ) => addTrack("audio", trackMetadata, simulcastConfig, maxBandwidth),
+          addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) =>
+            addTrack("audio", trackMetadata, undefined, maxBandwidth),
           removeTrack: () => removeTrack("audio"),
           replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
             replaceTrack("audio", newTrack, stream, newTrackMetadata),
