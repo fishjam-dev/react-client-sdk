@@ -510,6 +510,10 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
+
+  /*
+   * At this moment, this hook does not work with the context.
+   */
   useCameraAndMicrophone: (
     config: UseCameraAndMicrophoneConfig<TrackMetadata>
   ) => UseCameraAndMicrophoneResult<TrackMetadata>;
