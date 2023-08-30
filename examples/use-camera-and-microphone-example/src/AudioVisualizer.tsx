@@ -1,13 +1,17 @@
-import "./App.css";
-
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
-  stream: MediaStream | null | undefined
-}
+  stream: MediaStream | null | undefined;
+};
 
 export const AudioVisualizer = ({ stream }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasParentRef = useRef<HTMLDivElement>(null);
+  const [canvasWidth, setCanvasWidth] = useState<number>(400);
+
+  useEffect(() => {
+    setCanvasWidth(canvasParentRef?.current?.clientWidth || 400)
+  }, [canvasParentRef?.current?.clientWidth]);
 
   useEffect(() => {
     if (!stream) return;
@@ -44,9 +48,8 @@ export const AudioVisualizer = ({ stream }: Props) => {
 
       analyser.getByteFrequencyData(dataArray);
 
-
       for (let i = 0; i < bufferLength; i++) {
-        const barHeight = dataArray[i] * 50 / 256;
+        const barHeight = (dataArray[i] * 50) / 256;
         canvasContext.fillStyle = "#000000";
         canvasContext.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
 
@@ -57,10 +60,9 @@ export const AudioVisualizer = ({ stream }: Props) => {
     renderFrame();
   }, [stream]);
 
-
   return (
-    <div className="flex flex-row flex-nowrap justify-center border-4">
-      <canvas ref={canvasRef} width={200} height={100}/>
+    <div ref={canvasParentRef} className="flex flex-row flex-nowrap justify-center border-4">
+      <canvas ref={canvasRef} width={canvasWidth} height={100} />
     </div>
   );
 };

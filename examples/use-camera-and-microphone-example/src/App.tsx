@@ -1,15 +1,20 @@
-import "./App.css";
-
-import { TrackMetadata, useCameraAndMicrophone, useConnect, useDisconnect, useSelector, useStatus } from "./main.tsx";
-import VideoPlayer from "./VideoPlayer.tsx";
-import { DeviceSelector } from "./DeviceSelector.tsx";
+import {
+  TrackMetadata,
+  useCameraAndMicrophone,
+  useConnect,
+  useDisconnect,
+  useSelector,
+  useStatus,
+} from "./jellyfishSetup";
+import VideoPlayer from "./VideoPlayer";
+import { DeviceSelector } from "./DeviceSelector";
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { ThreeStateRadio } from "./ThreeStateRadio.tsx";
-import AudioVisualizer from "./AudioVisualizer.tsx";
+import { ThreeStateRadio } from "./ThreeStateRadio";
+import AudioVisualizer from "./AudioVisualizer";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { Fragment } from "react";
-import { Badge } from "./Badge.tsx";
+import { Badge } from "./Badge";
 
 // todo fix error
 //  webRTCEndpoint.js:991 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'getSenders')
@@ -32,22 +37,22 @@ const audioPreviewAtom = atomWithStorage<boolean | undefined>("audioPreviewAtom"
 
 const DEFAULT_VIDEO_TRACK_METADATA: TrackMetadata = {
   type: "camera",
-  mode: "auto"
+  mode: "auto",
 };
 
 const MANUAL_VIDEO_TRACK_METADATA: TrackMetadata = {
   type: "camera",
-  mode: "manual"
+  mode: "manual",
 };
 
 const DEFAULT_AUDIO_TRACK_METADATA: TrackMetadata = {
   type: "microphone",
-  mode: "auto"
+  mode: "auto",
 };
 
 const MANUAL_AUDIO_TRACK_METADATA: TrackMetadata = {
   type: "microphone",
-  mode: "manual"
+  mode: "manual",
 };
 
 export const App = () => {
@@ -81,7 +86,7 @@ export const App = () => {
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
     startOnMount: false,
-    storage: true
+    storage: true,
   });
 
   const status = useStatus();
@@ -94,27 +99,34 @@ export const App = () => {
           className="input input-bordered w-full"
           value={token}
           onChange={(e) => setToken(() => e?.target?.value)}
-          placeholder="token" />
+          placeholder="token"
+        />
         <div className="flex flex-col w-full">
-          <ThreeStateRadio name="Video Auto Streaming (default false)"
-                           value={videoAutoStreaming}
-                           set={setVideoAutoStreaming}
-                           radioClass="radio-primary" />
-
-          <ThreeStateRadio name="Video Preview (default true)"
-                           value={videoPreview}
-                           set={setVideoPreview}
-                           radioClass="radio-primary" />
-
-          <ThreeStateRadio name="Audio Auto Streaming (default false)"
-                           value={audioAutoStreaming}
-                           set={setAudioAutoStreaming}
-                           radioClass="radio-secondary"
+          <ThreeStateRadio
+            name="Video Auto Streaming (default false)"
+            value={videoAutoStreaming}
+            set={setVideoAutoStreaming}
+            radioClass="radio-primary"
           />
-          <ThreeStateRadio name="Audio Preview (default true)"
-                           value={audioPreview}
-                           set={setAudioPreview}
-                           radioClass="radio-secondary"
+
+          <ThreeStateRadio
+            name="Video Preview (default true)"
+            value={videoPreview}
+            set={setVideoPreview}
+            radioClass="radio-primary"
+          />
+
+          <ThreeStateRadio
+            name="Audio Auto Streaming (default false)"
+            value={audioAutoStreaming}
+            set={setAudioAutoStreaming}
+            radioClass="radio-secondary"
+          />
+          <ThreeStateRadio
+            name="Audio Preview (default true)"
+            value={audioPreview}
+            set={setAudioPreview}
+            radioClass="radio-secondary"
           />
         </div>
         <div className="flex flex-row flex-wrap w-full gap-2">
@@ -134,7 +146,7 @@ export const App = () => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
                 peerMetadata: { name: "John Doe" }, // example metadata
-                token: token
+                token: token,
               });
             }}
           >
@@ -142,7 +154,7 @@ export const App = () => {
           </button>
           <button
             className="btn btn-error btn-sm"
-            disabled={status !== "joined"}
+            disabled={status === null}
             onClick={() => {
               disconnect();
             }}
@@ -290,38 +302,29 @@ export const App = () => {
         </div>
       </div>
       <div>
-        <div className="grid grid-rows-2">
+        <div className="grid grid-rows-2 prose">
           <div>
-            Local
+            <h3>Local:</h3>
             <div className="max-w-[500px]">
-              {video?.track?.kind === "video" &&
-
-                <VideoPlayer stream={video?.stream} />
-              }
-              {audio?.track?.kind === "audio" &&
-                <AudioVisualizer stream={audio?.stream} />
-              }
+              {video?.track?.kind === "video" && <VideoPlayer stream={video?.stream} />}
+              {audio?.track?.kind === "audio" && <AudioVisualizer stream={audio?.stream} />}
             </div>
           </div>
           <div>
-            Streaming
-            {local.map(({ trackId, stream, track }) => {
-                return <Fragment key={trackId}>
-                  <div className="max-w-[500px]">
-                    {track?.kind === "video" &&
-                      <VideoPlayer key={trackId} stream={stream} />
-                    }
-                    {track?.kind === "audio" && <AudioVisualizer stream={stream} />}
-                  </div>
-                </Fragment>;
-              }
-            )}
+            <h3>Streaming:</h3>
+            {local.map(({ trackId, stream, track }) => (
+              <Fragment key={trackId}>
+                <div className="max-w-[500px]">
+                  {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
+                  {track?.kind === "audio" && <AudioVisualizer stream={stream} />}
+                </div>
+              </Fragment>
+            ))}
           </div>
         </div>
       </div>
     </div>
-  )
-    ;
+  );
 };
 
 export default App;
