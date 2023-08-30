@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 type Props = {
   name: string;
@@ -11,23 +11,20 @@ type Props = {
 export const DeviceSelector = ({ name, devices, setInput, defaultOptionText }: Props) => {
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
 
-  const onOptionChangeHandler = (event: any) => {
+  const onOptionChangeHandler = (event: ChangeEvent<HTMLSelectElement>) => {
     setSelectedDevice(event?.target?.value);
   };
 
   return (
     <div className="flex flex-row gap-2 items-center">
-      <span>
-      {name}
-      </span>
-      <select className="select w-full max-w-xs"
-              onChange={onOptionChangeHandler}
-              defaultValue={defaultOptionText}>
+      <span>{name}</span>
+      <select className="select w-full max-w-xs" onChange={onOptionChangeHandler} defaultValue={defaultOptionText}>
         <option disabled>{defaultOptionText}</option>
-        {(devices || []).map(({ deviceId, label }) =>
+        {(devices || []).map(({ deviceId, label }) => (
           <option key={deviceId} value={deviceId}>
             {label}
-          </option>)}
+          </option>
+        ))}
       </select>
       <button
         className="btn btn-error btn-sm"

@@ -1,8 +1,8 @@
 import { PeerStatus } from "@jellyfish-dev/react-client-sdk";
 
 type Props = {
-  status: PeerStatus
-}
+  status: PeerStatus;
+};
 
 const getBadgeColor = (status: PeerStatus) => {
   switch (status) {
@@ -16,11 +16,11 @@ const getBadgeColor = (status: PeerStatus) => {
     case "connecting":
       return "badge-warning";
   }
-
 };
 
-export const Badge = ({ status }: Props) =>
+export const Badge = ({ status }: Props) => (
   <div className="flex items-center gap-1">
     <span>Status:</span>
     <span className={`badge ${getBadgeColor(status)}`}>{status}</span>
-  </div>;
+  </div>
+);

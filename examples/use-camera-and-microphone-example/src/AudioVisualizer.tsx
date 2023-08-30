@@ -10,7 +10,7 @@ export const AudioVisualizer = ({ stream }: Props) => {
   const [canvasWidth, setCanvasWidth] = useState<number>(400);
 
   useEffect(() => {
-    setCanvasWidth(canvasParentRef?.current?.clientWidth || 400)
+    setCanvasWidth(canvasParentRef?.current?.clientWidth || 400);
   }, [canvasParentRef?.current?.clientWidth]);
 
   useEffect(() => {
