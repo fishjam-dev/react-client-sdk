@@ -27,7 +27,7 @@ Prerequisites:
 
 - Running [Jellyfish](https://github.com/jellyfish-dev/jellyfish) server.
 - Created room and token of peer in that room.
-  You u can use [dashboard](https://github.com/jellyfish-dev/jellyfish-dashboard) to create room and peer token.
+  You can use [dashboard](https://github.com/jellyfish-dev/jellyfish-dashboard) to create room and peer token.
 
 This snippet is based
 on [minimal-react](https://github.com/jellyfish-dev/react-client-sdk/tree/main/examples/minimal-react) example.
