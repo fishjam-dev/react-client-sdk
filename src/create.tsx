@@ -284,10 +284,6 @@ const onConnect = <PeerMetadata, TrackMetadata>(
     action.dispatch({ type: "onDisconnected" });
   });
 
-  // important jeżeli użytkownik zapnie się na eventy z JellyfishClient
-  //  to one mogą się odpalić wcześniej niż te tutaj zasetupowane metody
-  //  tak się dzieje na przykład z eventem joined gdy chcę od razu zacząć
-  //  przesyłać tracki zaraz po dołączeniu
   client.on("joined", (peerId: string, peersInRoom: Endpoint[]) => {
     action.dispatch({ type: "onJoinSuccess", peersInRoom, peerId, peerMetadata });
   });

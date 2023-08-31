@@ -16,17 +16,6 @@ import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev
 import { Fragment } from "react";
 import { Badge } from "./Badge";
 
-// todo fix error
-//  webRTCEndpoint.js:991 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'getSenders')
-//     at WebRTCEndpoint2.findSender (webRTCEndpoint.js:991:32
-// {
-//     streamWhenConnected: false,
-//     startStreamingWhenDeviceReady: true,
-//     startOnMount: false,
-//     storage: true,
-// }
-// Click connect -> start devices
-// Jeżeli zaczniesz streamować urządzenia bardzo szybko to wybucha.
 const tokenAtom = atomWithStorage("token", "");
 
 const videoAutoStreamingAtom = atomWithStorage<boolean | undefined>("videoAutoStreaming", undefined);
@@ -74,10 +63,10 @@ export const App = () => {
       autoStreaming: videoAutoStreaming,
       preview: videoPreview,
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
-      // defaultSimulcastConfig: {
-      //   enabled: true,
-      //   active_encodings: ["l", "m", "h"]
-      // }
+      defaultSimulcastConfig: {
+        enabled: true,
+        active_encodings: ["l", "m", "h"]
+      }
     },
     microphone: {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
