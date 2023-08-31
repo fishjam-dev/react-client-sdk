@@ -1,5 +1,5 @@
 import VideoPlayer from "./VideoPlayer";
-import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/browser-media-utils";
+import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { create } from "@jellyfish-dev/react-client-sdk";
 import { useState } from "react";
 
