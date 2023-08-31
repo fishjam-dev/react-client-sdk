@@ -65,8 +65,8 @@ export const App = () => {
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
-        active_encodings: ["l", "m", "h"]
-      }
+        active_encodings: ["l", "m", "h"],
+      },
     },
     microphone: {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
