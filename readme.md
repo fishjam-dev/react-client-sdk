@@ -116,7 +116,7 @@ export const App = () => {
             });
           }}
         >
-          Start screen share `{" "}
+          Start screen share
         </button>
         <span>Status: {status}</span>
       </div>
