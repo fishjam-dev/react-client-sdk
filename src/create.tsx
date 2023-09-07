@@ -638,6 +638,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       ): Promise<boolean> => {
         if (!apiRef.current) return Promise.resolve<boolean>(false);
 
+        if (Object.values(state.local?.tracks || {}).length === 0) return Promise.resolve<boolean>(false);
+
         const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
         if (!trackIdRef.current) return Promise.resolve<boolean>(false);
 
@@ -648,6 +650,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
         return apiRef.current?.replaceTrack(trackIdRef.current, newTrack, stream, newTrackMetadata);
       },
+      // eslint-disable-next-line
       [result]
     );
 
