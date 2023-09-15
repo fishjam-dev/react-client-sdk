@@ -4,7 +4,7 @@ import App from "./App";
 import "./index.css";
 import { JellyfishContextProvider } from "./jellyfishSetup";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <JellyfishContextProvider>
       <App />

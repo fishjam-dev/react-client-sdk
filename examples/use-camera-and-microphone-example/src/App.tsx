@@ -1,10 +1,10 @@
 import {
   TrackMetadata,
-  useCameraAndMicrophone,
   useConnect,
   useDisconnect,
   useSelector,
   useStatus,
+  useJellyfishContext,
 } from "./jellyfishSetup";
 import VideoPlayer from "./VideoPlayer";
 import { DeviceSelector } from "./DeviceSelector";
@@ -23,7 +23,6 @@ const videoPreviewAtom = atomWithStorage<boolean | undefined>("videoPreview", un
 
 const audioAutoStreamingAtom = atomWithStorage<boolean | undefined>("audioAutoStreaming", undefined);
 const audioPreviewAtom = atomWithStorage<boolean | undefined>("audioPreviewAtom", undefined);
-
 const DEFAULT_VIDEO_TRACK_METADATA: TrackMetadata = {
   type: "camera",
   mode: "auto",
@@ -46,6 +45,7 @@ const MANUAL_AUDIO_TRACK_METADATA: TrackMetadata = {
 
 export const App = () => {
   const [token, setToken] = useAtom(tokenAtom);
+  const { useCameraAndMicrophone } = useJellyfishContext();
 
   const connect = useConnect();
   const disconnect = useDisconnect();
