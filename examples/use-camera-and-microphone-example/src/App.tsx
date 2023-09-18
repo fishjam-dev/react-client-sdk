@@ -45,7 +45,7 @@ const MANUAL_AUDIO_TRACK_METADATA: TrackMetadata = {
 
 export const App = () => {
   const [token, setToken] = useAtom(tokenAtom);
-  const { useCameraAndMicrophone } = useJellyfishContext();
+  const { useCamera, useMicrophone, useSetupCameraAndMicrophone } = useJellyfishContext();
 
   const connect = useConnect();
   const disconnect = useDisconnect();
@@ -56,8 +56,13 @@ export const App = () => {
 
   const [audioAutoStreaming, setAudioAutoStreaming] = useAtom(audioAutoStreamingAtom);
   const [audioPreview, setAudioPreview] = useAtom(audioPreviewAtom);
-
-  const { audio, video, init, start } = useCameraAndMicrophone({
+  const { init, print } = useSetupCameraAndMicrophone({
+    cameraTrackConstraints: VIDEO_TRACK_CONSTRAINTS,
+    microphoneTrackConstraints: AUDIO_TRACK_CONSTRAINTS,
+    startOnMount: false,
+    storage: true,
+  });
+  const { video, startVideo } = useCamera({
     camera: {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
       autoStreaming: videoAutoStreaming,
@@ -68,14 +73,14 @@ export const App = () => {
         active_encodings: ["l", "m", "h"],
       },
     },
+  });
+  const { audio, startAudio } = useMicrophone({
     microphone: {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
       autoStreaming: audioAutoStreaming,
       preview: audioPreview,
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
-    startOnMount: false,
-    storage: true,
   });
 
   const status = useStatus();
@@ -158,7 +163,7 @@ export const App = () => {
           devices={video?.devices || null}
           setInput={(id) => {
             if (!id) return;
-            start({ videoDeviceId: id });
+            startVideo({ videoDeviceId: id });
           }}
           defaultOptionText="Select video device"
         />
@@ -168,7 +173,7 @@ export const App = () => {
           devices={audio?.devices || null}
           setInput={(id) => {
             if (!id) return;
-            start({ audioDeviceId: id });
+            startAudio({ audioDeviceId: id });
           }}
           defaultOptionText="Select audio device"
         />
@@ -286,6 +291,14 @@ export const App = () => {
               }}
             >
               Stop audio track stream
+            </button>
+            <button
+              className="btn btn-success btn-sm"
+              onClick={() => {
+                print();
+              }}
+            >
+              print
             </button>
           </div>
         </div>
