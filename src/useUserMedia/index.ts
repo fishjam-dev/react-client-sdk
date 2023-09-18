@@ -242,6 +242,7 @@ export const useUserMedia = ({
   }, [storage]);
 
   const init = useCallback(async () => {
+    console.log("init");
     if (skip.current) return;
     skip.current = true;
     if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");

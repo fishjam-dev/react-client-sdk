@@ -491,6 +491,7 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = {
     error: DeviceError | null;
     devices: MediaDeviceInfo[] | null;
   };
+  print: () => void;
   init: () => void;
   start: (config: UseUserMediaStartConfig) => void;
 };
@@ -529,6 +530,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       DEFAULT_STORE,
       () => createDefaultState()
     );
+
+    console.log("state");
+    console.log(state);
 
     return <JellyfishContext.Provider value={{ state, dispatch }}>{children}</JellyfishContext.Provider>;
   };
@@ -587,6 +591,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     const result = useUserMedia(userMediaConfig);
 
     const mediaRef = useRef(result);
+    console.log(state.connectivity.api);
     const apiRef = useRef(state.connectivity.api);
 
     useEffect(() => {
@@ -604,6 +609,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         simulcastConfig?: SimulcastConfig,
         maxBandwidth?: TrackBandwidthLimit
       ) => {
+        console.log("add track " + type);
         if (!apiRef.current) return;
 
         const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
@@ -636,6 +642,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         stream: MediaStream,
         newTrackMetadata?: TrackMetadata
       ): Promise<boolean> => {
+        console.log("replace");
         if (!apiRef.current) return Promise.resolve<boolean>(false);
 
         const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
@@ -737,10 +744,14 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
     return useMemo(
       () => ({
+        print: () => console.log(result),
         init: result.init,
         start: result.start,
         video: {
-          stop: () => result.stop("video"),
+          stop: () => {
+            removeTrack("video");
+            result.stop("video");
+          },
           setEnable: (value: boolean) => result.setEnable("video", value),
           start: () => startByType("video"),
           addTrack: (
