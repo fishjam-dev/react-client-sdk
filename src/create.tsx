@@ -462,7 +462,6 @@ export type UseCameraConfig<TrackMetadata> = {
 
 export type UseCameraAndMicrophoneInitialize = {
   init: () => void;
-  print: () => void;
 };
 
 export type UseCameraResult<TrackMetadata> = {
@@ -547,8 +546,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     );
 
     const result = useUserMedia(state.userMediaConfig);
-    console.log(" state");
-    console.log(result);
 
     const useSetupCameraAndMicrophone = (
       config: useSetupCameraAndMicrophoneConfig
@@ -565,7 +562,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       return useMemo(
         () => ({
           init: result.init,
-          print: () => console.log(result),
         }),
         []
       );
@@ -594,7 +590,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit
         ) => {
-          console.log("video");
           if (!apiRef.current) return;
 
           const trackIdRef = videoTrackIdRef;
@@ -745,7 +740,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
       useEffect(() => {
         audioTrackIdRef.current = state.userMediaTracks?.audioTrackIdRef || null;
-        console.log("changed:");
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [state.userMediaTracks?.audioTrackIdRef]);
 
@@ -756,23 +750,18 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit
         ) => {
-          console.log("audio");
           if (!apiRef.current) return;
-          console.log("ret1");
-          console.log(audioTrackIdRef);
+
           const trackIdRef = audioTrackIdRef;
           if (trackIdRef.current) return;
-          console.log("ret2");
-          console.log(mediaRef.current.data);
+
           const deviceState = mediaRef.current.data?.[type];
           if (!deviceState || deviceState.status !== "OK") return;
-          console.log("ret3");
 
           const track = deviceState.media?.track;
           const stream = deviceState.media?.stream;
 
           if (!track || !stream) return;
-          console.log("here");
           trackIdRef.current = apiRef.current.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
         },
         []
