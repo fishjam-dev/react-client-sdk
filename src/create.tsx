@@ -741,7 +741,6 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         start: result.start,
         video: {
           stop: () => {
-            // removeTrack("video");
             result.stop("video");
           },
           setEnable: (value: boolean) => result.setEnable("video", value),
