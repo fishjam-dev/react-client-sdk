@@ -648,14 +648,14 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         const trackIdRef = type === "video" ? videoTrackIdRef : audioTrackIdRef;
         if (!trackIdRef.current) return Promise.resolve<boolean>(false);
 
-        const deviceState = result.data?.[type];
+        const deviceState = mediaRef?.current?.data?.[type];
         if (!deviceState || deviceState.status !== "OK") return Promise.resolve<boolean>(false);
 
         if (!newTrack || !stream) return Promise.resolve<boolean>(false);
 
         return apiRef.current?.replaceTrack(trackIdRef.current, newTrack, stream, newTrackMetadata);
       },
-      [result]
+      []
     );
 
     useEffect(() => {
@@ -690,7 +690,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
       const cameraPreview = config.camera.preview ?? true;
 
-      if (!cameraPreview && result.data?.video.status === "OK") {
+      if (!cameraPreview && result.data?.video.status === "OK" && result.data?.video.media?.stream) {
         addTrack(
           "video",
           config.camera.defaultTrackMetadata,
@@ -749,7 +749,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         start: result.start,
         video: {
           stop: () => {
-            removeTrack("video");
+            // removeTrack("video");
             result.stop("video");
           },
           setEnable: (value: boolean) => result.setEnable("video", value),
