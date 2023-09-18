@@ -57,7 +57,7 @@ export const App = () => {
   const [audioAutoStreaming, setAudioAutoStreaming] = useAtom(audioAutoStreamingAtom);
   const [audioPreview, setAudioPreview] = useAtom(audioPreviewAtom);
 
-  const { audio, video, init, start, print } = useCameraAndMicrophone({
+  const { audio, video, init, start } = useCameraAndMicrophone({
     camera: {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
       autoStreaming: videoAutoStreaming,
@@ -286,14 +286,6 @@ export const App = () => {
               }}
             >
               Stop audio track stream
-            </button>
-            <button
-              className="btn btn-info btn-sm"
-              onClick={() => {
-                print();
-              }}
-            >
-              Print
             </button>
           </div>
         </div>
