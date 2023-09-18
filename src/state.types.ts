@@ -56,7 +56,7 @@ export type State<PeerMetadata, TrackMetadata> = {
   status: PeerStatus;
   connectivity: Connectivity<PeerMetadata, TrackMetadata>;
   userMediaConfig: UseUserMediaConfig;
-  userMediaTracks: UseUserMediaTracks;
+  userMediaTracks: UseUserMediaTracks | null;
 };
 
 export type SetStore<PeerMetadata, TrackMetadata> = (

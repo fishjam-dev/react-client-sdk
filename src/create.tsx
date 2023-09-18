@@ -9,7 +9,6 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
 } from "react";
 import type { Selector, State, Track } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
@@ -48,14 +47,7 @@ import {
   TrackContext,
 } from "@jellyfish-dev/ts-client-sdk";
 import { useUserMedia } from "./useUserMedia";
-import {
-  DeviceError,
-  DevicePersistence,
-  DeviceReturnType,
-  Type,
-  UseUserMedia,
-  UseUserMediaStartConfig,
-} from "./useUserMedia/types";
+import { DeviceError, DevicePersistence, DeviceReturnType, Type, UseUserMediaStartConfig } from "./useUserMedia/types";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./useUserMedia/constraints";
 
 export type JellyfishContextProviderProps = {
@@ -470,6 +462,7 @@ export type UseCameraConfig<TrackMetadata> = {
 
 export type UseCameraAndMicrophoneInitialize = {
   init: () => void;
+  print: () => void;
 };
 
 export type UseCameraResult<TrackMetadata> = {
@@ -497,7 +490,7 @@ export type UseCameraResult<TrackMetadata> = {
     error: DeviceError | null;
     devices: MediaDeviceInfo[] | null;
   };
-  start: (config: UseUserMediaStartConfig) => void;
+  startVideo: (config: UseUserMediaStartConfig) => void;
 };
 
 export type UseMicrophoneResult<TrackMetadata> = {
@@ -521,7 +514,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
     error: DeviceError | null;
     devices: MediaDeviceInfo[] | null;
   };
-  start: (config: UseUserMediaStartConfig) => void;
+  startAudio: (config: UseUserMediaStartConfig) => void;
 };
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
@@ -553,15 +546,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       () => createDefaultState()
     );
 
-    state.userMediaConfig;
-
-    const [result, setResult] = useState<UseUserMedia>(useUserMedia(state.userMediaConfig));
-
-    useEffect(() => {
-      // todo check if this is the right way to do it
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      setResult(useUserMedia(state.userMediaConfig));
-    }, [state.userMediaConfig]);
+    const result = useUserMedia(state.userMediaConfig);
+    console.log(" state");
+    console.log(result);
 
     const useSetupCameraAndMicrophone = (
       config: useSetupCameraAndMicrophoneConfig
@@ -578,26 +565,26 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       return useMemo(
         () => ({
           init: result.init,
+          print: () => console.log(result),
         }),
         []
       );
     };
 
     const useCamera = (config: UseCameraConfig<TrackMetadata>): UseCameraResult<TrackMetadata> => {
-      // const result = useUserMedia();
-
       const mediaRef = useRef(result);
       const apiRef = useRef(state.connectivity.api);
 
       useEffect(() => {
         mediaRef.current = result;
         apiRef.current = state.connectivity.api;
-      }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [state.connectivity.api, result]);
 
       const videoTrackIdRef = useRef<string | null>(null);
 
       useEffect(() => {
-        videoTrackIdRef.current = state.userMediaTracks.videoTrackIdRef;
+        videoTrackIdRef.current = state.userMediaTracks?.videoTrackIdRef || null;
       }, []);
 
       const addTrack = useCallback(
@@ -607,6 +594,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit
         ) => {
+          console.log("video");
           if (!apiRef.current) return;
 
           const trackIdRef = videoTrackIdRef;
@@ -629,7 +617,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         if (state.status !== "joined") {
           videoTrackIdRef.current = null;
         }
-      }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [state.status]);
 
       const replaceTrack = useCallback(
         (
@@ -676,6 +665,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
       useEffect(() => {
         if (!apiRef.current) return;
+
         const videoTrack = result.data?.video?.media?.track;
         const videoStream = result.data?.video?.media?.stream;
 
@@ -714,7 +704,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
       return useMemo(
         () => ({
-          start: result.start,
+          startVideo: result.start,
           video: {
             stop: () => result.stop("video"),
             setEnable: (value: boolean) => result.setEnable("video", value),
@@ -742,21 +732,22 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     };
 
     const useMicrophone = (config: UseMicrophoneConfig<TrackMetadata>): UseMicrophoneResult<TrackMetadata> => {
-      // const result = useUserMedia();
-
       const mediaRef = useRef(result);
       const apiRef = useRef(state.connectivity.api);
 
       useEffect(() => {
         mediaRef.current = result;
         apiRef.current = state.connectivity.api;
-      }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [state.connectivity.api, result]);
 
       const audioTrackIdRef = useRef<string | null>(null);
 
       useEffect(() => {
-        audioTrackIdRef.current = state.userMediaTracks.audioTrackIdRef;
-      }, []);
+        audioTrackIdRef.current = state.userMediaTracks?.audioTrackIdRef || null;
+        console.log("changed:");
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [state.userMediaTracks?.audioTrackIdRef]);
 
       const addTrack = useCallback(
         (
@@ -765,19 +756,23 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit
         ) => {
+          console.log("audio");
           if (!apiRef.current) return;
-
+          console.log("ret1");
+          console.log(audioTrackIdRef);
           const trackIdRef = audioTrackIdRef;
           if (trackIdRef.current) return;
-
+          console.log("ret2");
+          console.log(mediaRef.current.data);
           const deviceState = mediaRef.current.data?.[type];
           if (!deviceState || deviceState.status !== "OK") return;
+          console.log("ret3");
 
           const track = deviceState.media?.track;
           const stream = deviceState.media?.stream;
 
           if (!track || !stream) return;
-
+          console.log("here");
           trackIdRef.current = apiRef.current.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
         },
         []
@@ -787,7 +782,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         if (state.status !== "joined") {
           audioTrackIdRef.current = null;
         }
-      }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [state.status]);
 
       const replaceTrack = useCallback(
         (
@@ -843,6 +839,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           replaceTrack("audio", audioTrack, audioStream, undefined);
         } else if (audioTrackIdRef.current && !audioTrack && !audioStream) {
           // todo add nullify option
+
           removeTrack();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -861,7 +858,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
       return useMemo(
         () => ({
-          start: result.start,
+          startAudio: result.start,
           audio: {
             stop: () => result.stop("audio"),
             setEnable: (value: boolean) => result.setEnable("audio", value),
@@ -881,7 +878,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
             devices: result.data?.audio?.devices || null,
           },
         }),
-        [audio, startByType, addTrack, removeTrack, replaceTrack]
+        [removeTrack, audio, startByType, addTrack, replaceTrack]
       );
     };
 

@@ -13,6 +13,13 @@ export const DEFAULT_STORE: State<any, any> = {
     api: null,
     client: null,
   },
+  userMediaConfig: {
+    videoTrackConstraints: true,
+    audioTrackConstraints: true,
+    startOnMount: true,
+    storage: true,
+  },
+  userMediaTracks: null,
 };
 
 export const createEmptyApi = <TrackMetadata>(): Api<TrackMetadata> => ({
