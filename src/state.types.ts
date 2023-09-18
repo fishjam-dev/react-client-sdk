@@ -1,6 +1,7 @@
 import type { TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
 import type { Api } from "./api";
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
+import { UseUserMediaConfig } from "./useUserMedia/types";
 
 export type TrackId = string;
 export type PeerId = string;
@@ -26,6 +27,11 @@ export interface Origin {
   metadata: any;
 }
 
+export type UseUserMediaTracks = {
+  videoTrackIdRef: string | null;
+  audioTrackIdRef: string | null;
+};
+
 export type TrackWithOrigin<TrackMetadata> = Track<TrackMetadata> & {
   origin: Origin;
 };
@@ -49,6 +55,8 @@ export type State<PeerMetadata, TrackMetadata> = {
   bandwidthEstimation: bigint;
   status: PeerStatus;
   connectivity: Connectivity<PeerMetadata, TrackMetadata>;
+  userMediaConfig: UseUserMediaConfig;
+  userMediaTracks: UseUserMediaTracks;
 };
 
 export type SetStore<PeerMetadata, TrackMetadata> = (
