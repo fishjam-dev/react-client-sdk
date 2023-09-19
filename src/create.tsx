@@ -715,7 +715,11 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         removeTrack("audio");
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [result.data?.video?.media?.deviceInfo?.deviceId, replaceTrack]);
+    }, [
+      result.data?.video?.media?.deviceInfo?.deviceId,
+      result.data?.audio?.media?.deviceInfo?.deviceId,
+      replaceTrack,
+    ]);
 
     const startByType = useCallback(
       (type: Type) => {
