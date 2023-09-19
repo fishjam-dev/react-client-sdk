@@ -627,7 +627,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           const trackIdRef = videoTrackIdRef;
           if (!trackIdRef.current) return Promise.resolve<boolean>(false);
 
-          const deviceState = result.data?.[type];
+          const deviceState = mediaRef?.current?.data?.[type];
           if (!deviceState || deviceState.status !== "OK") return Promise.resolve<boolean>(false);
 
           if (!newTrack || !stream) return Promise.resolve<boolean>(false);
@@ -666,7 +666,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
         const cameraPreview = config.camera.preview ?? true;
 
-        if (!cameraPreview && result.data?.video.status === "OK") {
+        if (!cameraPreview && result.data?.video.status === "OK" && result.data?.video.media?.stream) {
           addTrack(
             "video",
             config.camera.defaultTrackMetadata,
@@ -820,7 +820,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
         const microphonePreview = config.microphone.preview ?? true;
 
-        if (!microphonePreview && result.data?.audio.status === "OK") {
+        if (!microphonePreview && result.data?.audio.status === "OK" && result.data?.audio.media?.stream) {
           addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
         } else if (audioTrackIdRef.current && audioTrack && audioStream) {
           // todo track metadata
@@ -832,7 +832,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           removeTrack();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [result.data?.video?.media?.deviceInfo?.deviceId, replaceTrack]);
+      }, [result.data?.audio?.media?.deviceInfo?.deviceId, replaceTrack]);
 
       const startByType = useCallback(
         (type: Type) => {
