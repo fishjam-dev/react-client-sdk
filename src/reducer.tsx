@@ -37,7 +37,7 @@ import { INITIAL_STATE, MediaAction, mediaReducer } from "./useUserMedia";
 import { UseCameraAndMicrophoneResult } from "./create";
 
 export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneResult<TrackMetadata> => ({
-  video: {
+  camera: {
     stop: () => {},
     setEnable: (_value: boolean) => {},
     start: () => {}, // startByType
@@ -58,7 +58,7 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
     error: null,
     devices: null,
   },
-  audio: {
+  microphone: {
     stop: () => {},
     setEnable: (_value: boolean) => {},
     start: () => {}, // startByType

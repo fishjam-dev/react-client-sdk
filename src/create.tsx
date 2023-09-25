@@ -51,7 +51,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
   },
 });
 
-export type UseCameraAndMicrophoneConfig<TrackMetadata> = {
+export type UseSetupCameraAndMicrophoneConfig<TrackMetadata> = {
   camera: {
     autoStreaming?: boolean;
     preview?: boolean;
@@ -71,51 +71,51 @@ export type UseCameraAndMicrophoneConfig<TrackMetadata> = {
   storage?: boolean | DevicePersistence;
 };
 
+export type UseSetupCameraAndMicrophoneResult = {
+  init: () => void;
+  start: (config: UseUserMediaStartConfig) => void;
+};
+
+export type UseCameraResult<TrackMetadata> = {
+  stop: () => void;
+  setEnable: (value: boolean) => void;
+  start: () => void;
+  addTrack: (
+    trackMetadata?: TrackMetadata,
+    simulcastConfig?: SimulcastConfig,
+    maxBandwidth?: TrackBandwidthLimit
+  ) => void;
+  removeTrack: () => void;
+  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<boolean>;
+  broadcast: Track<TrackMetadata> | null;
+  status: DeviceReturnType | null; // todo how to remove null
+  stream: MediaStream | null;
+  track: MediaStreamTrack | null;
+  enabled: boolean;
+  deviceInfo: MediaDeviceInfo | null;
+  error: DeviceError | null;
+  devices: MediaDeviceInfo[] | null;
+};
+
+export type UseMicrophoneResult<TrackMetadata> = {
+  stop: () => void;
+  setEnable: (value: boolean) => void;
+  start: () => void;
+  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => void;
+  removeTrack: () => void;
+  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<boolean>;
+  broadcast: Track<TrackMetadata> | null;
+  status: DeviceReturnType | null;
+  stream: MediaStream | null;
+  track: MediaStreamTrack | null;
+  enabled: boolean;
+  deviceInfo: MediaDeviceInfo | null;
+  error: DeviceError | null;
+  devices: MediaDeviceInfo[] | null;
+};
 export type UseCameraAndMicrophoneResult<TrackMetadata> = {
-  video: {
-    stop: () => void;
-    setEnable: (value: boolean) => void;
-    start: () => void; // startByType
-    addTrack: (
-      trackMetadata?: TrackMetadata,
-      simulcastConfig?: SimulcastConfig,
-      maxBandwidth?: TrackBandwidthLimit
-    ) => void; // remote
-    removeTrack: () => void; // remote
-    replaceTrack: (
-      newTrack: MediaStreamTrack,
-      stream: MediaStream,
-      newTrackMetadata?: TrackMetadata
-    ) => Promise<boolean>; // remote
-    broadcast: Track<TrackMetadata> | null;
-    status: DeviceReturnType | null; // todo how to remove null
-    stream: MediaStream | null;
-    track: MediaStreamTrack | null;
-    enabled: boolean;
-    deviceInfo: MediaDeviceInfo | null;
-    error: DeviceError | null;
-    devices: MediaDeviceInfo[] | null;
-  };
-  audio: {
-    stop: () => void;
-    setEnable: (value: boolean) => void;
-    start: () => void; // startByType
-    addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => void;
-    removeTrack: () => void;
-    replaceTrack: (
-      newTrack: MediaStreamTrack,
-      stream: MediaStream,
-      newTrackMetadata?: TrackMetadata
-    ) => Promise<boolean>;
-    broadcast: Track<TrackMetadata> | null;
-    status: DeviceReturnType | null;
-    stream: MediaStream | null;
-    track: MediaStreamTrack | null;
-    enabled: boolean;
-    deviceInfo: MediaDeviceInfo | null;
-    error: DeviceError | null;
-    devices: MediaDeviceInfo[] | null;
-  };
+  camera: UseCameraResult<TrackMetadata>;
+  microphone: UseMicrophoneResult<TrackMetadata>;
   init: () => void;
   start: (config: UseUserMediaStartConfig) => void;
 };
@@ -128,12 +128,11 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
-  // todo change name
-  useCameraAndMicrophone: (
-    config: UseCameraAndMicrophoneConfig<TrackMetadata>
+  useSetupCameraAndMicrophone: (
+    config: UseSetupCameraAndMicrophoneConfig<TrackMetadata>
   ) => Pick<UseCameraAndMicrophoneResult<TrackMetadata>, "start" | "init">;
-  useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["video"];
-  useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["audio"];
+  useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["camera"];
+  useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["microphone"];
 };
 
 /**
@@ -194,21 +193,21 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
 
-  const useCamera = (): UseCameraAndMicrophoneResult<TrackMetadata>["video"] => {
+  const useCamera = (): UseCameraAndMicrophoneResult<TrackMetadata>["camera"] => {
     const { state } = useJellyfishContext();
 
-    return state.devices.video;
+    return state.devices.camera;
   };
 
-  const useMicrophone = (): UseCameraAndMicrophoneResult<TrackMetadata>["audio"] => {
+  const useMicrophone = (): UseCameraAndMicrophoneResult<TrackMetadata>["microphone"] => {
     const { state } = useJellyfishContext();
 
-    return state.devices.audio;
+    return state.devices.microphone;
   };
 
-  const useCameraAndMicrophone = (
-    config: UseCameraAndMicrophoneConfig<TrackMetadata>
-  ): Pick<UseCameraAndMicrophoneResult<TrackMetadata>, "init" | "start"> => {
+  const useSetupCameraAndMicrophone = (
+    config: UseSetupCameraAndMicrophoneConfig<TrackMetadata>
+  ): UseSetupCameraAndMicrophoneResult => {
     const { state, dispatch } = useJellyfishContext();
 
     const userMediaConfig: UseUserMediaConfig = useMemo(
@@ -380,7 +379,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       const data: UseCameraAndMicrophoneResult<TrackMetadata> = {
         init: result.init,
         start: result.start,
-        video: {
+        camera: {
           stop: () => {
             result.stop("video");
           },
@@ -403,7 +402,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           error: result.data?.video?.error || null,
           devices: result.data?.video?.devices || null,
         },
-        audio: {
+        microphone: {
           stop: () => result.stop("audio"),
           setEnable: (value: boolean) => result.setEnable("audio", value),
           start: () => startByType("audio"),
@@ -443,7 +442,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     useApi,
     useStatus,
     useTracks,
-    useCameraAndMicrophone,
+    useSetupCameraAndMicrophone,
     useCamera,
     useMicrophone,
   };

@@ -36,7 +36,7 @@ export const {
   useConnect,
   useDisconnect,
   JellyfishContextProvider,
-  useCameraAndMicrophone,
+  useSetupCameraAndMicrophone,
   useCamera,
   useMicrophone,
   useSelector,

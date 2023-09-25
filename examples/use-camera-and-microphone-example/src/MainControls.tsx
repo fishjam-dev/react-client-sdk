@@ -4,7 +4,7 @@ import {
   MANUAL_AUDIO_TRACK_METADATA,
   MANUAL_VIDEO_TRACK_METADATA,
   useCamera,
-  useCameraAndMicrophone,
+  useSetupCameraAndMicrophone,
   useConnect,
   useDisconnect,
   useMicrophone,
@@ -43,7 +43,7 @@ export const MainControls = () => {
   const [audioAutoStreaming, setAudioAutoStreaming] = useAtom(audioAutoStreamingAtom);
   const [audioPreview, setAudioPreview] = useAtom(audioPreviewAtom);
 
-  const { init, start } = useCameraAndMicrophone({
+  const { init, start } = useSetupCameraAndMicrophone({
     camera: {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
       autoStreaming: videoAutoStreaming,

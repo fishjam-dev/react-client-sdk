@@ -1,4 +1,4 @@
-import { PeerStatus, UseCameraAndMicrophoneResult } from "../../../src";
+import { PeerStatus, UseCameraResult, UseMicrophoneResult } from "../../../src";
 import { TrackMetadata } from "./jellyfishSetup";
 
 type DeviceControlsProps =
@@ -7,11 +7,11 @@ type DeviceControlsProps =
       metadata: TrackMetadata;
     } & (
       | {
-          device: UseCameraAndMicrophoneResult<TrackMetadata>["audio"];
+          device: UseMicrophoneResult<TrackMetadata>;
           type: "audio";
         }
       | {
-          device: UseCameraAndMicrophoneResult<TrackMetadata>["video"];
+          device: UseCameraResult<TrackMetadata>;
           type: "video";
         }
     );
