@@ -2,7 +2,7 @@ import type { TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
 import type { Api } from "./api";
 import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { UseUserMediaState } from "./useUserMedia/types";
-import { UseCameraAndMicrophoneResult } from "./create";
+import { UseCameraAndMicrophoneResult } from "./useCameraAndMicrophone/types";
 
 export type TrackId = string;
 export type PeerId = string;
@@ -50,8 +50,8 @@ export type State<PeerMetadata, TrackMetadata> = {
   tracks: Record<TrackId, TrackWithOrigin<TrackMetadata>>;
   bandwidthEstimation: bigint;
   status: PeerStatus;
-  media: UseUserMediaState,
-  devices: UseCameraAndMicrophoneResult<TrackMetadata>,
+  media: UseUserMediaState;
+  devices: UseCameraAndMicrophoneResult<TrackMetadata>;
   connectivity: Connectivity<PeerMetadata, TrackMetadata>;
 };
 

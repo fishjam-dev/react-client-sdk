@@ -34,23 +34,23 @@ import {
   TrackContext,
 } from "@jellyfish-dev/ts-client-sdk";
 import { INITIAL_STATE, UseUserMediaAction, userMediaReducer } from "./useUserMedia";
-import { UseCameraAndMicrophoneResult } from "./create";
+import { UseCameraAndMicrophoneResult } from "./useCameraAndMicrophone/types";
 
 export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneResult<TrackMetadata> => ({
   camera: {
     stop: () => {},
     setEnable: (_value: boolean) => {},
-    start: () => {}, // startByType
+    start: () => {},
     addTrack: (
       _trackMetadata?: TrackMetadata,
       _simulcastConfig?: SimulcastConfig,
       _maxBandwidth?: TrackBandwidthLimit
-    ) => {}, // remote
-    removeTrack: () => {}, // remote
+    ) => {},
+    removeTrack: () => {},
     replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
-      Promise.reject(), // remote
+      Promise.reject(),
     broadcast: null,
-    status: null, // todo how to ull
+    status: null,
     stream: null,
     track: null,
     enabled: false,
@@ -435,13 +435,17 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return updateTrackMetadata<PeerMetadata, TrackMetadata>(action.trackId, action.trackMetadata)(state);
     case "onTracksPriorityChanged":
       return onTracksPriorityChanged<PeerMetadata, TrackMetadata>(action.enabledTracks, action.disabledTracks)(state);
+    case "setDevices":
+      return { ...state, devices: action.data };
+    case "UseUserMedia-loading":
+    case "UseUserMedia-setAudioAndVideo":
+    case "UseUserMedia-setEnable":
+    case "UseUserMedia-setError":
+    case "UseUserMedia-setMedia":
+    case "UseUserMedia-stopDevice":
+      return { ...state, media: userMediaReducer(state.media, action) };
   }
-  if (action.type === "setDevices") {
-    return { ...state, devices: action.data };
-  } else if (action.type.startsWith("UseUserMedia")) {
-    const media = userMediaReducer(state.media, action);
-    return { ...state, media };
-  }
+
   throw Error("Unhandled Action");
 };
 

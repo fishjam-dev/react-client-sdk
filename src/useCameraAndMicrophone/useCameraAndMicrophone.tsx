@@ -6,7 +6,7 @@ import {
   UseCameraAndMicrophoneResult,
   UseSetupCameraAndMicrophoneConfig,
   UseSetupCameraAndMicrophoneResult,
-} from "../create";
+} from "./types";
 import { State } from "../state.types";
 import { Action } from "../reducer";
 
