@@ -130,7 +130,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
   useSetupCameraAndMicrophone: (
     config: UseSetupCameraAndMicrophoneConfig<TrackMetadata>
-  ) => Pick<UseCameraAndMicrophoneResult<TrackMetadata>, "start" | "init">;
+  ) => UseSetupCameraAndMicrophoneResult;
   useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["camera"];
   useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["microphone"];
 };
@@ -193,13 +193,13 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
 
-  const useCamera = (): UseCameraAndMicrophoneResult<TrackMetadata>["camera"] => {
+  const useCamera = (): UseCameraResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
 
     return state.devices.camera;
   };
 
-  const useMicrophone = (): UseCameraAndMicrophoneResult<TrackMetadata>["microphone"] => {
+  const useMicrophone = (): UseMicrophoneResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
 
     return state.devices.microphone;
