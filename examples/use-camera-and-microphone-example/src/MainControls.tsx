@@ -1,5 +1,8 @@
 import {
-  TrackMetadata,
+  DEFAULT_AUDIO_TRACK_METADATA,
+  DEFAULT_VIDEO_TRACK_METADATA,
+  MANUAL_AUDIO_TRACK_METADATA,
+  MANUAL_VIDEO_TRACK_METADATA,
   useCamera,
   useCameraAndMicrophone,
   useConnect,
@@ -17,6 +20,7 @@ import AudioVisualizer from "./AudioVisualizer";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { Fragment } from "react";
 import { Badge } from "./Badge";
+import { DeviceControls } from "./DeviceControls";
 
 const tokenAtom = atomWithStorage("token", "");
 
@@ -25,26 +29,6 @@ const videoPreviewAtom = atomWithStorage<boolean | undefined>("videoPreview", un
 
 const audioAutoStreamingAtom = atomWithStorage<boolean | undefined>("audioAutoStreaming", undefined);
 const audioPreviewAtom = atomWithStorage<boolean | undefined>("audioPreviewAtom", undefined);
-
-const DEFAULT_VIDEO_TRACK_METADATA: TrackMetadata = {
-  type: "camera",
-  mode: "auto",
-};
-
-const MANUAL_VIDEO_TRACK_METADATA: TrackMetadata = {
-  type: "camera",
-  mode: "manual",
-};
-
-const DEFAULT_AUDIO_TRACK_METADATA: TrackMetadata = {
-  type: "microphone",
-  mode: "auto",
-};
-
-const MANUAL_AUDIO_TRACK_METADATA: TrackMetadata = {
-  type: "microphone",
-  mode: "manual",
-};
 
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
@@ -82,7 +66,6 @@ export const MainControls = () => {
 
   const video = useCamera();
   const audio = useMicrophone();
-
   const status = useStatus();
 
   return (
@@ -179,120 +162,8 @@ export const MainControls = () => {
         />
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-2">
-            <button
-              className="btn btn-success btn-sm"
-              disabled={!!video.stream}
-              // todo start previous stream
-              // disabled={true}
-              onClick={() => {
-                video.start();
-              }}
-            >
-              Start video device
-            </button>
-            <button
-              className="btn btn-error btn-sm"
-              disabled={!video.stream}
-              onClick={() => {
-                video.stop();
-              }}
-            >
-              Stop video device
-            </button>
-            <button
-              className="btn btn-success btn-sm"
-              disabled={!video.stream || video.enabled}
-              onClick={() => {
-                video.setEnable(true);
-              }}
-            >
-              Enable video track
-            </button>
-            <button
-              className="btn btn-error btn-sm"
-              disabled={!video.enabled}
-              onClick={() => {
-                video.setEnable(false);
-              }}
-            >
-              Disable video track
-            </button>
-            <button
-              className="btn btn-success btn-sm"
-              disabled={status !== "joined" || !video?.stream || !!video?.broadcast?.trackId}
-              onClick={() => {
-                video.addTrack(MANUAL_VIDEO_TRACK_METADATA);
-              }}
-            >
-              Stream video track
-            </button>
-            <button
-              className="btn btn-error btn-sm"
-              disabled={status !== "joined" || !video?.stream || !video?.broadcast?.trackId}
-              onClick={() => {
-                video.removeTrack();
-              }}
-            >
-              Stop video track stream
-            </button>
-          </div>
-          <div className="flex flex-col gap-2">
-            <button
-              className="btn btn-success btn-sm"
-              disabled={!!audio.stream}
-              onClick={() => {
-                audio.start();
-              }}
-            >
-              Start audio device
-            </button>
-            <button
-              className="btn btn-error btn-sm"
-              disabled={!audio.stream}
-              onClick={() => {
-                audio.stop();
-              }}
-            >
-              Stop audio device
-            </button>
-            <button
-              className="btn btn-success btn-sm"
-              disabled={!audio.stream || audio.enabled}
-              onClick={() => {
-                audio.setEnable(true);
-              }}
-            >
-              Enable audio track
-            </button>
-            <button
-              className="btn btn-error btn-sm"
-              disabled={!audio.enabled}
-              onClick={() => {
-                audio.setEnable(false);
-              }}
-            >
-              Disable audio track
-            </button>
-            <button
-              className="btn btn-success btn-sm"
-              disabled={status !== "joined" || !audio?.stream || !!audio?.broadcast?.trackId}
-              onClick={() => {
-                audio.addTrack(MANUAL_AUDIO_TRACK_METADATA);
-              }}
-            >
-              Stream audio track
-            </button>
-            <button
-              className="btn btn-error btn-sm"
-              disabled={status !== "joined" || !audio?.stream || !audio?.broadcast?.trackId}
-              onClick={() => {
-                audio.removeTrack();
-              }}
-            >
-              Stop audio track stream
-            </button>
-          </div>
+          <DeviceControls device={video} type={"video"} status={status} metadata={MANUAL_VIDEO_TRACK_METADATA} />
+          <DeviceControls device={audio} type={"audio"} status={status} metadata={MANUAL_AUDIO_TRACK_METADATA} />
         </div>
       </div>
       <div>
