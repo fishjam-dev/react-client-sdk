@@ -33,7 +33,7 @@ import {
   TrackBandwidthLimit,
   TrackContext,
 } from "@jellyfish-dev/ts-client-sdk";
-import { INITIAL_STATE, MediaAction, mediaReducer } from "./useUserMedia";
+import { INITIAL_STATE, UseUserMediaAction, userMediaReducer } from "./useUserMedia";
 import { UseCameraAndMicrophoneResult } from "./create";
 
 export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneResult<TrackMetadata> => ({
@@ -225,6 +225,8 @@ export type LocalUpdateTrackMetadataAction<TrackMetadata> = {
   trackMetadata: TrackMetadata;
 };
 
+export type SetDevices<TrackMetadata> = { type: "setDevices"; data: UseCameraAndMicrophoneResult<TrackMetadata> };
+
 export type Action<PeerMetadata, TrackMetadata> =
   | ConnectAction<PeerMetadata, TrackMetadata>
   | DisconnectAction
@@ -251,8 +253,8 @@ export type Action<PeerMetadata, TrackMetadata> =
   | LocalRemoveTrackAction
   | LocalUpdateTrackMetadataAction<TrackMetadata>
   | LocalAddTrackAction<TrackMetadata>
-  | { type: "media-setCameraAndMicrophone"; data: UseCameraAndMicrophoneResult<TrackMetadata> }
-  | MediaAction;
+  | SetDevices<TrackMetadata>
+  | UseUserMediaAction;
 
 const onConnect = <PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,
@@ -434,10 +436,10 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "onTracksPriorityChanged":
       return onTracksPriorityChanged<PeerMetadata, TrackMetadata>(action.enabledTracks, action.disabledTracks)(state);
   }
-  if (action.type === "media-setCameraAndMicrophone") {
+  if (action.type === "setDevices") {
     return { ...state, devices: action.data };
   } else if (action.type.startsWith("media")) {
-    const media = mediaReducer(state.media, action);
+    const media = userMediaReducer(state.media, action);
     return { ...state, media };
   }
   throw Error("Unhandled Action");

@@ -201,50 +201,36 @@ export const INITIAL_STATE: UseUserMediaState = {
   },
 };
 
-export type MediaAction =
+export type UseUserMediaAction =
   | {
-      type: "media-loading";
-      video: {
-        shouldAskForVideo: boolean;
-        videoConstraints: MediaTrackConstraints | undefined;
-      };
-      audio: {
-        shouldAskForAudio: boolean;
-        audioConstraints: MediaTrackConstraints | undefined;
-      };
+      type: "UseUserMedia-loading";
+      video: { ask: boolean; constraints: MediaTrackConstraints | undefined };
+      audio: { ask: boolean; constraints: MediaTrackConstraints | undefined };
     }
   | {
-      type: "media-setNewState";
+      type: "UseUserMedia-setAudioAndVideo";
       video: DeviceState;
       audio: DeviceState;
     }
   | {
-      type: "media-setMedia";
-      stream: MediaStream; // or null?
-      audio: {
-        shouldRestartAudio: boolean;
-        audioInfo: MediaDeviceInfo | null;
-      };
-      video: {
-        shouldRestartVideo: boolean;
-        videoInfo: MediaDeviceInfo | null;
-      };
+      type: "UseUserMedia-setMedia";
+      stream: MediaStream;
+      audio: { restart: boolean; info: MediaDeviceInfo | null };
+      video: { restart: boolean; info: MediaDeviceInfo | null };
     }
-  | { type: "media-setError"; parsedError: DeviceError | null; exactConstraints: MediaStreamConstraints }
-  | { type: "media-stop"; mediaType: Type }
-  | { type: "media-setEnable"; mediaType: Type; value: boolean };
+  | { type: "UseUserMedia-setError"; parsedError: DeviceError | null; constraints: MediaStreamConstraints }
+  | { type: "UseUserMedia-stopDevice"; mediaType: Type }
+  | { type: "UseUserMedia-setEnable"; mediaType: Type; value: boolean };
 
-export type MediaReducer = (state: UseUserMediaState, action: MediaAction) => UseUserMediaState;
+export type MediaReducer = (state: UseUserMediaState, action: UseUserMediaAction) => UseUserMediaState;
 
-export const mediaReducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaState => {
-  console.log({ name: "Reducer!", action, state });
-
+export const userMediaReducer = (state: UseUserMediaState, action: UseUserMediaAction): UseUserMediaState => {
   const prevState = state;
-  if (action.type === "media-loading") {
-    const shouldAskForAudio = action.audio.shouldAskForAudio;
-    const shouldAskForVideo = action.video.shouldAskForVideo;
-    const videoConstraints = action.video.videoConstraints;
-    const audioConstraints = action.audio.audioConstraints;
+  if (action.type === "UseUserMedia-loading") {
+    const shouldAskForAudio = action.audio.ask;
+    const shouldAskForVideo = action.video.ask;
+    const videoConstraints = action.video.constraints;
+    const audioConstraints = action.audio.constraints;
     return {
       ...prevState,
       video: {
@@ -256,23 +242,23 @@ export const mediaReducer = (state: UseUserMediaState, action: MediaAction): Use
         status: shouldAskForAudio && audioConstraints ? REQUESTING : prevState.audio.status ?? NOT_REQUESTED,
       },
     };
-  } else if (action.type === "media-setNewState") {
+  } else if (action.type === "UseUserMedia-setAudioAndVideo") {
     return { audio: action.audio, video: action.video };
-  } else if (action.type === "media-setMedia") {
-    const videoMedia: Media | null = action.video.shouldRestartVideo
+  } else if (action.type === "UseUserMedia-setMedia") {
+    const videoMedia: Media | null = action.video.restart
       ? {
           stream: action.stream,
           track: action.stream.getVideoTracks()[0] || null,
-          deviceInfo: action.video.videoInfo,
+          deviceInfo: action.video.info,
           enabled: true,
         }
       : prevState.video.media;
 
-    const audioMedia: Media | null = action.audio.shouldRestartAudio
+    const audioMedia: Media | null = action.audio.restart
       ? {
           stream: action.stream,
           track: action.stream.getAudioTracks()[0] || null,
-          deviceInfo: action.audio.audioInfo,
+          deviceInfo: action.audio.info,
           enabled: true,
         }
       : prevState.audio.media;
@@ -282,20 +268,20 @@ export const mediaReducer = (state: UseUserMediaState, action: MediaAction): Use
       video: { ...prevState.video, media: videoMedia },
       audio: { ...prevState.audio, media: audioMedia },
     };
-  } else if (action.type === "media-setError") {
-    const videoError = action.exactConstraints.video ? action.parsedError : prevState.video.error;
-    const audioError = action.exactConstraints.audio ? action.parsedError : prevState.audio.error;
+  } else if (action.type === "UseUserMedia-setError") {
+    const videoError = action.constraints.video ? action.parsedError : prevState.video.error;
+    const audioError = action.constraints.audio ? action.parsedError : prevState.audio.error;
 
     return {
       ...prevState,
       video: { ...prevState.video, error: videoError },
       audio: { ...prevState.audio, error: audioError },
     };
-  } else if (action.type === "media-stop") {
+  } else if (action.type === "UseUserMedia-stopDevice") {
     prevState?.[action.mediaType]?.media?.track?.stop();
 
     return { ...prevState, [action.mediaType]: { ...prevState[action.mediaType], media: null } };
-  } else if (action.type === "media-setEnable") {
+  } else if (action.type === "UseUserMedia-setEnable") {
     const media = prevState[action.mediaType].media;
     if (!media || !media.track) {
       return prevState;
@@ -310,6 +296,7 @@ export const mediaReducer = (state: UseUserMediaState, action: MediaAction): Use
   }
   throw Error("Unhandled Action");
 };
+
 /**
  * This hook is responsible for managing Media Devices and Media Streams from those devices.
  *
@@ -331,7 +318,11 @@ export const useUserMedia = ({
   audioTrackConstraints,
   startOnMount = false,
 }: UseUserMediaConfig): UseUserMedia => {
-  const [state, dispatch] = useReducer<MediaReducer, UseUserMediaState>(mediaReducer, INITIAL_STATE, () => INITIAL_STATE);
+  const [state, dispatch] = useReducer<MediaReducer, UseUserMediaState>(
+    userMediaReducer,
+    INITIAL_STATE,
+    () => INITIAL_STATE
+  );
   return useUserMediaInternal(state, dispatch, {
     storage,
     videoTrackConstraints,
@@ -357,7 +348,7 @@ export const useUserMedia = ({
  */
 export const useUserMediaInternal = (
   state: UseUserMediaState,
-  dispatch: Dispatch<MediaAction>,
+  dispatch: Dispatch<UseUserMediaAction>,
   { storage, videoTrackConstraints, audioTrackConstraints, startOnMount = false }: UseUserMediaConfig
 ): UseUserMedia => {
   const skip = useRef<boolean>(false);
@@ -390,9 +381,9 @@ export const useUserMediaInternal = (
     const shouldAskForAudio = !!audioTrackConstraints;
 
     dispatch({
-      type: "media-loading",
-      video: { shouldAskForVideo, videoConstraints },
-      audio: { shouldAskForAudio, audioConstraints },
+      type: "UseUserMedia-loading",
+      video: { ask: shouldAskForVideo, constraints: videoConstraints },
+      audio: { ask: shouldAskForAudio, constraints: audioConstraints },
     });
 
     let requestedDevices: MediaStream | null = null;
@@ -462,7 +453,7 @@ export const useUserMediaInternal = (
       shouldAskForAudio
     );
 
-    dispatch({ type: "media-setNewState", audio, video });
+    dispatch({ type: "UseUserMedia-setAudioAndVideo", audio, video });
 
     if (video.media?.deviceInfo) {
       saveLastVideoDevice?.(video.media.deviceInfo);
@@ -525,21 +516,21 @@ export const useUserMediaInternal = (
         }
 
         dispatch({
-          type: "media-setMedia",
+          type: "UseUserMedia-setMedia",
           stream: stream,
           video: {
-            shouldRestartVideo,
-            videoInfo,
+            restart: shouldRestartVideo,
+            info: videoInfo,
           },
           audio: {
-            shouldRestartAudio,
-            audioInfo,
+            restart: shouldRestartAudio,
+            info: audioInfo,
           },
         });
       } else {
         const parsedError = result.error;
 
-        dispatch({ type: "media-setError", parsedError, exactConstraints });
+        dispatch({ type: "UseUserMedia-setError", parsedError, constraints: exactConstraints });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -548,14 +539,14 @@ export const useUserMediaInternal = (
 
   const stop = useCallback(
     async (type: Type) => {
-      dispatch({ type: "media-stop", mediaType: type });
+      dispatch({ type: "UseUserMedia-stopDevice", mediaType: type });
     },
     [dispatch]
   );
 
   const setEnable = useCallback(
     (type: Type, value: boolean) => {
-      dispatch({ type: "media-setEnable", mediaType: type, value });
+      dispatch({ type: "UseUserMedia-setEnable", mediaType: type, value });
     },
     [dispatch]
   );
