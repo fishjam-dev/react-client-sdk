@@ -25,8 +25,59 @@ import {
   updateTrackMetadata,
 } from "./stateMappers";
 import { createApiWrapper } from "./api";
-import { Config, Endpoint, JellyfishClient, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
+import {
+  Config,
+  Endpoint,
+  JellyfishClient,
+  SimulcastConfig,
+  TrackBandwidthLimit,
+  TrackContext,
+} from "@jellyfish-dev/ts-client-sdk";
 import { INITIAL_STATE, MediaAction, mediaReducer } from "./useUserMedia";
+import { UseCameraAndMicrophoneResult } from "./create";
+
+export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneResult<TrackMetadata> => ({
+  video: {
+    stop: () => {},
+    setEnable: (_value: boolean) => {},
+    start: () => {}, // startByType
+    addTrack: (
+      _trackMetadata?: TrackMetadata,
+      _simulcastConfig?: SimulcastConfig,
+      _maxBandwidth?: TrackBandwidthLimit
+    ) => {}, // remote
+    removeTrack: () => {}, // remote
+    replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
+      Promise.reject(), // remote
+    broadcast: null,
+    status: null, // todo how to ull
+    stream: null,
+    track: null,
+    enabled: false,
+    deviceInfo: null,
+    error: null,
+    devices: null,
+  },
+  audio: {
+    stop: () => {},
+    setEnable: (_value: boolean) => {},
+    start: () => {}, // startByType
+    addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => {}, // remote
+    removeTrack: () => {}, // remote
+    replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
+      Promise.reject(), // remote
+    broadcast: null,
+    status: null, // todo how to ull
+    stream: null,
+    track: null,
+    enabled: false,
+    deviceInfo: null,
+    error: null,
+    devices: null,
+  },
+  start: () => {},
+  init: () => {},
+});
 
 export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => ({
   local: null,
@@ -35,6 +86,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
   tracks: {},
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
   media: INITIAL_STATE,
+  devices: createDefaultDevices(),
   connectivity: {
     api: null,
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
@@ -199,6 +251,7 @@ export type Action<PeerMetadata, TrackMetadata> =
   | LocalRemoveTrackAction
   | LocalUpdateTrackMetadataAction<TrackMetadata>
   | LocalAddTrackAction<TrackMetadata>
+  | { type: "media-setCameraAndMicrophone"; data: UseCameraAndMicrophoneResult<TrackMetadata> }
   | MediaAction;
 
 const onConnect = <PeerMetadata, TrackMetadata>(
@@ -381,7 +434,9 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "onTracksPriorityChanged":
       return onTracksPriorityChanged<PeerMetadata, TrackMetadata>(action.enabledTracks, action.disabledTracks)(state);
   }
-  if (action.type.startsWith("media")) {
+  if (action.type === "media-setCameraAndMicrophone") {
+    return { ...state, devices: action.data };
+  } else if (action.type.startsWith("media")) {
     const media = mediaReducer(state.media, action);
     return { ...state, media };
   }

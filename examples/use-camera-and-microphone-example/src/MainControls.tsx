@@ -1,8 +1,10 @@
 import {
   TrackMetadata,
+  useCamera,
   useCameraAndMicrophone,
   useConnect,
   useDisconnect,
+  useMicrophone,
   useSelector,
   useStatus,
 } from "./jellyfishSetup";
@@ -44,7 +46,7 @@ const MANUAL_AUDIO_TRACK_METADATA: TrackMetadata = {
   mode: "manual",
 };
 
-export const App = () => {
+export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
 
   const connect = useConnect();
@@ -57,7 +59,7 @@ export const App = () => {
   const [audioAutoStreaming, setAudioAutoStreaming] = useAtom(audioAutoStreamingAtom);
   const [audioPreview, setAudioPreview] = useAtom(audioPreviewAtom);
 
-  const { audio, video, init, start } = useCameraAndMicrophone({
+  const { init, start } = useCameraAndMicrophone({
     camera: {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
       autoStreaming: videoAutoStreaming,
@@ -77,6 +79,9 @@ export const App = () => {
     startOnMount: false,
     storage: true,
   });
+
+  const video = useCamera();
+  const audio = useMicrophone();
 
   const status = useStatus();
 
@@ -316,4 +321,4 @@ export const App = () => {
   );
 };
 
-export default App;
+export default MainControls;

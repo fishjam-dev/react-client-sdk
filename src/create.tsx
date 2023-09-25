@@ -15,7 +15,7 @@ import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi, DEFAULT_STORE } from "./state";
 import { Api } from "./api";
 import { Config, JellyfishClient, SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
-import { INITIAL_STATE, mediaReducer, MediaReducer, useUserMedia, useUserMediaInternal } from "./useUserMedia";
+import { INITIAL_STATE, useUserMediaInternal } from "./useUserMedia";
 import {
   DeviceError,
   DevicePersistence,
@@ -23,9 +23,8 @@ import {
   Type,
   UseUserMediaConfig,
   UseUserMediaStartConfig,
-  UseUserMediaState,
 } from "./useUserMedia/types";
-import { Action, Reducer, reducer } from "./reducer";
+import { Action, createDefaultDevices, Reducer, reducer } from "./reducer";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -45,6 +44,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
   tracks: {},
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
   media: INITIAL_STATE,
+  devices: createDefaultDevices(),
   connectivity: {
     api: null,
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
@@ -128,13 +128,12 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
-
-  /*
-   * At this moment, this hook does not work with the context.
-   */
+  // todo change name
   useCameraAndMicrophone: (
     config: UseCameraAndMicrophoneConfig<TrackMetadata>
-  ) => UseCameraAndMicrophoneResult<TrackMetadata>;
+  ) => Pick<UseCameraAndMicrophoneResult<TrackMetadata>, "start" | "init">;
+  useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["video"];
+  useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["audio"];
 };
 
 /**
@@ -195,9 +194,21 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
 
+  const useCamera = (): UseCameraAndMicrophoneResult<TrackMetadata>["video"] => {
+    const { state } = useJellyfishContext();
+
+    return state.devices.video;
+  };
+
+  const useMicrophone = (): UseCameraAndMicrophoneResult<TrackMetadata>["audio"] => {
+    const { state } = useJellyfishContext();
+
+    return state.devices.audio;
+  };
+
   const useCameraAndMicrophone = (
     config: UseCameraAndMicrophoneConfig<TrackMetadata>
-  ): UseCameraAndMicrophoneResult<TrackMetadata> => {
+  ): Pick<UseCameraAndMicrophoneResult<TrackMetadata>, "init" | "start"> => {
     const { state, dispatch } = useJellyfishContext();
 
     const userMediaConfig: UseUserMediaConfig = useMemo(
@@ -365,8 +376,8 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       [state]
     );
 
-    return useMemo(
-      () => ({
+    useEffect(() => {
+      const data: UseCameraAndMicrophoneResult<TrackMetadata> = {
         init: result.init,
         start: result.start,
         video: {
@@ -410,8 +421,17 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
           error: result.data?.audio?.error || null,
           devices: result.data?.audio?.devices || null,
         },
+      };
+
+      dispatch({ type: "media-setCameraAndMicrophone", data });
+    }, [result, video, audio, startByType, addTrack, removeTrack, replaceTrack, dispatch]);
+
+    return useMemo(
+      () => ({
+        init: result.init,
+        start: result.start,
       }),
-      [result, video, audio, startByType, addTrack, removeTrack, replaceTrack]
+      [result]
     );
   };
 
@@ -424,5 +444,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     useStatus,
     useTracks,
     useCameraAndMicrophone,
+    useCamera,
+    useMicrophone,
   };
 };
