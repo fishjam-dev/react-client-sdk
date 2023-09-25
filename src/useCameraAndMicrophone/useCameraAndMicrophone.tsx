@@ -1,14 +1,14 @@
-import { Type, UseUserMediaConfig } from "./useUserMedia/types";
+import { Type, UseUserMediaConfig } from "../useUserMedia/types";
 import { Dispatch, useCallback, useEffect, useMemo, useRef } from "react";
-import { useUserMediaInternal } from "./useUserMedia";
+import { useUserMediaInternal } from "../useUserMedia";
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
 import {
   UseCameraAndMicrophoneResult,
   UseSetupCameraAndMicrophoneConfig,
   UseSetupCameraAndMicrophoneResult,
-} from "./create";
-import { State } from "./state.types";
-import { Action } from "./reducer";
+} from "../create";
+import { State } from "../state.types";
+import { Action } from "../reducer";
 
 export const useSetupCameraAndMicrophone = <PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,

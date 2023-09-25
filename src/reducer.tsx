@@ -438,7 +438,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
   }
   if (action.type === "setDevices") {
     return { ...state, devices: action.data };
-  } else if (action.type.startsWith("media")) {
+  } else if (action.type.startsWith("UseUserMedia")) {
     const media = userMediaReducer(state.media, action);
     return { ...state, media };
   }

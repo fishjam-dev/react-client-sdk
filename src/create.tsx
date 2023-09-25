@@ -7,7 +7,7 @@ import { Config, JellyfishClient, SimulcastConfig, TrackBandwidthLimit } from "@
 import { INITIAL_STATE } from "./useUserMedia";
 import { DeviceError, DevicePersistence, DeviceReturnType, UseUserMediaStartConfig } from "./useUserMedia/types";
 import { Action, createDefaultDevices, Reducer, reducer } from "./reducer";
-import { useSetupCameraAndMicrophone as useSetupCameraAndMicrophoneInternal } from "./useCameraAndMicrophone";
+import { useSetupCameraAndMicrophone as useSetupCameraAndMicrophoneInternal } from "./useCameraAndMicrophone/useCameraAndMicrophone";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
