@@ -15,7 +15,7 @@ import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi, DEFAULT_STORE } from "./state";
 import { Api } from "./api";
 import { Config, JellyfishClient, SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
-import { useUserMedia } from "./useUserMedia";
+import { INITIAL_STATE, mediaReducer, MediaReducer, useUserMedia, useUserMediaInternal } from "./useUserMedia";
 import {
   DeviceError,
   DevicePersistence,
@@ -23,6 +23,7 @@ import {
   Type,
   UseUserMediaConfig,
   UseUserMediaStartConfig,
+  UseUserMediaState,
 } from "./useUserMedia/types";
 import { Action, Reducer, reducer } from "./reducer";
 
@@ -43,6 +44,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
   status: null,
   tracks: {},
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
+  media: INITIAL_STATE,
   connectivity: {
     api: null,
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
@@ -196,7 +198,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useCameraAndMicrophone = (
     config: UseCameraAndMicrophoneConfig<TrackMetadata>
   ): UseCameraAndMicrophoneResult<TrackMetadata> => {
-    const { state } = useJellyfishContext();
+    const { state, dispatch } = useJellyfishContext();
 
     const userMediaConfig: UseUserMediaConfig = useMemo(() => {
       return {
@@ -207,7 +209,9 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       };
     }, [config]);
 
-    const result = useUserMedia(userMediaConfig);
+    console.log({ name: "useUserMediaInternal3" });
+
+    const result = useUserMediaInternal(state.media, dispatch, userMediaConfig);
 
     const mediaRef = useRef(result);
     const apiRef = useRef(state.connectivity.api);

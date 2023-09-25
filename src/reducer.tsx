@@ -26,6 +26,7 @@ import {
 } from "./stateMappers";
 import { createApiWrapper } from "./api";
 import { Config, Endpoint, JellyfishClient, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
+import { INITIAL_STATE, MediaAction, mediaReducer } from "./useUserMedia";
 
 export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => ({
   local: null,
@@ -33,6 +34,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
   status: null,
   tracks: {},
   bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
+  media: INITIAL_STATE,
   connectivity: {
     api: null,
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
@@ -196,7 +198,8 @@ export type Action<PeerMetadata, TrackMetadata> =
   | LocalReplaceTrackAction<TrackMetadata>
   | LocalRemoveTrackAction
   | LocalUpdateTrackMetadataAction<TrackMetadata>
-  | LocalAddTrackAction<TrackMetadata>;
+  | LocalAddTrackAction<TrackMetadata>
+  | MediaAction;
 
 const onConnect = <PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,
@@ -311,7 +314,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "disconnect":
       state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.cleanUp();
-      return createDefaultState();
+      return { ...createDefaultState(), media: state.media };
     // connections events
     case "onSocketOpen":
       return onSocketOpen<PeerMetadata, TrackMetadata>()(state);
@@ -325,7 +328,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.cleanUp();
       // return onDisconnected<PeerMetadata, TrackMetadata>()(state)
-      return createDefaultState();
+      return { ...createDefaultState(), media: state.media };
     case "onAuthSuccess":
       return onAuthSuccess<PeerMetadata, TrackMetadata>()(state);
     case "onAuthError":
@@ -377,6 +380,10 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       return updateTrackMetadata<PeerMetadata, TrackMetadata>(action.trackId, action.trackMetadata)(state);
     case "onTracksPriorityChanged":
       return onTracksPriorityChanged<PeerMetadata, TrackMetadata>(action.enabledTracks, action.disabledTracks)(state);
+  }
+  if (action.type.startsWith("media")) {
+    const media = mediaReducer(state.media, action);
+    return { ...state, media };
   }
   throw Error("Unhandled Action");
 };

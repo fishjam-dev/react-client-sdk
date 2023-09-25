@@ -186,7 +186,7 @@ const LOCAL_STORAGE_DEVICE_PERSISTENCE: DevicePersistence = {
   saveLastVideoDevice: (info: MediaDeviceInfo) => saveObject<MediaDeviceInfo>(LOCAL_STORAGE_VIDEO_DEVICE_KEY, info),
 };
 
-const INITIAL_STATE: UseUserMediaState = {
+export const INITIAL_STATE: UseUserMediaState = {
   video: {
     status: "Not requested",
     media: null,
@@ -203,7 +203,7 @@ const INITIAL_STATE: UseUserMediaState = {
 
 export type MediaAction =
   | {
-      type: "loading";
+      type: "media-loading";
       video: {
         shouldAskForVideo: boolean;
         videoConstraints: MediaTrackConstraints | undefined;
@@ -214,12 +214,12 @@ export type MediaAction =
       };
     }
   | {
-      type: "setNewState";
+      type: "media-setNewState";
       video: DeviceState;
       audio: DeviceState;
     }
   | {
-      type: "setMedia";
+      type: "media-setMedia";
       stream: MediaStream; // or null?
       audio: {
         shouldRestartAudio: boolean;
@@ -230,17 +230,17 @@ export type MediaAction =
         videoInfo: MediaDeviceInfo | null;
       };
     }
-  | { type: "setError"; parsedError: DeviceError | null; exactConstraints: MediaStreamConstraints }
-  | { type: "stop"; mediaType: Type }
-  | { type: "setEnable"; mediaType: Type; value: boolean };
+  | { type: "media-setError"; parsedError: DeviceError | null; exactConstraints: MediaStreamConstraints }
+  | { type: "media-stop"; mediaType: Type }
+  | { type: "media-setEnable"; mediaType: Type; value: boolean };
 
 export type MediaReducer = (state: UseUserMediaState, action: MediaAction) => UseUserMediaState;
 
-const reducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaState => {
+export const mediaReducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaState => {
   console.log({ name: "Reducer!", action, state });
 
   const prevState = state;
-  if (action.type === "loading") {
+  if (action.type === "media-loading") {
     const shouldAskForAudio = action.audio.shouldAskForAudio;
     const shouldAskForVideo = action.video.shouldAskForVideo;
     const videoConstraints = action.video.videoConstraints;
@@ -256,9 +256,9 @@ const reducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaSta
         status: shouldAskForAudio && audioConstraints ? REQUESTING : prevState.audio.status ?? NOT_REQUESTED,
       },
     };
-  } else if (action.type === "setNewState") {
+  } else if (action.type === "media-setNewState") {
     return { audio: action.audio, video: action.video };
-  } else if (action.type === "setMedia") {
+  } else if (action.type === "media-setMedia") {
     const videoMedia: Media | null = action.video.shouldRestartVideo
       ? {
           stream: action.stream,
@@ -282,7 +282,7 @@ const reducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaSta
       video: { ...prevState.video, media: videoMedia },
       audio: { ...prevState.audio, media: audioMedia },
     };
-  } else if (action.type === "setError") {
+  } else if (action.type === "media-setError") {
     const videoError = action.exactConstraints.video ? action.parsedError : prevState.video.error;
     const audioError = action.exactConstraints.audio ? action.parsedError : prevState.audio.error;
 
@@ -291,11 +291,11 @@ const reducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaSta
       video: { ...prevState.video, error: videoError },
       audio: { ...prevState.audio, error: audioError },
     };
-  } else if (action.type === "stop") {
+  } else if (action.type === "media-stop") {
     prevState?.[action.mediaType]?.media?.track?.stop();
 
     return { ...prevState, [action.mediaType]: { ...prevState[action.mediaType], media: null } };
-  } else if (action.type === "setEnable") {
+  } else if (action.type === "media-setEnable") {
     const media = prevState[action.mediaType].media;
     if (!media || !media.track) {
       return prevState;
@@ -331,7 +331,7 @@ export const useUserMedia = ({
   audioTrackConstraints,
   startOnMount = false,
 }: UseUserMediaConfig): UseUserMedia => {
-  const [state, dispatch] = useReducer<MediaReducer, UseUserMediaState>(reducer, INITIAL_STATE, () => INITIAL_STATE);
+  const [state, dispatch] = useReducer<MediaReducer, UseUserMediaState>(mediaReducer, INITIAL_STATE, () => INITIAL_STATE);
   return useUserMediaInternal(state, dispatch, {
     storage,
     videoTrackConstraints,
@@ -391,7 +391,7 @@ export const useUserMediaInternal = (
     const shouldAskForAudio = !!audioTrackConstraints;
 
     dispatch({
-      type: "loading",
+      type: "media-loading",
       video: { shouldAskForVideo, videoConstraints },
       audio: { shouldAskForAudio, audioConstraints },
     });
@@ -463,7 +463,7 @@ export const useUserMediaInternal = (
       shouldAskForAudio
     );
 
-    dispatch({ type: "setNewState", audio, video });
+    dispatch({ type: "media-setNewState", audio, video });
 
     if (video.media?.deviceInfo) {
       saveLastVideoDevice?.(video.media.deviceInfo);
@@ -526,7 +526,7 @@ export const useUserMediaInternal = (
         }
 
         dispatch({
-          type: "setMedia",
+          type: "media-setMedia",
           stream: stream,
           video: {
             shouldRestartVideo,
@@ -540,7 +540,7 @@ export const useUserMediaInternal = (
       } else {
         const parsedError = result.error;
 
-        dispatch({ type: "setError", parsedError, exactConstraints });
+        dispatch({ type: "media-setError", parsedError, exactConstraints });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -549,14 +549,14 @@ export const useUserMediaInternal = (
 
   const stop = useCallback(
     async (type: Type) => {
-      dispatch({ type: "stop", mediaType: type });
+      dispatch({ type: "media-stop", mediaType: type });
     },
     [dispatch]
   );
 
   const setEnable = useCallback(
     (type: Type, value: boolean) => {
-      dispatch({ type: "setEnable", mediaType: type, value });
+      dispatch({ type: "media-setEnable", mediaType: type, value });
     },
     [dispatch]
   );
