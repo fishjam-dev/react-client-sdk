@@ -360,7 +360,6 @@ export const useUserMediaInternal = (
   dispatch: Dispatch<MediaAction>,
   { storage, videoTrackConstraints, audioTrackConstraints, startOnMount = false }: UseUserMediaConfig
 ): UseUserMedia => {
-  // const [state, setState] = useState<UseUserMediaState>(INITIAL_STATE);
   const skip = useRef<boolean>(false);
 
   const audioConstraints = useMemo(() => toMediaTrackConstraints(audioTrackConstraints), [audioTrackConstraints]);

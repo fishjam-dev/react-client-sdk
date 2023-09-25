@@ -200,16 +200,15 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   ): UseCameraAndMicrophoneResult<TrackMetadata> => {
     const { state, dispatch } = useJellyfishContext();
 
-    const userMediaConfig: UseUserMediaConfig = useMemo(() => {
-      return {
+    const userMediaConfig: UseUserMediaConfig = useMemo(
+      () => ({
         storage: config.storage,
         startOnMount: config.startOnMount,
         audioTrackConstraints: config.microphone.trackConstraints,
         videoTrackConstraints: config.camera.trackConstraints,
-      };
-    }, [config]);
-
-    console.log({ name: "useUserMediaInternal3" });
+      }),
+      [config]
+    );
 
     const result = useUserMediaInternal(state.media, dispatch, userMediaConfig);
 
