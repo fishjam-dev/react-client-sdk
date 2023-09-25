@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   CurrentDevices,
   DeviceError,
@@ -201,6 +201,115 @@ const INITIAL_STATE: UseUserMediaState = {
   },
 };
 
+export type MediaAction =
+  | {
+      type: "loading";
+      video: {
+        shouldAskForVideo: boolean;
+        videoConstraints: MediaTrackConstraints | undefined;
+      };
+      audio: {
+        shouldAskForAudio: boolean;
+        audioConstraints: MediaTrackConstraints | undefined;
+      };
+    }
+  | {
+      type: "setNewState";
+      video: DeviceState;
+      audio: DeviceState;
+    }
+  | {
+      type: "setMedia";
+      stream: MediaStream; // or null?
+      audio: {
+        shouldRestartAudio: boolean;
+        audioInfo: MediaDeviceInfo | null;
+      };
+      video: {
+        shouldRestartVideo: boolean;
+        videoInfo: MediaDeviceInfo | null;
+      };
+    }
+  | { type: "setError"; parsedError: DeviceError | null; exactConstraints: MediaStreamConstraints }
+  | { type: "stop"; mediaType: Type }
+  | { type: "setEnable"; mediaType: Type; value: boolean };
+
+export type MediaReducer = (state: UseUserMediaState, action: MediaAction) => UseUserMediaState;
+
+const reducer = (state: UseUserMediaState, action: MediaAction): UseUserMediaState => {
+  console.log({ name: "Reducer!", action, state });
+
+  const prevState = state;
+  if (action.type === "loading") {
+    const shouldAskForAudio = action.audio.shouldAskForAudio;
+    const shouldAskForVideo = action.video.shouldAskForVideo;
+    const videoConstraints = action.video.videoConstraints;
+    const audioConstraints = action.audio.audioConstraints;
+    return {
+      ...prevState,
+      video: {
+        ...prevState.video,
+        status: shouldAskForVideo && videoConstraints ? REQUESTING : prevState.video.status ?? NOT_REQUESTED,
+      },
+      audio: {
+        ...prevState.audio,
+        status: shouldAskForAudio && audioConstraints ? REQUESTING : prevState.audio.status ?? NOT_REQUESTED,
+      },
+    };
+  } else if (action.type === "setNewState") {
+    return { audio: action.audio, video: action.video };
+  } else if (action.type === "setMedia") {
+    const videoMedia: Media | null = action.video.shouldRestartVideo
+      ? {
+          stream: action.stream,
+          track: action.stream.getVideoTracks()[0] || null,
+          deviceInfo: action.video.videoInfo,
+          enabled: true,
+        }
+      : prevState.video.media;
+
+    const audioMedia: Media | null = action.audio.shouldRestartAudio
+      ? {
+          stream: action.stream,
+          track: action.stream.getAudioTracks()[0] || null,
+          deviceInfo: action.audio.audioInfo,
+          enabled: true,
+        }
+      : prevState.audio.media;
+
+    return {
+      ...prevState,
+      video: { ...prevState.video, media: videoMedia },
+      audio: { ...prevState.audio, media: audioMedia },
+    };
+  } else if (action.type === "setError") {
+    const videoError = action.exactConstraints.video ? action.parsedError : prevState.video.error;
+    const audioError = action.exactConstraints.audio ? action.parsedError : prevState.audio.error;
+
+    return {
+      ...prevState,
+      video: { ...prevState.video, error: videoError },
+      audio: { ...prevState.audio, error: audioError },
+    };
+  } else if (action.type === "stop") {
+    prevState?.[action.mediaType]?.media?.track?.stop();
+
+    return { ...prevState, [action.mediaType]: { ...prevState[action.mediaType], media: null } };
+  } else if (action.type === "setEnable") {
+    const media = prevState[action.mediaType].media;
+    if (!media || !media.track) {
+      return prevState;
+    }
+
+    media.track.enabled = action.value;
+
+    return {
+      ...prevState,
+      [action.mediaType]: { ...prevState[action.mediaType], media: { ...media, enabled: action.value } },
+    };
+  }
+  throw Error("Unhandled Action");
+};
 /**
  * This hook is responsible for managing Media Devices and Media Streams from those devices.
  *
@@ -222,7 +331,36 @@ export const useUserMedia = ({
   audioTrackConstraints,
   startOnMount = false,
 }: UseUserMediaConfig): UseUserMedia => {
-  const [state, setState] = useState<UseUserMediaState>(INITIAL_STATE);
+  const [state, dispatch] = useReducer<MediaReducer, UseUserMediaState>(reducer, INITIAL_STATE, () => INITIAL_STATE);
+  return useUserMediaInternal(state, dispatch, {
+    storage,
+    videoTrackConstraints,
+    audioTrackConstraints,
+    startOnMount,
+  });
+};
+
+/**
+ * This hook is responsible for managing Media Devices and Media Streams from those devices.
+ *
+ * It stores all available devices and devices that are currently in use.
+ *
+ * It can also store previously selected devices, so it can retrieve them after a page reload.
+ *
+ * The inner algorithm should only open one prompt for both audio and video.
+ *
+ * If it's not possible to get the previous device (e.g. because the device doesn't exist),
+ * it tries to recover by loosening constraints on each device one by one to overcome OverconstrainedError.
+ *
+ * If one device is not available (e.g. if the user closed the prompt or permanently blocked the device,
+ * resulting in NotAllowedError), it tries to identify which device is not available and turns on the remaining one.
+ */
+export const useUserMediaInternal = (
+  state: UseUserMediaState,
+  dispatch: Dispatch<MediaAction>,
+  { storage, videoTrackConstraints, audioTrackConstraints, startOnMount = false }: UseUserMediaConfig
+): UseUserMedia => {
+  // const [state, setState] = useState<UseUserMediaState>(INITIAL_STATE);
   const skip = useRef<boolean>(false);
 
   const audioConstraints = useMemo(() => toMediaTrackConstraints(audioTrackConstraints), [audioTrackConstraints]);
@@ -252,17 +390,11 @@ export const useUserMedia = ({
     const shouldAskForVideo = !!videoTrackConstraints;
     const shouldAskForAudio = !!audioTrackConstraints;
 
-    setState((prevState) => ({
-      ...prevState,
-      video: {
-        ...prevState.video,
-        status: shouldAskForVideo && videoConstraints ? REQUESTING : prevState.video.status ?? NOT_REQUESTED,
-      },
-      audio: {
-        ...prevState.audio,
-        status: shouldAskForAudio && audioConstraints ? REQUESTING : prevState.audio.status ?? NOT_REQUESTED,
-      },
-    }));
+    dispatch({
+      type: "loading",
+      video: { shouldAskForVideo, videoConstraints },
+      audio: { shouldAskForAudio, audioConstraints },
+    });
 
     let requestedDevices: MediaStream | null = null;
     const constraints = {
@@ -331,10 +463,7 @@ export const useUserMedia = ({
       shouldAskForAudio
     );
 
-    setState({
-      video,
-      audio,
-    });
+    dispatch({ type: "setNewState", audio, video });
 
     if (video.media?.deviceInfo) {
       saveLastVideoDevice?.(video.media.deviceInfo);
@@ -348,6 +477,7 @@ export const useUserMedia = ({
     getLastAudioDevice,
     videoTrackConstraints,
     audioTrackConstraints,
+    dispatch,
     videoConstraints,
     audioConstraints,
     saveLastVideoDevice,
@@ -395,70 +525,41 @@ export const useUserMedia = ({
           saveLastAudioDevice?.(audioInfo);
         }
 
-        setState((prevState): UseUserMediaState => {
-          const videoMedia: Media | null = shouldRestartVideo
-            ? {
-                stream,
-                track: stream.getVideoTracks()[0] || null,
-                deviceInfo: videoInfo,
-                enabled: true,
-              }
-            : prevState.video.media;
-
-          const audioMedia: Media | null = shouldRestartAudio
-            ? {
-                stream,
-                track: stream.getAudioTracks()[0] || null,
-                deviceInfo: audioInfo,
-                enabled: true,
-              }
-            : prevState.audio.media;
-
-          return {
-            ...prevState,
-            video: { ...prevState.video, media: videoMedia },
-            audio: { ...prevState.audio, media: audioMedia },
-          };
+        dispatch({
+          type: "setMedia",
+          stream: stream,
+          video: {
+            shouldRestartVideo,
+            videoInfo,
+          },
+          audio: {
+            shouldRestartAudio,
+            audioInfo,
+          },
         });
       } else {
         const parsedError = result.error;
 
-        setState((prevState) => {
-          const videoError = exactConstraints.video ? parsedError : prevState.video.error;
-          const audioError = exactConstraints.audio ? parsedError : prevState.audio.error;
-
-          return {
-            ...prevState,
-            video: { ...prevState.video, error: videoError },
-            audio: { ...prevState.audio, error: audioError },
-          };
-        });
+        dispatch({ type: "setError", parsedError, exactConstraints });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [state, audioConstraints, saveLastAudioDevice, videoConstraints, saveLastVideoDevice]
   );
 
-  const stop = useCallback(async (type: Type) => {
-    setState((prevState) => {
-      prevState?.[type]?.media?.track?.stop();
+  const stop = useCallback(
+    async (type: Type) => {
+      dispatch({ type: "stop", mediaType: type });
+    },
+    [dispatch]
+  );
 
-      return { ...prevState, [type]: { ...prevState[type], media: null } };
-    });
-  }, []);
-
-  const setEnable = useCallback((type: Type, value: boolean) => {
-    setState((prevState) => {
-      const media = prevState[type].media;
-      if (!media || !media.track) {
-        return prevState;
-      }
-
-      media.track.enabled = value;
-
-      return { ...prevState, [type]: { ...prevState[type], media: { ...media, enabled: value } } };
-    });
-  }, []);
+  const setEnable = useCallback(
+    (type: Type, value: boolean) => {
+      dispatch({ type: "setEnable", mediaType: type, value });
+    },
+    [dispatch]
+  );
 
   useEffect(() => {
     if (startOnMount) {
