@@ -1,4 +1,5 @@
-import { PeerStatus, UseCameraResult, UseMicrophoneResult } from "../../../src";
+import { PeerStatus } from "@jellyfish-dev/react-client-sdk";
+import { UseMicrophoneResult, UseCameraResult } from "@jellyfish-dev/react-client-sdk";
 import { TrackMetadata } from "./jellyfishSetup";
 
 type DeviceControlsProps =

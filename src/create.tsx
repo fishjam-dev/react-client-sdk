@@ -6,7 +6,7 @@ import { Api } from "./api";
 import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { INITIAL_STATE } from "./useUserMedia";
 import { Action, createDefaultDevices, Reducer, reducer } from "./reducer";
-import { useSetupCameraAndMicrophone as useSetupCameraAndMicrophoneInternal } from "./useCameraAndMicrophone/useCameraAndMicrophone";
+import { useSetupCameraAndMicrophone as useSetupCameraAndMicrophoneInternal } from "./useCameraAndMicrophone";
 import {
   UseCameraAndMicrophoneResult,
   UseCameraResult,
