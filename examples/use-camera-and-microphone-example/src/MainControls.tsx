@@ -4,11 +4,11 @@ import {
   MANUAL_AUDIO_TRACK_METADATA,
   MANUAL_VIDEO_TRACK_METADATA,
   useCamera,
-  useSetupCameraAndMicrophone,
   useConnect,
   useDisconnect,
   useMicrophone,
   useSelector,
+  useSetupCameraAndMicrophone,
   useStatus,
 } from "./jellyfishSetup";
 import VideoPlayer from "./VideoPlayer";
@@ -30,6 +30,8 @@ const videoPreviewAtom = atomWithStorage<boolean | undefined>("videoPreview", un
 const audioAutoStreamingAtom = atomWithStorage<boolean | undefined>("audioAutoStreaming", undefined);
 const audioPreviewAtom = atomWithStorage<boolean | undefined>("audioPreviewAtom", undefined);
 
+const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { unstable_getOnInit: true });
+
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
 
@@ -42,6 +44,8 @@ export const MainControls = () => {
 
   const [audioAutoStreaming, setAudioAutoStreaming] = useAtom(audioAutoStreamingAtom);
   const [audioPreview, setAudioPreview] = useAtom(audioPreviewAtom);
+
+  const [autostart, setAutostart] = useAtom(autostartAtom);
 
   const { init, start } = useSetupCameraAndMicrophone({
     camera: {
@@ -60,7 +64,7 @@ export const MainControls = () => {
       preview: audioPreview,
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
-    startOnMount: false,
+    startOnMount: autostart,
     storage: true,
   });
 
@@ -78,6 +82,19 @@ export const MainControls = () => {
           onChange={(e) => setToken(() => e?.target?.value)}
           placeholder="token"
         />
+        <div className="flex flex-row">
+          <div className="form-control">
+            <label className="flex flex-row gap-2 label cursor-pointer">
+              <span className="label-text">Autostart</span>
+              <input
+                type="checkbox"
+                checked={autostart}
+                onChange={() => setAutostart(!autostart)}
+                className="checkbox"
+              />
+            </label>
+          </div>
+        </div>
         <div className="flex flex-col w-full">
           <ThreeStateRadio
             name="Video Auto Streaming (default false)"
