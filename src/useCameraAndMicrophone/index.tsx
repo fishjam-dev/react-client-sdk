@@ -51,7 +51,7 @@ export const useSetupCameraAndMicrophone = <PeerMetadata, TrackMetadata>(
       if (trackIdRef.current) return;
 
       const deviceState = mediaRef.current.data?.[type];
-      if (!deviceState || deviceState.status !== "OK") return;
+      if (!deviceState) return;
 
       const track = deviceState.media?.track;
       const stream = deviceState.media?.stream;
@@ -177,7 +177,7 @@ export const useSetupCameraAndMicrophone = <PeerMetadata, TrackMetadata>(
   );
 
   useEffect(() => {
-    const data: UseCameraAndMicrophoneResult<TrackMetadata> = {
+    const payload: UseCameraAndMicrophoneResult<TrackMetadata> = {
       init: result.init,
       start: result.start,
       camera: {
@@ -190,7 +190,10 @@ export const useSetupCameraAndMicrophone = <PeerMetadata, TrackMetadata>(
           trackMetadata?: TrackMetadata,
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit
-        ) => addTrack("video", trackMetadata, simulcastConfig, maxBandwidth),
+        ) => {
+          console.log("Whats going on!");
+          addTrack("video", trackMetadata, simulcastConfig, maxBandwidth);
+        },
         removeTrack: () => removeTrack("video"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("video", newTrack, stream, newTrackMetadata),
@@ -223,7 +226,7 @@ export const useSetupCameraAndMicrophone = <PeerMetadata, TrackMetadata>(
       },
     };
 
-    dispatch({ type: "setDevices", data });
+    dispatch({ type: "setDevices", data: payload });
   }, [result, video, audio, startByType, addTrack, removeTrack, replaceTrack, dispatch]);
 
   return useMemo(
