@@ -18,7 +18,7 @@ export const DEFAULT_STORE: State<any, any> = {
     api: null,
     client: null,
   },
-  screenshare: SCREENSHARE_INITIAL_STATE
+  screenshare: SCREENSHARE_INITIAL_STATE,
 };
 
 export const createEmptyApi = <TrackMetadata>(): Api<TrackMetadata> => ({

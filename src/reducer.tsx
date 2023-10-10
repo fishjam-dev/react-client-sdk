@@ -35,7 +35,12 @@ import {
 } from "@jellyfish-dev/ts-client-sdk";
 import { INITIAL_STATE, UseUserMediaAction, userMediaReducer } from "./useUserMedia";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
-import { screenshareReducer, UseScreenshare, UseScreenshareAction, INITIAL_STATE as SCREENSHARE_INITIAL_STATE}  from "./useMedia/screenshare";
+import {
+  screenshareReducer,
+  UseScreenshare,
+  UseScreenshareAction,
+  INITIAL_STATE as SCREENSHARE_INITIAL_STATE,
+} from "./useMedia/screenshare";
 
 export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneResult<TrackMetadata> => ({
   camera: {
@@ -107,7 +112,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
     api: null,
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
   },
-  screenshare: SCREENSHARE_INITIAL_STATE
+  screenshare: SCREENSHARE_INITIAL_STATE,
 });
 
 export type ConnectAction<PeerMetadata, TrackMetadata> = {
@@ -467,7 +472,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "UseScreenshare-setError":
     case "UseScreenshare-setScreenshare":
     case "UseScreenshare-stop":
-      return {...state, screenshare: screenshareReducer(state.screenshare, action)}
+      return { ...state, screenshare: screenshareReducer(state.screenshare, action) };
   }
 
   throw Error("Unhandled Action");

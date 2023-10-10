@@ -73,7 +73,7 @@ export const MainControls = () => {
     startOnMount: autostart,
     storage: true,
   });
-  
+
   const video = useCamera();
   const audio = useMicrophone();
   const screenshare = useScreenshare();
@@ -188,7 +188,12 @@ export const MainControls = () => {
         <div className="grid grid-cols-3 gap-2">
           <DeviceControls device={video} type="video" status={status} metadata={MANUAL_VIDEO_TRACK_METADATA} />
           <DeviceControls device={audio} type="audio" status={status} metadata={MANUAL_AUDIO_TRACK_METADATA} />
-          <DeviceControls device={screenshare} type="screenshare" status={status} metadata={MANUAL_SCREENSHARE_TRACK_METADATA} />
+          <DeviceControls
+            device={screenshare}
+            type="screenshare"
+            status={status}
+            metadata={MANUAL_SCREENSHARE_TRACK_METADATA}
+          />
         </div>
       </div>
       <div>

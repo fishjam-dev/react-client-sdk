@@ -221,7 +221,7 @@ export type UseUserMediaAction =
   | { type: "UseUserMedia-setError"; parsedError: DeviceError | null; constraints: MediaStreamConstraints }
   | { type: "UseUserMedia-stopDevice"; mediaType: AudioOrVideoType }
   | { type: "UseUserMedia-setEnable"; mediaType: AudioOrVideoType; value: boolean };
-  
+
 export type MediaReducer = (state: UseUserMediaState, action: UseUserMediaAction) => UseUserMediaState;
 
 export const userMediaReducer = (state: UseUserMediaState, action: UseUserMediaAction): UseUserMediaState => {

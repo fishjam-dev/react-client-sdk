@@ -40,7 +40,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
     api: null,
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
   },
-  screenshare: SCREENSHARE_INITIAL_STATE
+  screenshare: SCREENSHARE_INITIAL_STATE,
 });
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
@@ -51,9 +51,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<TrackMetadata>>;
-  useSetupMedia: (
-    config: UseSetupMediaConfig<TrackMetadata>
-  ) => UseSetupMediaResult;
+  useSetupMedia: (config: UseSetupMediaConfig<TrackMetadata>) => UseSetupMediaResult;
   useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["camera"];
   useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["microphone"];
   useScreenshare: () => UseScreenshareResult<TrackMetadata>;
@@ -129,9 +127,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     return state.devices.microphone;
   };
 
-  const useSetupMedia = (
-    config: UseSetupMediaConfig<TrackMetadata>
-  ): UseSetupMediaResult => {
+  const useSetupMedia = (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state, dispatch } = useJellyfishContext();
 
     return useSetupMediaInternal(state, dispatch, config);
@@ -140,7 +136,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const useScreenshare = () => {
     const { state } = useJellyfishContext();
     return state.devices.screenshare;
-  }
+  };
 
   return {
     JellyfishContextProvider,

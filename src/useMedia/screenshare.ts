@@ -18,7 +18,7 @@ export type UseScreenshareAction =
       type: "UseScreenshare-setScreenshare";
       data: DeviceState;
     }
-    | { type: "UseScreenshare-setError", error: DeviceError | null }
+  | { type: "UseScreenshare-setError"; error: DeviceError | null }
   | { type: "UseScreenshare-stop" }
   | { type: "UseScreenshare-setEnable"; enabled: boolean };
 
@@ -33,10 +33,7 @@ export type UseScreenshareState = {
   screenshare: DeviceState | null;
 };
 
-export const screenshareReducer = (
-  state: UseScreenshareState,
-  action: UseScreenshareAction
-): UseScreenshareState => {
+export const screenshareReducer = (state: UseScreenshareState, action: UseScreenshareAction): UseScreenshareState => {
   const prevState = state;
   if (action.type === "UseScreenshare-loading") {
     return {
@@ -51,10 +48,10 @@ export const screenshareReducer = (
   } else if (action.type === "UseScreenshare-setScreenshare") {
     return { ...prevState, screenshare: action.data };
   } else if (action.type === "UseScreenshare-setError") {
-    const newScreenshare = prevState.screenshare ?? {devices: null, error: null, media: null, status: "Error"};
+    const newScreenshare = prevState.screenshare ?? { devices: null, error: null, media: null, status: "Error" };
     newScreenshare.error = action.error;
     newScreenshare.status = "Error";
-    return { ...prevState, screenshare: newScreenshare }    
+    return { ...prevState, screenshare: newScreenshare };
   } else if (action.type === "UseScreenshare-stop") {
     if (!prevState.screenshare) return prevState;
     return { ...prevState, screenshare: { ...prevState.screenshare, media: null } };

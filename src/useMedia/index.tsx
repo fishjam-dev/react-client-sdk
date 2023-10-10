@@ -2,11 +2,7 @@ import { DeviceState, Type, UseUserMediaConfig } from "../useUserMedia/types";
 import { Dispatch, MutableRefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import { useUserMediaInternal } from "../useUserMedia";
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
-import {
-  UseCameraAndMicrophoneResult,
-  UseSetupMediaConfig,
-  UseSetupMediaResult,
-} from "./types";
+import { UseCameraAndMicrophoneResult, UseSetupMediaConfig, UseSetupMediaResult } from "./types";
 import { State } from "../state.types";
 import { Action } from "../reducer";
 import { useScreenshare } from "./screenshare";
@@ -42,9 +38,15 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
   const videoTrackIdRef = useRef<string | null>(null);
   const audioTrackIdRef = useRef<string | null>(null);
   const screenshareTrackIdRef = useRef<string | null>(null);
-  
-  const getDeviceState: (type: Type) => DeviceState | null | undefined = useCallback((type) => type === "screenshare" ? screenshareMediaRef.current.data : mediaRef.current.data?.[type], []);
-  const getTrackIdRef: (type: Type) => MutableRefObject<string | null> = useCallback((type) => type === "screenshare" ? screenshareTrackIdRef : type === "video" ? videoTrackIdRef : audioTrackIdRef, []);
+
+  const getDeviceState: (type: Type) => DeviceState | null | undefined = useCallback(
+    (type) => (type === "screenshare" ? screenshareMediaRef.current.data : mediaRef.current.data?.[type]),
+    []
+  );
+  const getTrackIdRef: (type: Type) => MutableRefObject<string | null> = useCallback(
+    (type) => (type === "screenshare" ? screenshareTrackIdRef : type === "video" ? videoTrackIdRef : audioTrackIdRef),
+    []
+  );
 
   const addTrack = useCallback(
     (
@@ -175,7 +177,12 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
       removeTrack("screenshare");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result.data?.video?.media?.deviceInfo?.deviceId, result.data?.audio?.media?.deviceInfo?.deviceId, screenshareResult.data?.media?.track, replaceTrack]);
+  }, [
+    result.data?.video?.media?.deviceInfo?.deviceId,
+    result.data?.audio?.media?.deviceInfo?.deviceId,
+    screenshareResult.data?.media?.track,
+    replaceTrack,
+  ]);
 
   const video = useMemo(
     () => (videoTrackIdRef.current && state.local?.tracks ? state.local?.tracks[videoTrackIdRef.current] : null),
@@ -188,10 +195,13 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
   );
 
   const screenshare = useMemo(
-    () => (!screenshareTrackIdRef.current || !state.local?.tracks ? null : state.local?.tracks[screenshareTrackIdRef.current]),
+    () =>
+      !screenshareTrackIdRef.current || !state.local?.tracks
+        ? null
+        : state.local?.tracks[screenshareTrackIdRef.current],
     [state]
   );
-  
+
   useEffect(() => {
     const payload: UseCameraAndMicrophoneResult<TrackMetadata> = {
       init: result.init,
@@ -201,7 +211,9 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
           result.stop("video");
         },
         setEnable: (value: boolean) => result.setEnable("video", value),
-        start: (deviceId?: string) => { result.start({videoDeviceId: deviceId ?? true}) },
+        start: (deviceId?: string) => {
+          result.start({ videoDeviceId: deviceId ?? true });
+        },
         addTrack: (
           trackMetadata?: TrackMetadata,
           simulcastConfig?: SimulcastConfig,
@@ -225,7 +237,9 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
       microphone: {
         stop: () => result.stop("audio"),
         setEnable: (value: boolean) => result.setEnable("audio", value),
-        start: (deviceId?: string) => { result.start({audioDeviceId: deviceId ?? true}) },
+        start: (deviceId?: string) => {
+          result.start({ audioDeviceId: deviceId ?? true });
+        },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) =>
           addTrack("audio", trackMetadata, undefined, maxBandwidth),
         removeTrack: () => removeTrack("audio"),
@@ -243,7 +257,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
       screenshare: {
         stop: () => screenshareResult.stop(),
         setEnable: (value: boolean) => {
-          screenshareResult.setEnable(value)
+          screenshareResult.setEnable(value);
         },
         start: () => screenshareResult.start(),
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) =>
@@ -257,9 +271,9 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
         track: screenshareResult.data?.media?.track ?? null,
         enabled: screenshareResult.data?.media?.enabled ?? false,
         error: screenshareResult.data?.error || null,
-      }
+      },
     };
-    
+
     dispatch({ type: "setDevices", data: payload });
   }, [result, screenshareResult, video, audio, screenshare, addTrack, removeTrack, replaceTrack, dispatch]);
 
