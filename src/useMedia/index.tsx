@@ -70,7 +70,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
 
       trackIdRef.current = apiRef.current.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
     },
-    []
+    [getTrackIdRef, getDeviceState]
   );
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
 
       return apiRef.current?.replaceTrack(trackIdRef.current, newTrack, stream, newTrackMetadata);
     },
-    []
+    [getTrackIdRef, getDeviceState]
   );
 
   useEffect(() => {
@@ -118,14 +118,18 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
     if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
       addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status, config.camera.autoStreaming, config.microphone.autoStreaming, addTrack]);
 
-  const removeTrack = useCallback((type: Type) => {
-    const trackIdRef = getTrackIdRef(type);
-    if (!trackIdRef.current || !apiRef.current) return;
-    apiRef.current.removeTrack(trackIdRef.current);
-    trackIdRef.current = null;
-  }, []);
+  const removeTrack = useCallback(
+    (type: Type) => {
+      const trackIdRef = getTrackIdRef(type);
+      if (!trackIdRef.current || !apiRef.current) return;
+      apiRef.current.removeTrack(trackIdRef.current);
+      trackIdRef.current = null;
+    },
+    [getTrackIdRef]
+  );
 
   useEffect(() => {
     if (!apiRef.current) return;

@@ -75,6 +75,13 @@ export function useScreenshare<PeerMetadata, TrackMetadata>(
 ): UseScreenshare {
   const screenshare = state.screenshare.screenshare;
 
+  const stop = useCallback(async () => {
+    for (const track of screenshare?.media?.stream?.getTracks() ?? []) {
+      track.stop();
+    }
+    dispatch({ type: "UseScreenshare-stop" });
+  }, [screenshare, dispatch]);
+
   const start = useCallback(async () => {
     dispatch({ type: "UseScreenshare-loading" });
     try {
@@ -92,22 +99,20 @@ export function useScreenshare<PeerMetadata, TrackMetadata>(
         },
         status: "OK",
       };
-      data.media!.track!.onended = () => stop();
+      if (data.media?.track) {
+        data.media.track.onended = () => stop();
+      }
       dispatch({ type: "UseScreenshare-setScreenshare", data });
     } catch (error: unknown) {
       const parsedError: DeviceError | null = parseError(error);
       dispatch({ type: "UseScreenshare-setError", error: parsedError });
     }
-  }, [config.trackConstraints]);
+  }, [config.trackConstraints, dispatch, stop]);
 
-  const stop = useCallback(async () => {
-    for (const track of screenshare?.media?.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    dispatch({ type: "UseScreenshare-stop" });
-  }, [screenshare]);
-
-  const setEnable = useCallback((enabled: boolean) => dispatch({ type: "UseScreenshare-setEnable", enabled }), []);
+  const setEnable = useCallback(
+    (enabled: boolean) => dispatch({ type: "UseScreenshare-setEnable", enabled }),
+    [dispatch]
+  );
 
   return useMemo(
     () => ({

@@ -37,7 +37,6 @@ import { INITIAL_STATE, UseUserMediaAction, userMediaReducer } from "./useUserMe
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
 import {
   screenshareReducer,
-  UseScreenshare,
   UseScreenshareAction,
   INITIAL_STATE as SCREENSHARE_INITIAL_STATE,
 } from "./useMedia/screenshare";
