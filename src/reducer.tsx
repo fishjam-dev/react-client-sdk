@@ -391,7 +391,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "disconnect":
       state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.disconnect();
-      return { ...createDefaultState(), media: state.media };
+      return { ...createDefaultState(), media: state.media, screenshare: state.screenshare };
     // connections events
     case "onSocketOpen":
       return onSocketOpen<PeerMetadata, TrackMetadata>()(state);
