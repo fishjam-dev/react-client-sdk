@@ -58,9 +58,10 @@
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@jellyfish-dev/membrane-webrtc-js@github:jellyfish-dev/membrane-webrtc-js#feature/expose-tracks-map":
-  version "0.5.2"
-  resolved "git+ssh://git@github.com/jellyfish-dev/membrane-webrtc-js.git#ae585c48ab4fbdd29a01b3e31cf71be31282a3ef"
+"@jellyfish-dev/membrane-webrtc-js@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.npmjs.org/@jellyfish-dev/membrane-webrtc-js/-/membrane-webrtc-js-0.5.3.tgz"
+  integrity sha512-XUmSBToRCfxz5qQDNj3Ql7ZLNuTRJ6LyGZOt7pCL6dlXwrghsRH45KuoibPl28QmcVSEU18jyGeuoKP2XGju3Q==
   dependencies:
     events "^3.3.0"
     typed-emitter "^2.1.0"
@@ -68,9 +69,9 @@
 
 "@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#simulcast-info":
   version "0.2.0"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#2b36fb7c42f7c02c1a3a63793c72178af40b89b0"
+  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#d1af0f3ee423a28332ed6e8368edd6c087444fa2"
   dependencies:
-    "@jellyfish-dev/membrane-webrtc-js" "github:jellyfish-dev/membrane-webrtc-js#feature/expose-tracks-map"
+    "@jellyfish-dev/membrane-webrtc-js" "^0.5.3"
     events "^3.3.0"
     ts-proto "^1.147.2"
     typed-emitter "^2.1.0"
@@ -172,9 +173,11 @@
   integrity sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==
 
 "@types/node@>=13.7.0":
-  version "20.8.2"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.2.tgz"
-  integrity sha512-Vvycsc9FQdwhxE3y3DzeIxuEJbWGDsnrxvMADzTDF/lcdR9/K+AQIeAghTQsHtotg/q0j3WEOYS/jQgSdWue3w==
+  version "20.8.9"
+  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.9.tgz"
+  integrity sha512-UzykFsT3FhHb1h7yD4CA4YhBHq545JC0YnEz41xkipN88eKQtL6rSgocL5tbAP6Ola9Izm/Aw4Ora8He4x0BHg==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/prop-types@*":
   version "15.7.5"
@@ -1124,9 +1127,9 @@ ts-proto-descriptors@1.15.0:
     protobufjs "^7.2.4"
 
 ts-proto@^1.147.2:
-  version "1.160.0"
-  resolved "https://registry.npmjs.org/ts-proto/-/ts-proto-1.160.0.tgz"
-  integrity sha512-AUJQ0noLEkLew81MYmNPF/z8QDIBxAIJ4UKt9sH2AwdaywOTk1jh1NoluoCr3cGScpVh0GHWCB/UA4V0fOO8fg==
+  version "1.162.2"
+  resolved "https://registry.npmjs.org/ts-proto/-/ts-proto-1.162.2.tgz"
+  integrity sha512-iVvoXmelsniHFxh9GAkmz3S7yNuddjgv5iWTDr0VUn67IH3RSvvAd8BjN7Snm0+p1yY/diAQoNHXHuNHe8D3rA==
   dependencies:
     case-anything "^2.1.13"
     protobufjs "^7.2.4"
@@ -1188,6 +1191,11 @@ typescript@^4.9.5, "typescript@>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4
   version "4.9.5"
   resolved "https://registry.npmjs.org/typescript/-/typescript-4.9.5.tgz"
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
+
+undici-types@~5.26.4:
+  version "5.26.5"
+  resolved "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz"
+  integrity sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==
 
 uri-js@^4.2.2:
   version "4.4.1"
