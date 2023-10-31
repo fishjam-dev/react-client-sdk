@@ -67,9 +67,10 @@
     typed-emitter "^2.1.0"
     uuid "^8.3.2"
 
-"@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#simulcast-info":
-  version "0.2.0"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#d1af0f3ee423a28332ed6e8368edd6c087444fa2"
+"@jellyfish-dev/ts-client-sdk@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.npmjs.org/@jellyfish-dev/ts-client-sdk/-/ts-client-sdk-0.2.1.tgz"
+  integrity sha512-/nTvQ+rb51RwVtuC5wuRxWRvtgKXlMpqHMChV9hUVKV3pv0sPmvvsJWsPq+7eXz1djKxfl8jCslJ8EkzIiKFRw==
   dependencies:
     "@jellyfish-dev/membrane-webrtc-js" "^0.5.3"
     events "^3.3.0"
@@ -173,9 +174,9 @@
   integrity sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==
 
 "@types/node@>=13.7.0":
-  version "20.8.9"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.9.tgz"
-  integrity sha512-UzykFsT3FhHb1h7yD4CA4YhBHq545JC0YnEz41xkipN88eKQtL6rSgocL5tbAP6Ola9Izm/Aw4Ora8He4x0BHg==
+  version "20.8.10"
+  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.10.tgz"
+  integrity sha512-TlgT8JntpcbmKUFzjhsyhGfP2fsiz1Mv56im6enJ905xG1DAYesxJaeSbGqQmAw8OWPdhyJGhGSQGKRNJ45u9w==
   dependencies:
     undici-types "~5.26.4"
 
