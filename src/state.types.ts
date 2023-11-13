@@ -26,7 +26,7 @@ export type Track<TrackMetadata> = {
 export interface Origin {
   id: string;
   type: string;
-  metadata: any;
+  metadata: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export type TrackWithOrigin<TrackMetadata> = Track<TrackMetadata> & {
