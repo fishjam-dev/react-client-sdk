@@ -1,7 +1,7 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "react-hooks"],
+  "plugins": ["@typescript-eslint", "react-hooks", "react-refresh"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
@@ -21,6 +21,7 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    "no-console": ["error", { "allow": ["warn", "error"] }]
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }]
   }
 }
