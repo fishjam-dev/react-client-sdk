@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build,"
+    "build": "tsc && vite build"
   },
   "dependencies": {
     "@jellyfish-dev/react-client-sdk": "file:../..",
