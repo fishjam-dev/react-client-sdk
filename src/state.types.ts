@@ -58,7 +58,7 @@ export type State<PeerMetadata, TrackMetadata> = {
 };
 
 export type SetStore<PeerMetadata, TrackMetadata> = (
-  setter: (prevState: State<PeerMetadata, TrackMetadata>) => State<PeerMetadata, TrackMetadata>
+  setter: (prevState: State<PeerMetadata, TrackMetadata>) => State<PeerMetadata, TrackMetadata>,
 ) => void;
 
 export type Selector<PeerMetadata, TrackMetadata, Result> = (snapshot: State<PeerMetadata, TrackMetadata>) => Result;
