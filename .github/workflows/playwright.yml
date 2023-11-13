@@ -19,7 +19,7 @@ jobs:
       run: npm run build
     - name: Install example dependencies
       run: npm ci
-      working-directory: examples/simple-app
+      working-directory: examples/minimal-react
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
