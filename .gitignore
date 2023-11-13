@@ -24,6 +24,8 @@ docs
 *.sln
 *.sw?
 *.iml
+
+# Playwright
 /test-results/
 /playwright-report/
 /blob-report/
