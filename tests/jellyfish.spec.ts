@@ -1,8 +1,6 @@
 import { JellyfishClient } from '@jellyfish-dev/ts-client-sdk';
 import { test, expect, type Page } from '@playwright/test';
 
-const sleep = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 test("displays basic UI", async ({ page }) => {
   await page.goto("/");
 
@@ -19,8 +17,8 @@ test("connects to Jellyfish server", async ({ page: firstPage, context }) => {
   const roomRequest = await firstPage.request.post("http://localhost:5002/room");
   const roomId = (await roomRequest.json()).data.room.id as string;
   
-  const firstClientId = await joinRoomAndAddTrack(firstPage, roomId);
-  const secondClientId = await joinRoomAndAddTrack(secondPage, roomId);
+  await joinRoomAndAddTrack(firstPage, roomId);
+  await joinRoomAndAddTrack(secondPage, roomId);
   
   await expect(firstPage.locator("video")).toBeVisible();
   await expect(secondPage.locator("video")).toBeVisible();
