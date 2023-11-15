@@ -1,5 +1,5 @@
-import { JellyfishClient } from '@jellyfish-dev/ts-client-sdk';
-import { test, expect, type Page } from '@playwright/test';
+import { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
+import { test, expect, type Page } from "@playwright/test";
 
 test("displays basic UI", async ({ page }) => {
   await page.goto("/");
@@ -13,18 +13,18 @@ test("connects to Jellyfish server", async ({ page: firstPage, context }) => {
   const secondPage = await context.newPage();
   await firstPage.goto("/");
   await secondPage.goto("/");
-  
+
   const roomRequest = await firstPage.request.post("http://localhost:5002/room");
   const roomId = (await roomRequest.json()).data.room.id as string;
-  
+
   await joinRoomAndAddTrack(firstPage, roomId);
   await joinRoomAndAddTrack(secondPage, roomId);
-  
+
   await expect(firstPage.locator("video")).toBeVisible();
   await expect(secondPage.locator("video")).toBeVisible();
-  
+
   await Promise.all([assertThatOtherVideoIsPlaying(firstPage), assertThatOtherVideoIsPlaying(secondPage)]);
-})
+});
 
 async function joinRoomAndAddTrack(page: Page, roomId: string): Promise<string> {
   const peerRequest = await page.request.post("http://localhost:5002/room/" + roomId + "/peer", {

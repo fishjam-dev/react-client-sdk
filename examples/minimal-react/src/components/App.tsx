@@ -25,7 +25,7 @@ export const App = () => {
   {
     // for e2e test
     const client = useSelector((s) => s.connectivity.client);
-    (window as unknown as { client: JellyfishClient<PeerMetadata, TrackMetadata>}).client = client!;
+    (window as unknown as { client: JellyfishClient<PeerMetadata, TrackMetadata> }).client = client!;
   }
 
   return (
