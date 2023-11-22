@@ -1,7 +1,7 @@
 import VideoPlayer from "./VideoPlayer";
-import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
-import { create } from "@jellyfish-dev/react-client-sdk";
+import { JellyfishClient, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { useState } from "react";
+import { useConnect, useDisconnect, useApi, useStatus, useTracks, useSelector } from "./client";
 
 // Example metadata types for peer and track
 // You can define your own metadata types just make sure they are serializable
@@ -13,13 +13,6 @@ export type TrackMetadata = {
   type: "camera" | "screen";
 };
 
-// Create a Membrane client instance
-// remember to use JellyfishContextProvider
-export const { useApi, useTracks, useStatus, useConnect, useDisconnect, JellyfishContextProvider } = create<
-  PeerMetadata,
-  TrackMetadata
->();
-
 export const App = () => {
   const [token, setToken] = useState("");
 
@@ -28,6 +21,12 @@ export const App = () => {
   const api = useApi();
   const status = useStatus();
   const tracks = useTracks();
+
+  {
+    // for e2e test
+    const client = useSelector((s) => s.connectivity.client);
+    (window as unknown as { client: JellyfishClient<PeerMetadata, TrackMetadata> }).client = client!;
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
