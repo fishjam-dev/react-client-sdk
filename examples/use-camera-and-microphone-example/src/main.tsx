@@ -9,6 +9,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <JellyfishContextProvider>
       <MainControls />
+      <AdditionalControls />
     </JellyfishContextProvider>
   </React.StrictMode>,
 );
