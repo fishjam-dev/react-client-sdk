@@ -11,7 +11,7 @@ import {
   useScreenshare,
   useSelector,
   useSetupMedia,
-  useStatus,
+  useStatus
 } from "./jellyfishSetup";
 import VideoPlayer from "./VideoPlayer";
 import { DeviceSelector } from "./DeviceSelector";
@@ -35,7 +35,7 @@ const audioPreviewAtom = atomWithStorage<boolean | undefined>("audioPreviewAtom"
 const screenshareAutoStreamingAtom = atomWithStorage<boolean | undefined>("screenshareAutoStreaming", undefined);
 const screensharePreviewAtom = atomWithStorage<boolean | undefined>("screensharePreviewAtom", undefined);
 
-const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { unstable_getOnInit: true });
+const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { getOnInit: true });
 
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
@@ -63,23 +63,23 @@ export const MainControls = () => {
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
-        activeEncodings: ["l", "m", "h"],
-      },
+        activeEncodings: ["l", "m", "h"]
+      }
     },
     microphone: {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
       autoStreaming: audioAutoStreaming,
       preview: audioPreview,
-      defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
+      defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA
     },
     screenshare: {
       autoStreaming: screenshareAutoStreaming,
       preview: screensharePreview,
       trackConstraints: true,
-      defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
+      defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA
     },
     startOnMount: autostart,
-    storage: true,
+    storage: true
   });
 
   const video = useCamera();
@@ -168,7 +168,7 @@ export const MainControls = () => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
                 peerMetadata: { name: "John Doe" }, // example metadata
-                token: token,
+                token: token
               });
             }}
           >
