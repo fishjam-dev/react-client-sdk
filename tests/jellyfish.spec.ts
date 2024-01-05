@@ -14,7 +14,7 @@ test("displays basic UI", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Connect", exact: true })).toBeVisible();
 });
 
-test.only("Connect 2 peers to 1 room", async ({ page: firstPage, context }) => {
+test("Connect 2 peers to 1 room", async ({ page: firstPage, context }) => {
   const secondPage = await context.newPage();
   await firstPage.goto("/");
   await secondPage.goto("/");
@@ -30,22 +30,6 @@ test.only("Connect 2 peers to 1 room", async ({ page: firstPage, context }) => {
   ]);
   await Promise.all([assertThatOtherVideoIsPlaying(firstPage), assertThatOtherVideoIsPlaying(secondPage)]);
 });
-
-// test("Peer doesn't disconnect when trying to set incorrect track encoding", async ({ page: firstPage, context }) => {
-//   const secondPage = await context.newPage();
-//   await firstPage.goto("/");
-//   await secondPage.goto("/");
-
-//   const roomId = await createRoom(firstPage);
-
-//   await joinRoomAndAddScreenShare(firstPage, roomId);
-//   const secondClientId = await joinRoomAndAddScreenShare(secondPage, roomId);
-
-//   await assertThatRemoteTracksAreVisible(firstPage, [secondClientId]);
-//   await assertThatOtherVideoIsPlaying(firstPage);
-//   await firstPage.getByRole("button", { name: "l", exact: true }).click();
-//   await assertThatOtherVideoIsPlaying(firstPage);
-// });
 
 test("Client properly sees 3 other peers", async ({ page, context }) => {
   const pages = [page, ...(await Promise.all([...Array(3)].map(() => context.newPage())))];
