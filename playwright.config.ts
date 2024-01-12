@@ -44,7 +44,7 @@ export default defineConfig({
         launchOptions: {
           // devtools: true,
           // headless: false,
-          executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          // executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
           args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
         },
       },
