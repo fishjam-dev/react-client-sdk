@@ -25,7 +25,8 @@
   },
   "exports": {
     ".": "./dist/src/index.js",
-    "./experimental": "./dist/src/experimental/index.js"
+    "./experimental": "./dist/src/experimental/index.js",
+    "./ts": "./dist/src/ts/index.js"
   },
   "typesVersions": {
     "*": {

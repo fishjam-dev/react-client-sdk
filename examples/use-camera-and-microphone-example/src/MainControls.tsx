@@ -43,6 +43,7 @@ export const MainControls = () => {
   const connect = useConnect();
   const disconnect = useDisconnect();
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
+  const peers = useSelector((s) => Object.values(s.remote))
 
   const [videoAutoStreaming, setVideoAutoStreaming] = useAtom(videoAutoStreamingAtom);
   const [videoPreview, setVideoPreview] = useAtom(videoPreviewAtom);
