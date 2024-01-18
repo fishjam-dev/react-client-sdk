@@ -1,5 +1,6 @@
 import VideoPlayer from "./VideoPlayer";
-import { JellyfishClient, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
+import { JellyfishClient } from "@jellyfish-dev/react-client-sdk/ts";
+import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { useState } from "react";
 import { useConnect, useDisconnect, useApi, useStatus, useTracks, useSelector } from "./client";
 
