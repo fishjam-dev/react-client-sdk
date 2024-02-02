@@ -174,6 +174,23 @@ export const MainControls = () => {
           >
             Connect
           </button>
+
+          <button
+            className="btn btn-success btn-sm"
+            disabled={token === ""}
+            onClick={() => {
+              if (!token || token === "") throw Error("Token is empty");
+              disconnect()
+
+              connect({
+                peerMetadata: { name: "John Doe" }, // example metadata
+                token: token,
+              });
+            }}
+          >
+            Reconnect
+          </button>
+
           <button
             className="btn btn-error btn-sm"
             disabled={status === null}
