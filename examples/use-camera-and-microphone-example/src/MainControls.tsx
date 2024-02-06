@@ -20,7 +20,7 @@ import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 
@@ -42,6 +42,13 @@ export const MainControls = () => {
 
   const connect = useConnect();
   const disconnect = useDisconnect();
+
+  const fullState = useSelector((s) => s);
+
+  useEffect(() => {
+    console.log({ fullState });
+  }, [fullState]);
+
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
 
   const [videoAutoStreaming, setVideoAutoStreaming] = useAtom(videoAutoStreamingAtom);
@@ -180,7 +187,7 @@ export const MainControls = () => {
             disabled={token === ""}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
-              disconnect()
+              disconnect();
 
               connect({
                 peerMetadata: { name: "John Doe" }, // example metadata

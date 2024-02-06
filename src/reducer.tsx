@@ -12,6 +12,7 @@ import {
   onPeerLeft,
   onPeerRemoved,
   onPeerUpdated,
+  onSocketClosed,
   onSocketError,
   onSocketOpen,
   onTrackAdded,
@@ -132,6 +133,10 @@ export type OnJoinErrorAction = {
 
 export type OnSocketErrorAction = {
   type: "onSocketError";
+};
+
+export type OnSocketCloseAction = {
+  type: "onSocketClose";
 };
 
 export type OnAuthErrorAction = {
@@ -270,6 +275,7 @@ export type Action<PeerMetadata, TrackMetadata> =
   | OnPeerUpdatedAction
   | OnPeerLeftAction
   | OnJoinErrorAction
+  | OnSocketCloseAction
   | LocalReplaceTrackAction<TrackMetadata>
   | LocalRemoveTrackAction
   | LocalUpdateTrackMetadataAction<TrackMetadata>
@@ -282,6 +288,8 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,
   action: ConnectAction<PeerMetadata, TrackMetadata>,
 ): State<PeerMetadata, TrackMetadata> => {
+  const id = Math.random();
+  console.log({ name: "onConnect", state, action, id });
   const client: JellyfishClient<PeerMetadata, TrackMetadata> | null = state?.connectivity.client;
 
   const { peerMetadata } = action.config;
@@ -293,6 +301,7 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   const api = state?.connectivity.api ? state?.connectivity.api : createApiWrapper(client, action.dispatch);
 
   if (client?.status === "initialized") {
+    console.log({ name: "send initializing", id });
     return {
       ...state,
       status: "connecting",
@@ -310,6 +319,10 @@ const onConnect = <PeerMetadata, TrackMetadata>(
 
   client.on("socketError", () => {
     action.dispatch({ type: "onSocketError" });
+  });
+
+  client.on("socketClose", () => {
+    action.dispatch({ type: "onSocketClose" });
   });
 
   client.on("authSuccess", () => {
@@ -370,6 +383,7 @@ const onConnect = <PeerMetadata, TrackMetadata>(
 
   client.connect(action.config);
 
+  console.log({ name: "send connecting:", id })
   return {
     ...state,
     status: "connecting",
@@ -389,20 +403,25 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "connect":
       return onConnect<PeerMetadata, TrackMetadata>(state, action);
     case "disconnect":
-      state?.connectivity?.client?.removeAllListeners();
+      console.log({ name: "onDisconnect", state, action });
+      // state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.disconnect();
-      return { ...createDefaultState(), media: state.media, screenshare: state.screenshare, devices: state.devices };
+      const defaultState: State<PeerMetadata, TrackMetadata> = createDefaultState();
+      defaultState.connectivity.client = state.connectivity.client
+      return { ...defaultState, media: state.media, screenshare: state.screenshare, devices: state.devices };
     // connections events
     case "onSocketOpen":
       return onSocketOpen<PeerMetadata, TrackMetadata>()(state);
     case "onSocketError":
       return onSocketError<PeerMetadata, TrackMetadata>()(state);
+    case "onSocketClose":
+      return onSocketClosed<PeerMetadata, TrackMetadata>()(state);
     case "onJoinSuccess":
       return onJoinSuccess<PeerMetadata, TrackMetadata>(action.peersInRoom, action.peerId, action.peerMetadata)(state);
     case "onJoinError":
       return onJoinError<PeerMetadata, TrackMetadata>(action.metadata)(state);
     case "onDisconnected":
-      state?.connectivity?.client?.removeAllListeners();
+      // state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.disconnect();
       // return onDisconnected<PeerMetadata, TrackMetadata>()(state)
       return { ...createDefaultState(), media: state.media, screenshare: state.screenshare, devices: state.devices };

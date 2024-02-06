@@ -12,11 +12,19 @@ export const onSocketOpen =
     return { ...prevState, status: "connected" };
   };
 
-export const onSocketError =
+export const onSocketClosed =
   <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    return { ...prevState, status: "error" };
+    return { ...prevState, status: "closed" };
   };
+
+export const onSocketError =
+  <PeerMetadata, TrackMetadata>() =>
+    (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
+      return { ...prevState, status: "error" };
+    };
+
+
 export const onAuthSuccess =
   <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {

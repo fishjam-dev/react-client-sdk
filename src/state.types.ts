@@ -39,7 +39,7 @@ export type Connectivity<PeerMetadata, TrackMetadata> = {
   client: JellyfishClient<PeerMetadata, TrackMetadata> | null;
 };
 
-export type PeerStatus = "connecting" | "connected" | "authenticated" | "joined" | "error" | null;
+export type PeerStatus = "connecting" | "connected" | "authenticated" | "joined" | "error" | "closed" | null;
 export type State<PeerMetadata, TrackMetadata> = {
   local: Peer<PeerMetadata, TrackMetadata> | null;
   remote: Record<PeerId, Peer<PeerMetadata, TrackMetadata>>;

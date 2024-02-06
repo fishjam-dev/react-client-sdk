@@ -1,9 +1,21 @@
-import { createContext, Dispatch, JSX, ReactNode, useCallback, useContext, useMemo, useReducer } from "react";
+import {
+  createContext,
+  Dispatch,
+  JSX,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import type { Selector, State } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi, DEFAULT_STORE } from "./state";
 import { Api } from "./api";
-import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
+import { Config, JellyfishClient, TrackContextEvents, WebRTCEndpointEvents } from "@jellyfish-dev/ts-client-sdk";
 import { INITIAL_STATE } from "./useUserMedia";
 import { Action, createDefaultDevices, Reducer, reducer } from "./reducer";
 import { useSetupMedia as useSetupMediaInternal } from "./useMedia";
@@ -69,11 +81,102 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
   const JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element = ({
     children,
   }: JellyfishContextProviderProps) => {
-    const [state, dispatch] = useReducer<Reducer<PeerMetadata, TrackMetadata>, State<PeerMetadata, TrackMetadata>>(
-      reducer,
-      DEFAULT_STORE,
-      () => createDefaultState(),
-    );
+    // const [state, dispatch] = useReducer<Reducer<PeerMetadata, TrackMetadata>, State<PeerMetadata, TrackMetadata>>(
+    //   reducer,
+    //   DEFAULT_STORE,
+    //   () => createDefaultState(),
+    // );
+    const prevStore = useRef(createDefaultState<PeerMetadata, TrackMetadata>());
+    const clientRef = useRef(prevStore.current.connectivity.client);
+
+    const subscribe = useCallback((cb: () => void) => {
+      const client = clientRef.current;
+
+      console.log("Subscribe function invoked");
+
+      if (!client) return () => {};
+
+      console.log("Setting up listeners");
+
+      const callback = () => cb();
+
+      client.on("socketClose", callback);
+      client.on("socketError", callback);
+      client.on("socketOpen", callback);
+      client.on("authSuccess", callback);
+      client.on("authError", callback);
+      client.on("disconnected", callback);
+      client.on("joined", callback);
+      client.on("joinError", callback);
+      client.on("peerJoined", callback);
+      client.on("peerLeft", callback);
+      client.on("peerUpdated", callback);
+      client.on("connectionError", callback);
+      client.on("tracksPriorityChanged", callback);
+      client.on("bandwidthEstimationChanged", callback);
+
+      // tracks callbacks
+
+      const trackCb: TrackContextEvents["encodingChanged"] = () => cb();
+
+      const trackAddedCb: WebRTCEndpointEvents["trackAdded"] = (context) => {
+        context.on("encodingChanged", () => trackCb);
+        context.on("voiceActivityChanged", () => trackCb);
+
+        callback();
+      };
+
+      const removeCb: WebRTCEndpointEvents["trackRemoved"] = (context) => {
+        context.removeListener("encodingChanged", () => trackCb);
+        context.removeListener("voiceActivityChanged", () => trackCb);
+
+        callback();
+      };
+
+      client.on("trackAdded", trackAddedCb);
+      client.on("trackReady", cb);
+      client.on("trackUpdated", cb);
+      client.on("trackRemoved", removeCb);
+
+      // invoke cb if something changed
+
+      return () => {
+        // cleanup function
+        console.log("Cleaning up listeners");
+
+        client.removeListener("socketClose", callback);
+        client.removeListener("socketError", callback);
+        client.removeListener("socketOpen", callback);
+        client.removeListener("authSuccess", callback);
+        client.removeListener("authError", callback);
+        client.removeListener("disconnected", callback);
+        client.removeListener("joined", callback);
+        client.removeListener("joinError", callback);
+        client.removeListener("peerJoined", callback);
+        client.removeListener("peerLeft", callback);
+        client.removeListener("peerUpdated", callback);
+        client.removeListener("connectionError", callback);
+        client.removeListener("tracksPriorityChanged", callback);
+        client.removeListener("bandwidthEstimationChanged", callback);
+
+        client.removeListener("trackAdded", trackAddedCb);
+        client.removeListener("trackReady", cb);
+        client.removeListener("trackUpdated", cb);
+        client.removeListener("trackRemoved", removeCb);
+      };
+    }, []);
+
+    const getSnapshot: () => State<PeerMetadata, TrackMetadata> = useCallback(() => {
+      return prevStore.current;
+    }, []);
+
+    const state = useSyncExternalStore(subscribe, getSnapshot);
+
+    const dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>> = useCallback((action) => {
+      console.log({ action });
+      const newStore = reducer(prevStore.current, action);
+      prevStore.current = newStore;
+    }, []);
 
     return <JellyfishContext.Provider value={{ state, dispatch }}>{children}</JellyfishContext.Provider>;
   };
