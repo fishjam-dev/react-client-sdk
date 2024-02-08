@@ -300,19 +300,6 @@ const onConnect = <PeerMetadata, TrackMetadata>(
 
   const api = state?.connectivity.api ? state?.connectivity.api : createApiWrapper(client, action.dispatch);
 
-  if (client?.status === "initialized") {
-    console.log({ name: "send initializing", id });
-    return {
-      ...state,
-      status: "connecting",
-      connectivity: {
-        ...state.connectivity,
-        api,
-        client,
-      },
-    };
-  }
-
   client.on("socketOpen", () => {
     action.dispatch({ type: "onSocketOpen" });
   });
@@ -383,7 +370,7 @@ const onConnect = <PeerMetadata, TrackMetadata>(
 
   client.connect(action.config);
 
-  console.log({ name: "send connecting:", id })
+  console.log({ name: "send connecting:", id });
   return {
     ...state,
     status: "connecting",
@@ -403,12 +390,17 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "connect":
       return onConnect<PeerMetadata, TrackMetadata>(state, action);
     case "disconnect":
-      console.log({ name: "onDisconnect", state, action });
-      // state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.disconnect();
       const defaultState: State<PeerMetadata, TrackMetadata> = createDefaultState();
-      defaultState.connectivity.client = state.connectivity.client
-      return { ...defaultState, media: state.media, screenshare: state.screenshare, devices: state.devices };
+
+      return {
+        ...state,
+        local: null,
+        remote: {},
+        status: null,
+        tracks: {},
+        bandwidthEstimation: BigInt(0),
+      };
     // connections events
     case "onSocketOpen":
       return onSocketOpen<PeerMetadata, TrackMetadata>()(state);
@@ -421,10 +413,7 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "onJoinError":
       return onJoinError<PeerMetadata, TrackMetadata>(action.metadata)(state);
     case "onDisconnected":
-      // state?.connectivity?.client?.removeAllListeners();
-      state?.connectivity?.client?.disconnect();
-      // return onDisconnected<PeerMetadata, TrackMetadata>()(state)
-      return { ...createDefaultState(), media: state.media, screenshare: state.screenshare, devices: state.devices };
+      return state;
     case "onAuthSuccess":
       return onAuthSuccess<PeerMetadata, TrackMetadata>()(state);
     case "onAuthError":

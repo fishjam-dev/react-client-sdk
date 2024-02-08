@@ -28,6 +28,8 @@ import {
   UseSetupMediaResult,
 } from "./useMedia/types";
 import { INITIAL_STATE as SCREENSHARE_INITIAL_STATE } from "./useMedia/screenshare";
+import TypedEmitter from "typed-emitter/rxjs";
+import EventEmitter from "events";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -78,6 +80,11 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
 export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<PeerMetadata, TrackMetadata> => {
   const JellyfishContext = createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
+  type StateChangeEvents = {
+    stateChanged: () => void;
+  };
+  const messageEmitter = new EventEmitter() as TypedEmitter<StateChangeEvents>;
+
   const JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element = ({
     children,
   }: JellyfishContextProviderProps) => {
@@ -99,70 +106,11 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
       console.log("Setting up listeners");
 
       const callback = () => cb();
-
-      client.on("socketClose", callback);
-      client.on("socketError", callback);
-      client.on("socketOpen", callback);
-      client.on("authSuccess", callback);
-      client.on("authError", callback);
-      client.on("disconnected", callback);
-      client.on("joined", callback);
-      client.on("joinError", callback);
-      client.on("peerJoined", callback);
-      client.on("peerLeft", callback);
-      client.on("peerUpdated", callback);
-      client.on("connectionError", callback);
-      client.on("tracksPriorityChanged", callback);
-      client.on("bandwidthEstimationChanged", callback);
-
-      // tracks callbacks
-
-      const trackCb: TrackContextEvents["encodingChanged"] = () => cb();
-
-      const trackAddedCb: WebRTCEndpointEvents["trackAdded"] = (context) => {
-        context.on("encodingChanged", () => trackCb);
-        context.on("voiceActivityChanged", () => trackCb);
-
-        callback();
-      };
-
-      const removeCb: WebRTCEndpointEvents["trackRemoved"] = (context) => {
-        context.removeListener("encodingChanged", () => trackCb);
-        context.removeListener("voiceActivityChanged", () => trackCb);
-
-        callback();
-      };
-
-      client.on("trackAdded", trackAddedCb);
-      client.on("trackReady", cb);
-      client.on("trackUpdated", cb);
-      client.on("trackRemoved", removeCb);
-
-      // invoke cb if something changed
+      messageEmitter.on("stateChanged", callback);
 
       return () => {
-        // cleanup function
         console.log("Cleaning up listeners");
-
-        client.removeListener("socketClose", callback);
-        client.removeListener("socketError", callback);
-        client.removeListener("socketOpen", callback);
-        client.removeListener("authSuccess", callback);
-        client.removeListener("authError", callback);
-        client.removeListener("disconnected", callback);
-        client.removeListener("joined", callback);
-        client.removeListener("joinError", callback);
-        client.removeListener("peerJoined", callback);
-        client.removeListener("peerLeft", callback);
-        client.removeListener("peerUpdated", callback);
-        client.removeListener("connectionError", callback);
-        client.removeListener("tracksPriorityChanged", callback);
-        client.removeListener("bandwidthEstimationChanged", callback);
-
-        client.removeListener("trackAdded", trackAddedCb);
-        client.removeListener("trackReady", cb);
-        client.removeListener("trackUpdated", cb);
-        client.removeListener("trackRemoved", removeCb);
+        messageEmitter.removeListener("stateChanged", callback);
       };
     }, []);
 
@@ -174,8 +122,12 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
 
     const dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>> = useCallback((action) => {
       console.log({ action });
+      console.log({ client: clientRef.current });
       const newStore = reducer(prevStore.current, action);
+
       prevStore.current = newStore;
+
+      messageEmitter.emit("stateChanged");
     }, []);
 
     return <JellyfishContext.Provider value={{ state, dispatch }}>{children}</JellyfishContext.Provider>;
