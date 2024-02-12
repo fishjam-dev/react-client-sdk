@@ -5,19 +5,17 @@ import {
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useReducer,
   useRef,
   useSyncExternalStore,
 } from "react";
 import type { Selector, State } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
-import { createEmptyApi, DEFAULT_STORE } from "./state";
+import { createEmptyApi } from "./state";
 import { Api } from "./api";
-import { Config, JellyfishClient, TrackContextEvents, WebRTCEndpointEvents } from "@jellyfish-dev/ts-client-sdk";
+import { Config, JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
 import { INITIAL_STATE } from "./useUserMedia";
-import { Action, createDefaultDevices, Reducer, reducer } from "./reducer";
+import { Action, createDefaultDevices, reducer } from "./reducer";
 import { useSetupMedia as useSetupMediaInternal } from "./useMedia";
 import {
   UseCameraAndMicrophoneResult,
@@ -121,11 +119,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     const state = useSyncExternalStore(subscribe, getSnapshot);
 
     const dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>> = useCallback((action) => {
-      console.log({ action });
-      console.log({ client: clientRef.current });
-      const newStore = reducer(prevStore.current, action);
-
-      prevStore.current = newStore;
+      prevStore.current = reducer(prevStore.current, action);
 
       messageEmitter.emit("stateChanged");
     }, []);

@@ -227,80 +227,86 @@ export type MediaReducer = (state: UseUserMediaState, action: UseUserMediaAction
 export const userMediaReducer = (state: UseUserMediaState, action: UseUserMediaAction): UseUserMediaState => {
   const prevState = state;
   if (action.type === "UseUserMedia-loading") {
-    const shouldAskForAudio = action.audio.ask;
-    const shouldAskForVideo = action.video.ask;
-    const videoConstraints = action.video.constraints;
-    const audioConstraints = action.audio.constraints;
-    return {
-      ...prevState,
-      video: {
-        ...prevState.video,
-        status: shouldAskForVideo && videoConstraints ? REQUESTING : prevState.video.status ?? NOT_REQUESTED,
-      },
-      audio: {
-        ...prevState.audio,
-        status: shouldAskForAudio && audioConstraints ? REQUESTING : prevState.audio.status ?? NOT_REQUESTED,
-      },
-    };
+    // const shouldAskForAudio = action.audio.ask;
+    // const shouldAskForVideo = action.video.ask;
+    // const videoConstraints = action.video.constraints;
+    // const audioConstraints = action.audio.constraints;
+    // return {
+    //   ...prevState,
+    //   video: {
+    //     ...prevState.video,
+    //     status: shouldAskForVideo && videoConstraints ? REQUESTING : prevState.video.status ?? NOT_REQUESTED,
+    //   },
+    //   audio: {
+    //     ...prevState.audio,
+    //     status: shouldAskForAudio && audioConstraints ? REQUESTING : prevState.audio.status ?? NOT_REQUESTED,
+    //   },
+    // };
+    return state;
   } else if (action.type === "UseUserMedia-setAudioAndVideo") {
-    return { audio: action.audio, video: action.video };
+    // return { audio: action.audio, video: action.video };
+    return state;
   } else if (action.type === "UseUserMedia-setMedia") {
-    if (action.video.restart) {
-      prevState?.video?.media?.track?.stop();
-    }
-
-    if (action.audio.restart) {
-      prevState?.audio?.media?.track?.stop();
-    }
-
-    const videoMedia: Media | null = action.video.restart
-      ? {
-          stream: action.stream,
-          track: action.stream.getVideoTracks()[0] || null,
-          deviceInfo: action.video.info,
-          enabled: true,
-        }
-      : prevState.video.media;
-
-    const audioMedia: Media | null = action.audio.restart
-      ? {
-          stream: action.stream,
-          track: action.stream.getAudioTracks()[0] || null,
-          deviceInfo: action.audio.info,
-          enabled: true,
-        }
-      : prevState.audio.media;
-
-    return {
-      ...prevState,
-      video: { ...prevState.video, media: videoMedia },
-      audio: { ...prevState.audio, media: audioMedia },
-    };
+    // if (action.video.restart) {
+    //   prevState?.video?.media?.track?.stop();
+    // }
+    //
+    // if (action.audio.restart) {
+    //   prevState?.audio?.media?.track?.stop();
+    // }
+    //
+    // const videoMedia: Media | null = action.video.restart
+    //   ? {
+    //       stream: action.stream,
+    //       track: action.stream.getVideoTracks()[0] || null,
+    //       deviceInfo: action.video.info,
+    //       enabled: true,
+    //     }
+    //   : prevState.video.media;
+    //
+    // const audioMedia: Media | null = action.audio.restart
+    //   ? {
+    //       stream: action.stream,
+    //       track: action.stream.getAudioTracks()[0] || null,
+    //       deviceInfo: action.audio.info,
+    //       enabled: true,
+    //     }
+    //   : prevState.audio.media;
+    //
+    // return {
+    //   ...prevState,
+    //   video: { ...prevState.video, media: videoMedia },
+    //   audio: { ...prevState.audio, media: audioMedia },
+    // };
+    return prevState;
   } else if (action.type === "UseUserMedia-setError") {
-    const videoError = action.constraints.video ? action.parsedError : prevState.video.error;
-    const audioError = action.constraints.audio ? action.parsedError : prevState.audio.error;
-
-    return {
-      ...prevState,
-      video: { ...prevState.video, error: videoError },
-      audio: { ...prevState.audio, error: audioError },
-    };
+    // const videoError = action.constraints.video ? action.parsedError : prevState.video.error;
+    // const audioError = action.constraints.audio ? action.parsedError : prevState.audio.error;
+    //
+    // return {
+    //   ...prevState,
+    //   video: { ...prevState.video, error: videoError },
+    //   audio: { ...prevState.audio, error: audioError },
+    // };
+    return prevState;
   } else if (action.type === "UseUserMedia-stopDevice") {
-    prevState?.[action.mediaType]?.media?.track?.stop();
-
-    return { ...prevState, [action.mediaType]: { ...prevState[action.mediaType], media: null } };
+    // prevState?.[action.mediaType]?.media?.track?.stop();
+    //
+    // return { ...prevState, [action.mediaType]: { ...prevState[action.mediaType], media: null } };
+    return prevState;
   } else if (action.type === "UseUserMedia-setEnable") {
-    const media = prevState[action.mediaType].media;
-    if (!media || !media.track) {
-      return prevState;
-    }
-
-    media.track.enabled = action.value;
-
-    return {
-      ...prevState,
-      [action.mediaType]: { ...prevState[action.mediaType], media: { ...media, enabled: action.value } },
-    };
+    // const media = prevState[action.mediaType].media;
+    // if (!media || !media.track) {
+    //   return prevState;
+    // }
+    //
+    // media.track.enabled = action.value;
+    //
+    // return {
+    //   ...prevState,
+    //   [action.mediaType]: { ...prevState[action.mediaType], media: { ...media, enabled: action.value } },
+    // };
+    return prevState;
   }
   throw Error("Unhandled Action");
 };
@@ -569,3 +575,280 @@ export const useUserMediaInternal = (
     [start, state, stop, init, setEnable],
   );
 };
+
+export class DeviceManager {
+  private state: UseUserMediaState;
+  private readonly dispatch: Dispatch<UseUserMediaAction>;
+  private readonly config: UseUserMediaConfig;
+  private readonly devicePersistence: DevicePersistence;
+  private skip: boolean = false;
+  private readonly audioConstraints: MediaTrackConstraints | undefined;
+  private readonly videoConstraints: MediaTrackConstraints | undefined;
+
+  private video: DeviceState = {
+    status: "Not requested",
+    media: null,
+    devices: null,
+    error: null,
+  };
+
+  private audio: DeviceState = {
+    status: "Not requested",
+    media: null,
+    devices: null,
+    error: null,
+  };
+
+  constructor(state: UseUserMediaState, dispatch: Dispatch<UseUserMediaAction>, config: UseUserMediaConfig) {
+    this.state = state;
+    this.dispatch = dispatch;
+    this.config = config;
+    const { storage } = config;
+    if (storage === undefined || storage === false) {
+      this.devicePersistence = {
+        getLastVideoDevice: null,
+        getLastAudioDevice: null,
+        saveLastAudioDevice: () => {},
+        saveLastVideoDevice: () => {},
+      };
+    } else if (storage === true) {
+      this.devicePersistence = LOCAL_STORAGE_DEVICE_PERSISTENCE;
+    } else {
+      this.devicePersistence = storage;
+    }
+
+    this.audioConstraints = toMediaTrackConstraints(config.audioTrackConstraints);
+    this.videoConstraints = toMediaTrackConstraints(config.videoTrackConstraints);
+  }
+
+  public async init() {
+    if (this.skip) return;
+    this.skip = true;
+    if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
+
+    const { getLastAudioDevice, saveLastAudioDevice, getLastVideoDevice, saveLastVideoDevice } = this.devicePersistence;
+    const { storage, videoTrackConstraints, audioTrackConstraints, startOnMount = false } = this.config;
+
+    const previousVideoDevice: MediaDeviceInfo | null = getLastVideoDevice?.() ?? null;
+    const previousAudioDevice: MediaDeviceInfo | null = getLastAudioDevice?.() ?? null;
+
+    const shouldAskForVideo = !!videoTrackConstraints;
+    const shouldAskForAudio = !!audioTrackConstraints;
+
+    // from reducer:
+    const action1 = {
+      type: "UseUserMedia-loading" as const,
+      video: { ask: shouldAskForVideo, constraints: this.videoConstraints },
+      audio: { ask: shouldAskForAudio, constraints: this.audioConstraints },
+    };
+
+    const videoConstraints = action1.video.constraints;
+    const audioConstraints = action1.audio.constraints;
+
+    this.video.status = shouldAskForVideo && videoConstraints ? REQUESTING : this.video.status ?? NOT_REQUESTED;
+    this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
+
+    this.dispatch(action1);
+
+    let requestedDevices: MediaStream | null = null;
+    const constraints = {
+      video: shouldAskForVideo && getExactDeviceConstraint(this.videoConstraints, previousVideoDevice?.deviceId),
+      audio: shouldAskForAudio && getExactDeviceConstraint(this.audioConstraints, previousAudioDevice?.deviceId),
+    };
+
+    let result: GetMedia = await getMedia(constraints, {});
+
+    if (result.type === "Error" && result.error?.name === "OverconstrainedError") {
+      result = await handleOverconstrainedError(constraints);
+    }
+
+    if (result.type === "Error" && result.error?.name === "NotAllowedError") {
+      result = await handleNotAllowedError(result.constraints);
+    }
+
+    const mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
+
+    if (result.type === "OK") {
+      requestedDevices = result.stream;
+      // Safari changes deviceId between sessions, therefore we cannot rely on deviceId for identification purposes.
+      // We can switch a random device that comes from safari to one that has the same label as the one used in the previous session.
+      const currentDevices = getCurrentDevicesSettings(requestedDevices, mediaDeviceInfos);
+      const shouldCorrectDevices = isAnyDeviceDifferentFromLastSession(
+        previousVideoDevice,
+        previousAudioDevice,
+        currentDevices,
+      );
+      if (shouldCorrectDevices) {
+        const videoIdToStart = mediaDeviceInfos.find((info) => info.label === previousVideoDevice?.label)?.deviceId;
+        const audioIdToStart = mediaDeviceInfos.find((info) => info.label === previousAudioDevice?.label)?.deviceId;
+
+        if (videoIdToStart || audioIdToStart) {
+          stopTracks(requestedDevices);
+
+          const exactConstraints: MediaStreamConstraints = {
+            video: !!result.constraints.video && prepareConstraints(videoIdToStart, this.videoConstraints),
+            audio: !!result.constraints.video && prepareConstraints(audioIdToStart, this.audioConstraints),
+          };
+
+          const correctedResult = await getMedia(exactConstraints, result.previousErrors);
+
+          if (correctedResult.type === "OK") {
+            requestedDevices = correctedResult.stream;
+          } else {
+            console.error("Device Manager unexpected error");
+          }
+        }
+      }
+    }
+
+    const video: DeviceState = prepareDeviceState(
+      requestedDevices,
+      requestedDevices?.getVideoTracks()[0] || null,
+      mediaDeviceInfos.filter(isVideo),
+      getError(result, "video"),
+      shouldAskForVideo,
+    );
+
+    const audio: DeviceState = prepareDeviceState(
+      requestedDevices,
+      requestedDevices?.getAudioTracks()[0] || null,
+      mediaDeviceInfos.filter(isAudio),
+      getError(result, "audio"),
+      shouldAskForAudio,
+    );
+
+    this.dispatch({ type: "UseUserMedia-setAudioAndVideo", audio, video });
+    this.video = video;
+    this.audio = audio;
+
+    if (video.media?.deviceInfo) {
+      saveLastVideoDevice?.(video.media.deviceInfo);
+    }
+
+    if (audio.media?.deviceInfo) {
+      saveLastAudioDevice?.(audio.media?.deviceInfo);
+    }
+  }
+
+  public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
+    const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
+    const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;
+
+    const newVideoDevice =
+      videoDeviceId === true ? this.devicePersistence.getLastVideoDevice?.()?.deviceId || true : videoDeviceId;
+    const newAudioDevice =
+      audioDeviceId === true ? this.devicePersistence.getLastAudioDevice?.()?.deviceId || true : audioDeviceId;
+
+    const exactConstraints: MediaStreamConstraints = {
+      video: shouldRestartVideo && prepareMediaTrackConstraints(newVideoDevice, this.videoConstraints),
+      audio: shouldRestartAudio && prepareMediaTrackConstraints(newAudioDevice, this.audioConstraints),
+    };
+
+    if (!exactConstraints.video && !exactConstraints.audio) return;
+
+    const result = await getMedia(exactConstraints, {});
+
+    if (result.type === "OK") {
+      const stream = result.stream;
+
+      const currentVideoDeviceId = result.stream.getVideoTracks()?.[0]?.getSettings()?.deviceId;
+      const videoInfo = currentVideoDeviceId ? getDeviceInfo(currentVideoDeviceId, this.video.devices ?? []) : null;
+      if (videoInfo) {
+        this.devicePersistence.saveLastVideoDevice?.(videoInfo);
+      }
+
+      const currentAudioDeviceId = result.stream.getAudioTracks()?.[0]?.getSettings()?.deviceId;
+      const audioInfo = currentAudioDeviceId ? getDeviceInfo(currentAudioDeviceId, this.audio.devices ?? []) : null;
+
+      if (audioInfo) {
+        this.devicePersistence.saveLastAudioDevice?.(audioInfo);
+      }
+
+      // form reducer:
+
+      const action = {
+        type: "UseUserMedia-setMedia" as const,
+        stream: stream,
+        video: {
+          restart: shouldRestartVideo,
+          info: videoInfo,
+        },
+        audio: {
+          restart: shouldRestartAudio,
+          info: audioInfo,
+        },
+      };
+
+      if (action.video.restart) {
+        this.video?.media?.track?.stop();
+      }
+
+      if (action.audio.restart) {
+        this.audio?.media?.track?.stop();
+      }
+
+      const videoMedia: Media | null = action.video.restart
+        ? {
+            stream: action.stream,
+            track: action.stream.getVideoTracks()[0] || null,
+            deviceInfo: action.video.info,
+            enabled: true,
+          }
+        : this.video.media;
+
+      const audioMedia: Media | null = action.audio.restart
+        ? {
+            stream: action.stream,
+            track: action.stream.getAudioTracks()[0] || null,
+            deviceInfo: action.audio.info,
+            enabled: true,
+          }
+        : this.audio.media;
+
+      this.video.media = videoMedia;
+      this.audio.media = audioMedia;
+
+      this.dispatch(action);
+    } else {
+      const parsedError = result.error;
+      const action = { type: "UseUserMedia-setError" as const, parsedError, constraints: exactConstraints };
+
+      const videoError = action.constraints.video ? action.parsedError : this.video.error;
+      const audioError = action.constraints.audio ? action.parsedError : this.audio.error;
+
+      this.video.error = videoError;
+      this.audio.error = audioError;
+
+      this.dispatch(action);
+    }
+  }
+
+  public async stop(type: AudioOrVideoType) {
+    const action = { type: "UseUserMedia-stopDevice" as const, mediaType: type };
+
+    this[type].media?.track?.stop();
+    this[type].media = null;
+
+    this.dispatch(action);
+  }
+
+  public setEnable(type: AudioOrVideoType, value: boolean) {
+    const action = { type: "UseUserMedia-setEnable" as const, mediaType: type, value };
+
+    const media = this[type].media;
+    if (!media || !media.track) {
+      return;
+    }
+
+    media.track.enabled = action.value;
+
+    this.dispatch(action);
+  }
+
+  // useEffect(() => {
+  //   if(startOnMount) {
+  //     init();
+  //   }
+  // // eslint-disable-next-line
+  // },[];);
+}

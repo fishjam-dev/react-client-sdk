@@ -30,9 +30,9 @@ export type UseUserMediaConfig = {
 };
 
 export type DevicePersistence = {
-  getLastAudioDevice: () => MediaDeviceInfo | null;
+  getLastAudioDevice: (() => MediaDeviceInfo | null) | null;
   saveLastAudioDevice: (info: MediaDeviceInfo) => void;
-  getLastVideoDevice: () => MediaDeviceInfo | null;
+  getLastVideoDevice: (() => MediaDeviceInfo | null) | null;
   saveLastVideoDevice: (info: MediaDeviceInfo) => void;
 };
 
