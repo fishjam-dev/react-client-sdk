@@ -68,7 +68,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@jellyfish-dev/ts-client-sdk": "^0.2.5",
+    "@jellyfish-dev/ts-client-sdk": "file:../ts-client-sdk",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },
