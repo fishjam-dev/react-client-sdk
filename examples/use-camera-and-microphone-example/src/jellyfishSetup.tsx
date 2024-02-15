@@ -21,7 +21,7 @@ export const DEFAULT_VIDEO_TRACK_METADATA: TrackMetadata = {
 
 export const MANUAL_VIDEO_TRACK_METADATA: TrackMetadata = {
   // @ts-ignore
-  type: "camera",
+  type: "camera2",
   mode: "manual",
   // @ts-ignore
   abc: "hello",
@@ -45,6 +45,11 @@ export const DEFAULT_SCREENSHARE_TRACK_METADATA: TrackMetadata = {
 export const MANUAL_SCREENSHARE_TRACK_METADATA: TrackMetadata = {
   type: "screenshare",
   mode: "manual",
+};
+
+export const EXAMPLE_PEER_METADATA: PeerMetadata = {
+  // @ts-ignore
+  name2: "John Doe",
 };
 
 export const {
