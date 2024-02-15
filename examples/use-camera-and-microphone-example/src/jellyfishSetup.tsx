@@ -20,11 +20,8 @@ export const DEFAULT_VIDEO_TRACK_METADATA: TrackMetadata = {
 };
 
 export const MANUAL_VIDEO_TRACK_METADATA: TrackMetadata = {
-  // @ts-ignore
-  type: "camera2",
+  type: "camera",
   mode: "manual",
-  // @ts-ignore
-  abc: "hello",
 };
 
 export const DEFAULT_AUDIO_TRACK_METADATA: TrackMetadata = {
@@ -48,8 +45,7 @@ export const MANUAL_SCREENSHARE_TRACK_METADATA: TrackMetadata = {
 };
 
 export const EXAMPLE_PEER_METADATA: PeerMetadata = {
-  // @ts-ignore
-  name2: "John Doe",
+  name: "John Doe",
 };
 
 export const {

@@ -13,7 +13,7 @@ export const DEFAULT_STORE: State<any, any> = {
   tracks: {},
   media: INITIAL_STATE,
   devices: createDefaultDevices(),
-  bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
+  bandwidthEstimation: 0n,
   connectivity: {
     api: null,
     client: null,

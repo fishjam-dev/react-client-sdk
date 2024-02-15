@@ -5,6 +5,7 @@ import {
   onAuthError,
   onAuthSuccess,
   onBandwidthEstimationChanged,
+  onConnectError,
   onEncodingChanged,
   onJoinError,
   onJoinSuccess,
@@ -67,12 +68,12 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
     stop: () => {},
     setEnable: (_value: boolean) => {},
     start: () => {},
-    addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(), // remote
+    addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
     removeTrack: () => Promise.reject(),
     replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
       Promise.reject(),
     broadcast: null,
-    status: null, // todo how to ull
+    status: null,
     stream: null,
     track: null,
     enabled: false,
@@ -84,12 +85,12 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
     stop: () => {},
     setEnable: (_value: boolean) => {},
     start: () => {},
-    addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(), // remote
+    addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
     removeTrack: () => Promise.reject(),
     replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
       Promise.reject(),
     broadcast: null,
-    status: null, // todo how to ull
+    status: null,
     stream: null,
     track: null,
     enabled: false,
@@ -104,7 +105,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMet
   remote: {},
   status: null,
   tracks: {},
-  bandwidthEstimation: BigInt(0), // todo investigate bigint n notation
+  bandwidthEstimation: 0n,
   media: INITIAL_STATE,
   devices: createDefaultDevices(),
   connectivity: {
@@ -122,6 +123,10 @@ export type ConnectAction<PeerMetadata, TrackMetadata> = {
 
 export type DisconnectAction = {
   type: "disconnect";
+};
+
+export type ConnectError = {
+  type: "connectError";
 };
 
 export type OnJoinErrorAction = {
@@ -251,6 +256,7 @@ export type SetDevices<TrackMetadata> = { type: "setDevices"; data: UseCameraAnd
 export type Action<PeerMetadata, TrackMetadata> =
   | ConnectAction<PeerMetadata, TrackMetadata>
   | DisconnectAction
+  | ConnectError
   | OnJoinSuccessAction<PeerMetadata, TrackMetadata>
   | OnAuthSuccessAction
   | OnAuthErrorAction
@@ -379,8 +385,7 @@ const onConnect = <PeerMetadata, TrackMetadata>(
       },
     };
   } catch (e) {
-    // todo temporary solution
-    action.dispatch({ type: "onJoinError", metadata: "any" });
+    action.dispatch({ type: "connectError" });
     return {
       ...state,
       status: "error",
@@ -404,6 +409,8 @@ export const reducer = <PeerMetadata, TrackMetadata>(
       state?.connectivity?.client?.removeAllListeners();
       state?.connectivity?.client?.disconnect();
       return { ...createDefaultState(), media: state.media, screenshare: state.screenshare, devices: state.devices };
+    case "connectError":
+      return onConnectError<PeerMetadata, TrackMetadata>()(state);
     // connections events
     case "onSocketOpen":
       return onSocketOpen<PeerMetadata, TrackMetadata>()(state);

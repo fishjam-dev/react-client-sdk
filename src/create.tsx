@@ -35,7 +35,7 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(
   remote: {},
   status: null,
   tracks: {},
-  bandwidthEstimation: BigInt(0),
+  bandwidthEstimation: 0n,
   media: INITIAL_STATE,
   devices: createDefaultDevices(),
   connectivity: {

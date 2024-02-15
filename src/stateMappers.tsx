@@ -6,6 +6,12 @@ import type {
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerState, PeerId, State, Track, TrackId, TrackWithOrigin, Origin } from "./state.types";
 
+export const onConnectError =
+  <PeerMetadata, TrackMetadata>() =>
+  (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
+    return { ...prevState, status: "error" };
+  };
+
 export const onSocketOpen =
   <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
@@ -294,7 +300,8 @@ export const onJoinSuccess =
     const local: PeerState<PeerMetadata, TrackMetadata> = {
       id: peerId,
       metadata: peerMetadata,
-      rawMetadata: peerMetadata, // todo fix
+      rawMetadata: peerMetadata,
+      metadataParsingError: undefined,
       tracks: {},
     };
 
@@ -331,9 +338,9 @@ export const addTrack =
             trackId: remoteTrackId,
             stream: stream,
             encoding: null,
-            rawMetadata: trackMetadata, // todo fix
+            rawMetadata: trackMetadata,
             metadataParsingError: undefined,
-            metadata: trackMetadata, // todo is ok?
+            metadata: trackMetadata,
             vadStatus: "silence", // todo investigate vad status for localPeer
             simulcastConfig: simulcastConfig
               ? {
@@ -408,6 +415,8 @@ export const updateTrackMetadata =
     const prevTrack: Track<TrackMetadata> | null = prevLocalPeer.tracks[trackId] || null;
     if (!prevTrack) return prevState;
 
+    const metadata = trackMetadata ? { ...trackMetadata } : undefined
+
     return {
       ...prevState,
       local: {
@@ -416,8 +425,9 @@ export const updateTrackMetadata =
           ...prevLocalPeer.tracks,
           [trackId]: {
             ...prevTrack,
-            metadata: trackMetadata ? { ...trackMetadata } : undefined,
-            // todo rawMetadata, metadataParsingError
+            metadata,
+            rawMetadata: metadata,
+            metadataParsingError: undefined,
           },
         },
       },
