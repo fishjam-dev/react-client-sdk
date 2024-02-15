@@ -368,16 +368,28 @@ const onConnect = <PeerMetadata, TrackMetadata>(
     action.dispatch({ type: "onTracksPriorityChanged", enabledTracks, disabledTracks });
   });
 
-  client.connect(action.config);
-
-  return {
-    ...state,
-    status: "connecting",
-    connectivity: {
-      api,
-      client,
-    },
-  };
+  try {
+    client.connect(action.config);
+    return {
+      ...state,
+      status: "connecting",
+      connectivity: {
+        api,
+        client,
+      },
+    };
+  } catch (e) {
+    // todo temporary solution
+    action.dispatch({ type: "onJoinError", metadata: "any" });
+    return {
+      ...state,
+      status: "error",
+      connectivity: {
+        api,
+        client,
+      },
+    };
+  }
 };
 
 export const reducer = <PeerMetadata, TrackMetadata>(

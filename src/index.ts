@@ -1,9 +1,4 @@
-export {
-  create,
-  // CreateJellyfishClient,
-  // JellyfishContextProviderProps,
-  UseConnect,
-} from "./create";
+export { create, CreateJellyfishClient, UseConnect } from "./create";
 
 export {
   PeerState,
@@ -21,15 +16,7 @@ export {
 
 export { Api } from "./api";
 
-export {
-  INITIAL_STATE,
-  MediaReducer,
-  userMediaReducer,
-  useUserMedia,
-  UseUserMediaAction,
-  useUserMediaInternal,
-  parseError,
-} from "./useUserMedia";
+export { useUserMedia } from "./useUserMedia";
 
 export { useSetupMedia } from "./useMedia/index";
 
@@ -46,10 +33,6 @@ export {
   AUDIO_TRACK_CONSTRAINTS,
   VIDEO_TRACK_CONSTRAINTS,
   SCREEN_SHARING_MEDIA_CONSTRAINTS,
-  // getExactDeviceConstraint,
-  // prepareConstraints,
-  // prepareMediaTrackConstraints,
-  // toMediaTrackConstraints,
 } from "./useUserMedia/constraints";
 
 export type {
@@ -57,7 +40,6 @@ export type {
   MessageEvents,
   SignalingUrl,
   CreateConfig,
-  JellyfishClient,
   TrackBandwidthLimit,
   SimulcastBandwidthLimit,
   BandwidthLimit,
@@ -70,3 +52,5 @@ export type {
   VadStatus,
   EncodingReason,
 } from "@jellyfish-dev/ts-client-sdk";
+
+export { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
