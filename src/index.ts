@@ -51,6 +51,8 @@ export type {
   TrackEncoding,
   VadStatus,
   EncodingReason,
+  MetadataParser,
+  ConnectConfig,
 } from "@jellyfish-dev/ts-client-sdk";
 
 export { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";
