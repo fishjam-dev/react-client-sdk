@@ -65,7 +65,7 @@ export const MainControls = () => {
       defaultSimulcastConfig: {
         enabled: true,
         activeEncodings: ["l", "m", "h"],
-        disabledEncodings: []
+        disabledEncodings: [],
       },
     },
     microphone: {

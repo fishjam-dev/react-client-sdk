@@ -415,7 +415,7 @@ export const updateTrackMetadata =
     const prevTrack: Track<TrackMetadata> | null = prevLocalPeer.tracks[trackId] || null;
     if (!prevTrack) return prevState;
 
-    const metadata = trackMetadata ? { ...trackMetadata } : undefined
+    const metadata = trackMetadata ? { ...trackMetadata } : undefined;
 
     return {
       ...prevState,
