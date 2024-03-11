@@ -1,6 +1,7 @@
 import {
   DEFAULT_AUDIO_TRACK_METADATA,
   DEFAULT_VIDEO_TRACK_METADATA,
+  EXAMPLE_PEER_METADATA,
   MANUAL_AUDIO_TRACK_METADATA,
   MANUAL_SCREENSHARE_TRACK_METADATA,
   MANUAL_VIDEO_TRACK_METADATA,
@@ -71,6 +72,7 @@ export const MainControls = () => {
       defaultSimulcastConfig: {
         enabled: true,
         activeEncodings: ["l", "m", "h"],
+        disabledEncodings: [],
       },
     },
     microphone: {
@@ -174,7 +176,7 @@ export const MainControls = () => {
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
-                peerMetadata: { name: "John Doe" }, // example metadata
+                peerMetadata: EXAMPLE_PEER_METADATA,
                 token: token,
               });
             }}
