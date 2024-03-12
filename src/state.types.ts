@@ -53,10 +53,10 @@ export type State<PeerMetadata, TrackMetadata> = {
   tracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
   bandwidthEstimation: bigint;
   status: PeerStatus;
-  media: UseUserMediaState;
-  screenshare: UseScreenshareState;
+  media: UseUserMediaState | null;
+  screenshare: UseScreenshareState | null;
   devices: UseCameraAndMicrophoneResult<TrackMetadata>;
-  connectivity: Connectivity<PeerMetadata, TrackMetadata>;
+  connectivity: Connectivity<PeerMetadata, TrackMetadata> | null;
 };
 
 export type SetStore<PeerMetadata, TrackMetadata> = (

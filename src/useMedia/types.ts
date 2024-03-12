@@ -44,7 +44,7 @@ export type UseCameraResult<TrackMetadata> = {
   ) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
-  broadcast: Track<TrackMetadata> | null;
+  // broadcast: Track<TrackMetadata> | null;
   status: DeviceReturnType | null; // todo how to remove null
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
@@ -61,7 +61,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
-  broadcast: Track<TrackMetadata> | null;
+  // broadcast: Track<TrackMetadata> | null;
   status: DeviceReturnType | null;
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
@@ -78,7 +78,7 @@ export type UseScreenshareResult<TrackMetadata> = {
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
-  broadcast: Track<TrackMetadata> | null;
+  // broadcast: Track<TrackMetadata> | null;
   status: DeviceReturnType | null;
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
@@ -89,7 +89,7 @@ export type UseScreenshareResult<TrackMetadata> = {
 export type UseCameraAndMicrophoneResult<TrackMetadata> = {
   camera: UseCameraResult<TrackMetadata>;
   microphone: UseMicrophoneResult<TrackMetadata>;
-  screenshare: UseScreenshareResult<TrackMetadata>;
+  screenshare: UseScreenshareResult<TrackMetadata> | null; // todo fix
   init: () => void;
   start: (config: UseUserMediaStartConfig) => void;
 };

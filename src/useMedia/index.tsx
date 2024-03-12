@@ -1,6 +1,6 @@
-import { DeviceState, Type, UseUserMediaConfig } from "../useUserMedia/types";
-import { Dispatch, MutableRefObject, useCallback, useEffect, useMemo, useRef } from "react";
-import { useUserMediaInternal } from "../useUserMedia";
+import { DeviceState, Type, UseUserMediaConfig, UseUserMediaState } from "../useUserMedia/types";
+import { Dispatch, MutableRefObject, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { DeviceManager, useUserMediaInternal } from "../useUserMedia";
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
 import { UseCameraAndMicrophoneResult, UseSetupMediaConfig, UseSetupMediaResult } from "./types";
 import { State } from "../state.types";
@@ -22,25 +22,64 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
     [config],
   );
 
-  const result = useUserMediaInternal(state.media, dispatch, userMediaConfig);
+  const deviceManagerRef = useRef(new DeviceManager(userMediaConfig));
+
+  useSyncExternalStore<UseUserMediaState>(
+    (subscribe) => {
+      const handler = () => {
+        subscribe();
+      };
+
+      deviceManagerRef.current.on("managerStarted", handler);
+      deviceManagerRef.current.on("managerInitialized", handler);
+
+      deviceManagerRef.current.on("deviceReady", handler);
+      deviceManagerRef.current.on("devicesReady", handler);
+      deviceManagerRef.current.on("deviceStopped", handler);
+      deviceManagerRef.current.on("deviceEnabled", handler);
+      deviceManagerRef.current.on("deviceDisabled", handler);
+
+      deviceManagerRef.current.on("error", handler);
+
+      return () => {
+        deviceManagerRef.current.on("managerStarted", handler);
+        deviceManagerRef.current.on("managerInitialized", handler);
+
+        deviceManagerRef.current.on("deviceReady", handler);
+        deviceManagerRef.current.on("devicesReady", handler);
+        deviceManagerRef.current.on("deviceStopped", handler);
+        deviceManagerRef.current.on("deviceEnabled", handler);
+        deviceManagerRef.current.on("deviceDisabled", handler);
+
+        deviceManagerRef.current.on("error", handler);
+      };
+    },
+    () => {
+      return deviceManagerRef.current.getSnapshot();
+    },
+  );
+
+  // const result = useUserMediaInternal(state.media, dispatch, userMediaConfig);
+
   const screenshareResult = useScreenshare(state, dispatch, { trackConstraints: config.screenshare.trackConstraints });
 
-  const mediaRef = useRef(result);
+  // const mediaRef = useRef(result);
   const screenshareMediaRef = useRef(screenshareResult);
   const apiRef = useRef(state.connectivity.api);
 
-  useEffect(() => {
-    mediaRef.current = result;
-    screenshareMediaRef.current = screenshareResult;
-    apiRef.current = state.connectivity.api;
-  }, [result, screenshareResult, state.connectivity.api]);
+  // useEffect(() => {
+  //   mediaRef.current = result;
+  //   screenshareMediaRef.current = screenshareResult;
+  //   apiRef.current = state.connectivity.api;
+  // }, [result, screenshareResult, state.connectivity.api]);
 
   const videoTrackIdRef = useRef<string | null>(null);
   const audioTrackIdRef = useRef<string | null>(null);
   const screenshareTrackIdRef = useRef<string | null>(null);
 
   const getDeviceState: (type: Type) => DeviceState | null | undefined = useCallback(
-    (type) => (type === "screenshare" ? screenshareMediaRef.current.data : mediaRef.current.data?.[type]),
+    (type) =>
+      type === "screenshare" ? screenshareMediaRef.current.data : deviceManagerRef.current.getSnapshot()?.[type],
     [],
   );
   const getTrackIdRef: (type: Type) => MutableRefObject<string | null> = useCallback(
@@ -75,13 +114,13 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
     [getTrackIdRef, getDeviceState],
   );
 
-  useEffect(() => {
-    if (state.status !== "joined") {
-      videoTrackIdRef.current = null;
-      audioTrackIdRef.current = null;
-      screenshareTrackIdRef.current = null;
-    }
-  }, [state.status]);
+  // useEffect(() => {
+  //   if (state.status !== "joined") {
+  //     videoTrackIdRef.current = null;
+  //     audioTrackIdRef.current = null;
+  //     screenshareTrackIdRef.current = null;
+  //   }
+  // }, [state.status]);
 
   const replaceTrack = useCallback(
     (type: Type, newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata): Promise<void> => {
@@ -103,7 +142,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
   useEffect(() => {
     if (state.status !== "joined") return;
 
-    if (config.camera.autoStreaming && mediaRef.current.data?.video.status === "OK") {
+    if (config.camera.autoStreaming && deviceManagerRef.current.getSnapshot()?.video.status === "OK") {
       addTrack(
         "video",
         config.camera.defaultTrackMetadata,
@@ -112,7 +151,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
       );
     }
 
-    if (config.microphone.autoStreaming && mediaRef.current.data?.audio.status === "OK") {
+    if (config.microphone.autoStreaming && deviceManagerRef.current.getSnapshot()?.audio.status === "OK") {
       addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
     }
 
@@ -143,81 +182,81 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
     [getTrackIdRef],
   );
 
-  useEffect(() => {
-    if (!apiRef.current) return;
-    const videoTrack = result.data?.video.media?.track;
-    const videoStream = result.data?.video.media?.stream;
+  // useEffect(() => {
+  //   if (!apiRef.current) return;
+  //   const videoTrack = deviceManagerRef.current.getSnapshot()?.video.media?.track;
+  //   const videoStream = deviceManagerRef.current.getSnapshot()?.video.media?.stream;
+  //
+  //   const cameraPreview = config.camera.preview ?? true;
+  //   if (!cameraPreview && result.data?.video.status === "OK" && videoStream) {
+  //     addTrack(
+  //       "video",
+  //       config.camera.defaultTrackMetadata,
+  //       config.camera.defaultSimulcastConfig,
+  //       config.camera.defaultMaxBandwidth,
+  //     );
+  //   } else if (videoTrackIdRef.current && videoTrack && videoStream) {
+  //     // todo track metadata
+  //     if (!videoTrackIdRef.current) return;
+  //     replaceTrack("video", videoTrack, videoStream, undefined);
+  //   } else if (videoTrackIdRef.current && !videoTrack && !videoStream) {
+  //     // todo add nullify option
+  //     removeTrack("video");
+  //   }
+  //
+  //   const audioTrack = result.data?.audio.media?.track;
+  //   const audioStream = result.data?.audio.media?.stream;
+  //
+  //   const microphonePreview = config.microphone.preview ?? true;
+  //
+  //   if (!microphonePreview && result.data?.audio.status === "OK" && audioStream) {
+  //     addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
+  //   } else if (audioTrackIdRef.current && audioTrack && audioStream) {
+  //     // todo track metadata
+  //     if (!audioTrackIdRef.current) return;
+  //     replaceTrack("audio", audioTrack, audioStream, undefined);
+  //   } else if (audioTrackIdRef.current && !audioTrack && !audioStream) {
+  //     // todo add nullify option
+  //     removeTrack("audio");
+  //   }
+  //
+  //   const screenshareTrack = screenshareResult.data?.media?.track;
+  //   const screenshareStream = screenshareResult.data?.media?.stream;
+  //
+  //   const screensharePreview = config.screenshare.preview ?? true;
+  //
+  //   if (!screensharePreview && screenshareResult.data?.status === "OK" && screenshareStream) {
+  //     addTrack(
+  //       "screenshare",
+  //       config.screenshare.defaultTrackMetadata,
+  //       undefined,
+  //       config.screenshare.defaultMaxBandwidth,
+  //     );
+  //   } else if (screenshareTrackIdRef.current && screenshareTrack && screenshareStream) {
+  //     // todo track metadata
+  //     if (!screenshareTrackIdRef.current) return;
+  //     replaceTrack("screenshare", screenshareTrack, screenshareStream, undefined);
+  //   } else if (screenshareTrackIdRef.current && !screenshareTrack && !screenshareStream) {
+  //     // todo add nullify option
+  //     removeTrack("screenshare");
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [
+  //   result.data?.video?.media?.deviceInfo?.deviceId,
+  //   result.data?.audio?.media?.deviceInfo?.deviceId,
+  //   screenshareResult.data?.media?.track,
+  //   replaceTrack,
+  // ]);
 
-    const cameraPreview = config.camera.preview ?? true;
-    if (!cameraPreview && result.data?.video.status === "OK" && videoStream) {
-      addTrack(
-        "video",
-        config.camera.defaultTrackMetadata,
-        config.camera.defaultSimulcastConfig,
-        config.camera.defaultMaxBandwidth,
-      );
-    } else if (videoTrackIdRef.current && videoTrack && videoStream) {
-      // todo track metadata
-      if (!videoTrackIdRef.current) return;
-      replaceTrack("video", videoTrack, videoStream, undefined);
-    } else if (videoTrackIdRef.current && !videoTrack && !videoStream) {
-      // todo add nullify option
-      removeTrack("video");
-    }
-
-    const audioTrack = result.data?.audio.media?.track;
-    const audioStream = result.data?.audio.media?.stream;
-
-    const microphonePreview = config.microphone.preview ?? true;
-
-    if (!microphonePreview && result.data?.audio.status === "OK" && audioStream) {
-      addTrack("audio", config.microphone.defaultTrackMetadata, undefined, config.microphone.defaultMaxBandwidth);
-    } else if (audioTrackIdRef.current && audioTrack && audioStream) {
-      // todo track metadata
-      if (!audioTrackIdRef.current) return;
-      replaceTrack("audio", audioTrack, audioStream, undefined);
-    } else if (audioTrackIdRef.current && !audioTrack && !audioStream) {
-      // todo add nullify option
-      removeTrack("audio");
-    }
-
-    const screenshareTrack = screenshareResult.data?.media?.track;
-    const screenshareStream = screenshareResult.data?.media?.stream;
-
-    const screensharePreview = config.screenshare.preview ?? true;
-
-    if (!screensharePreview && screenshareResult.data?.status === "OK" && screenshareStream) {
-      addTrack(
-        "screenshare",
-        config.screenshare.defaultTrackMetadata,
-        undefined,
-        config.screenshare.defaultMaxBandwidth,
-      );
-    } else if (screenshareTrackIdRef.current && screenshareTrack && screenshareStream) {
-      // todo track metadata
-      if (!screenshareTrackIdRef.current) return;
-      replaceTrack("screenshare", screenshareTrack, screenshareStream, undefined);
-    } else if (screenshareTrackIdRef.current && !screenshareTrack && !screenshareStream) {
-      // todo add nullify option
-      removeTrack("screenshare");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    result.data?.video?.media?.deviceInfo?.deviceId,
-    result.data?.audio?.media?.deviceInfo?.deviceId,
-    screenshareResult.data?.media?.track,
-    replaceTrack,
-  ]);
-
-  const video = useMemo(
-    () => (videoTrackIdRef.current && state.local?.tracks ? state.local?.tracks[videoTrackIdRef.current] : null),
-    [state],
-  );
-
-  const audio = useMemo(
-    () => (!audioTrackIdRef.current || !state.local?.tracks ? null : state.local?.tracks[audioTrackIdRef.current]),
-    [state],
-  );
+  // const video = useMemo(
+  //   () => (videoTrackIdRef.current && state.local?.tracks ? state.local?.tracks[videoTrackIdRef.current] : null),
+  //   [state],
+  // );
+  //
+  // const audio = useMemo(
+  //   () => (!audioTrackIdRef.current || !state.local?.tracks ? null : state.local?.tracks[audioTrackIdRef.current]),
+  //   [state],
+  // );
 
   const screenshare = useMemo(
     () =>
@@ -229,15 +268,15 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
 
   useEffect(() => {
     const payload: UseCameraAndMicrophoneResult<TrackMetadata> = {
-      init: result.init,
-      start: result.start,
+      init: deviceManagerRef.current.init,
+      start: deviceManagerRef.current.start,
       camera: {
         stop: () => {
-          result.stop("video");
+          deviceManagerRef.current.stop("video");
         },
-        setEnable: (value: boolean) => result.setEnable("video", value),
+        setEnable: (value: boolean) => deviceManagerRef.current.setEnable("video", value),
         start: (deviceId?: string) => {
-          result.start({ videoDeviceId: deviceId ?? true });
+          deviceManagerRef.current.start({ videoDeviceId: deviceId ?? true });
         },
         addTrack: (
           trackMetadata?: TrackMetadata,
@@ -249,34 +288,34 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
         removeTrack: () => removeTrack("video"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("video", newTrack, stream, newTrackMetadata),
-        broadcast: video,
-        status: result.data?.video?.status || null,
-        stream: result.data?.video.media?.stream || null,
-        track: result.data?.video.media?.track || null,
-        enabled: result.data?.video.media?.enabled || false,
-        deviceInfo: result.data?.video.media?.deviceInfo || null,
-        error: result.data?.video?.error || null,
-        devices: result.data?.video?.devices || null,
+        // broadcast: video,
+        status: deviceManagerRef.current.getSnapshot()?.video?.status || null,
+        stream: deviceManagerRef.current.getSnapshot()?.video.media?.stream || null,
+        track: deviceManagerRef.current.getSnapshot()?.video.media?.track || null,
+        enabled: deviceManagerRef.current.getSnapshot()?.video.media?.enabled || false,
+        deviceInfo: deviceManagerRef.current.getSnapshot()?.video.media?.deviceInfo || null,
+        error: deviceManagerRef.current.getSnapshot()?.video?.error || null,
+        devices: deviceManagerRef.current.getSnapshot()?.video?.devices || null,
       },
       microphone: {
-        stop: () => result.stop("audio"),
-        setEnable: (value: boolean) => result.setEnable("audio", value),
+        stop: () => deviceManagerRef.current.stop("audio"),
+        setEnable: (value: boolean) => deviceManagerRef.current.setEnable("audio", value),
         start: (deviceId?: string) => {
-          result.start({ audioDeviceId: deviceId ?? true });
+          deviceManagerRef.current.start({ audioDeviceId: deviceId ?? true });
         },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) =>
           addTrack("audio", trackMetadata, undefined, maxBandwidth),
         removeTrack: () => removeTrack("audio"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("audio", newTrack, stream, newTrackMetadata),
-        broadcast: audio,
-        status: result.data?.audio?.status || null,
-        stream: result.data?.audio.media?.stream || null,
-        track: result.data?.audio.media?.track || null,
-        enabled: result.data?.audio.media?.enabled || false,
-        deviceInfo: result.data?.audio.media?.deviceInfo || null,
-        error: result.data?.audio?.error || null,
-        devices: result.data?.audio?.devices || null,
+        // broadcast: audio,
+        status: deviceManagerRef.current.getSnapshot()?.audio?.status || null,
+        stream: deviceManagerRef.current.getSnapshot()?.audio.media?.stream || null,
+        track: deviceManagerRef.current.getSnapshot()?.audio.media?.track || null,
+        enabled: deviceManagerRef.current.getSnapshot()?.audio.media?.enabled || false,
+        deviceInfo: deviceManagerRef.current.getSnapshot()?.audio.media?.deviceInfo || null,
+        error: deviceManagerRef.current.getSnapshot()?.audio?.error || null,
+        devices: deviceManagerRef.current.getSnapshot()?.audio?.devices || null,
       },
       screenshare: {
         stop: () => screenshareResult.stop(),
@@ -289,7 +328,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
         removeTrack: () => removeTrack("screenshare"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("screenshare", newTrack, stream, newTrackMetadata),
-        broadcast: screenshare,
+        // broadcast: screenshare,
         status: screenshareResult.data?.status || null,
         stream: screenshareResult.data?.media?.stream ?? null,
         track: screenshareResult.data?.media?.track ?? null,
@@ -298,13 +337,13 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
       },
     };
 
-    dispatch({ type: "setDevices", data: payload });
-  }, [result, screenshareResult, video, audio, screenshare, addTrack, removeTrack, replaceTrack, dispatch]);
+    // dispatch({ type: "setDevices", data: payload });
+  }, [screenshareResult, screenshare, addTrack, removeTrack, replaceTrack]);
 
   return useMemo(
     () => ({
-      init: result.init,
+      init: deviceManagerRef.current.init,
     }),
-    [result],
+    [],
   );
 };

@@ -56,7 +56,7 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
     removeTrack: () => Promise.reject(),
     replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
       Promise.reject(),
-    broadcast: null,
+    // broadcast: null,
     status: null,
     stream: null,
     track: null,
@@ -73,7 +73,7 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
     removeTrack: () => Promise.reject(),
     replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
       Promise.reject(),
-    broadcast: null,
+    // broadcast: null,
     status: null,
     stream: null,
     track: null,
@@ -90,7 +90,7 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
     removeTrack: () => Promise.reject(),
     replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
       Promise.reject(),
-    broadcast: null,
+    // broadcast: null,
     status: null,
     stream: null,
     track: null,

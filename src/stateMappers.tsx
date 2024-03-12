@@ -30,7 +30,6 @@ export const onSocketError =
       return { ...prevState, status: "error" };
     };
 
-
 export const onAuthSuccess =
   <PeerMetadata, TrackMetadata>() =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {

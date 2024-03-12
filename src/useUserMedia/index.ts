@@ -22,6 +22,9 @@ import {
   toMediaTrackConstraints,
 } from "./constraints";
 
+import EventEmitter from "events";
+import TypedEmitter from "typed-emitter";
+
 const removeExact = (
   trackConstraints: boolean | MediaTrackConstraints | undefined,
 ): boolean | MediaTrackConstraints | undefined => {
@@ -576,32 +579,44 @@ export const useUserMediaInternal = (
   );
 };
 
-export class DeviceManager {
-  private state: UseUserMediaState;
-  private readonly dispatch: Dispatch<UseUserMediaAction>;
+export type DeviceManagerEvents = {
+  managerStarted: (arg: any) => void;
+  managerInitialized: (arg: any) => void;
+  deviceReady: (arg: any) => void;
+  devicesReady: (arg: any) => void;
+  deviceStopped: (arg: any) => void;
+  deviceEnabled: (arg: any) => void;
+  deviceDisabled: (arg: any) => void;
+  error: (arg: any) => void;
+};
+
+export class DeviceManager extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>) {
   private readonly config: UseUserMediaConfig;
   private readonly devicePersistence: DevicePersistence;
   private skip: boolean = false;
   private readonly audioConstraints: MediaTrackConstraints | undefined;
   private readonly videoConstraints: MediaTrackConstraints | undefined;
 
-  private video: DeviceState = {
+  public video: DeviceState = {
     status: "Not requested",
     media: null,
     devices: null,
     error: null,
   };
 
-  private audio: DeviceState = {
+  public audio: DeviceState = {
     status: "Not requested",
     media: null,
     devices: null,
     error: null,
   };
 
-  constructor(state: UseUserMediaState, dispatch: Dispatch<UseUserMediaAction>, config: UseUserMediaConfig) {
-    this.state = state;
-    this.dispatch = dispatch;
+  public getSnapshot(): UseUserMediaState {
+    return { video: this.video, audio: this.audio };
+  }
+
+  constructor(config: UseUserMediaConfig) {
+    super();
     this.config = config;
     const { storage } = config;
     if (storage === undefined || storage === false) {
@@ -648,7 +663,8 @@ export class DeviceManager {
     this.video.status = shouldAskForVideo && videoConstraints ? REQUESTING : this.video.status ?? NOT_REQUESTED;
     this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
 
-    this.dispatch(action1);
+    // this.dispatch(action1);
+    this.emit("managerStarted", action1);
 
     let requestedDevices: MediaStream | null = null;
     const constraints = {
@@ -717,7 +733,6 @@ export class DeviceManager {
       shouldAskForAudio,
     );
 
-    this.dispatch({ type: "UseUserMedia-setAudioAndVideo", audio, video });
     this.video = video;
     this.audio = audio;
 
@@ -728,6 +743,8 @@ export class DeviceManager {
     if (audio.media?.deviceInfo) {
       saveLastAudioDevice?.(audio.media?.deviceInfo);
     }
+
+    this.emit("managerInitialized", { audio, video });
   }
 
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
@@ -808,7 +825,7 @@ export class DeviceManager {
       this.video.media = videoMedia;
       this.audio.media = audioMedia;
 
-      this.dispatch(action);
+      this.emit("devicesReady", action);
     } else {
       const parsedError = result.error;
       const action = { type: "UseUserMedia-setError" as const, parsedError, constraints: exactConstraints };
@@ -819,7 +836,7 @@ export class DeviceManager {
       this.video.error = videoError;
       this.audio.error = audioError;
 
-      this.dispatch(action);
+      this.emit("error", action);
     }
   }
 
@@ -829,7 +846,7 @@ export class DeviceManager {
     this[type].media?.track?.stop();
     this[type].media = null;
 
-    this.dispatch(action);
+    this.emit("deviceStopped", action);
   }
 
   public setEnable(type: AudioOrVideoType, value: boolean) {
@@ -842,13 +859,8 @@ export class DeviceManager {
 
     media.track.enabled = action.value;
 
-    this.dispatch(action);
+    this.emit("deviceEnabled", action);
+    // todo device disabled
+    // this.emit("deviceEnabled", action)
   }
-
-  // useEffect(() => {
-  //   if(startOnMount) {
-  //     init();
-  //   }
-  // // eslint-disable-next-line
-  // },[];);
 }
