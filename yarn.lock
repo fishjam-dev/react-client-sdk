@@ -64,10 +64,10 @@
   integrity sha512-dvuCeX5fC9dXgJn9t+X5atfmgQAzUOWqS1254Gh0m6i8wKd10ebXkfNKiRK+1GWi/yTvvLDHpoxLr0xxxeslWw==
 
 "@jellyfish-dev/ts-client-sdk@file:../ts-client-sdk":
-  version "0.3.0"
+  version "0.3.1"
   resolved "file:../ts-client-sdk"
   dependencies:
-    "@jellyfish-dev/membrane-webrtc-js" "^0.7.0"
+    "@jellyfish-dev/membrane-webrtc-js" "^0.7.1"
     events "^3.3.0"
     ts-proto "^1.165.0"
     typed-emitter "^2.1.0"
