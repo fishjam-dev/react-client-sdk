@@ -190,12 +190,6 @@ export const create = <PeerMetadata, TrackMetadata>(
       console.log({ syncState: state });
     }, [state]);
 
-    // const dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>> = useCallback((action) => {
-    //   prevStore.current = reducer(prevStore.current, action);
-    //
-    //   messageEmitter.emit("stateChanged");
-    // }, []);
-
     return <JellyfishContext.Provider value={{ state }}>{children}</JellyfishContext.Provider>;
   };
 

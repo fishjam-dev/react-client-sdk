@@ -850,17 +850,17 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   }
 
   public setEnable(type: AudioOrVideoType, value: boolean) {
-    const action = { type: "UseUserMedia-setEnable" as const, mediaType: type, value };
-
-    const media = this[type].media;
-    if (!media || !media.track) {
+    if (!this[type].media || !this[type].media?.track) {
       return;
     }
 
-    media.track.enabled = action.value;
+    this[type!].media!.track!.enabled = value;
+    this[type!].media!.enabled = value;
 
-    this.emit("deviceEnabled", action);
-    // todo device disabled
-    // this.emit("deviceEnabled", action)
+    if (value) {
+      this.emit("deviceEnabled", value);
+    } else {
+      this.emit("deviceDisabled", value);
+    }
   }
 }

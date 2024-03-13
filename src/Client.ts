@@ -12,6 +12,7 @@ import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { DeviceManager } from "./useUserMedia";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./useUserMedia/constraints";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
+import { ScreenShareManager, StartScreenShareConfig } from "./ScreenShareManager";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
   getSnapshot(): State<PeerMetadata, TrackMetadata>;
@@ -170,6 +171,7 @@ export class Client<PeerMetadata, TrackMetadata>
 {
   private readonly client: JellyfishClient<PeerMetadata, TrackMetadata>;
   private readonly deviceManager: DeviceManager | null = null;
+  private readonly screenShareManager: ScreenShareManager | null = null;
   private state: State<PeerMetadata, TrackMetadata> | null = null;
   private status: null | PeerStatus = null;
 
@@ -181,6 +183,10 @@ export class Client<PeerMetadata, TrackMetadata>
       audioTrackConstraints: AUDIO_TRACK_CONSTRAINTS,
       videoTrackConstraints: VIDEO_TRACK_CONSTRAINTS,
     });
+
+    // todo add default config?
+    this.screenShareManager = new ScreenShareManager();
+
     this.state = this.stateToSnapshot();
 
     this.client.on("socketOpen", (event) => {
@@ -335,6 +341,36 @@ export class Client<PeerMetadata, TrackMetadata>
 
       this.emit("error", a, this);
     });
+
+    this.screenShareManager.on("deviceDisabled", (a) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("deviceDisabled", a, this);
+    });
+
+    this.screenShareManager.on("deviceEnabled", (a) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("deviceEnabled", a, this);
+    });
+
+    this.screenShareManager.on("deviceStopped", (a) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("deviceStopped", a, this);
+    });
+
+    this.screenShareManager.on("deviceReady", (a) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("deviceReady", a, this);
+    });
+
+    this.screenShareManager.on("error", (a) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("error", a, this);
+    });
   }
 
   getApi() {
@@ -389,7 +425,8 @@ export class Client<PeerMetadata, TrackMetadata>
   private stateToSnapshot(): State<PeerMetadata, TrackMetadata> {
     if (!this.deviceManager) Error("Device manager is null");
 
-    const snapshot = this?.deviceManager?.getSnapshot();
+    const screenShareManager = this.screenShareManager?.getSnapshot()
+    const deviceManagerSnapshot = this?.deviceManager?.getSnapshot();
 
     const localEndpoint = this.client.getLocalEndpoint();
 
@@ -403,10 +440,14 @@ export class Client<PeerMetadata, TrackMetadata>
     const broadcastedVideoTrack = Object.values(localTracks).find(
       (track) => track.track?.id === this.deviceManager?.video.media?.track?.id,
     );
-    console.log({ broadcastedVideoTrack });
 
     const broadcastedAudioTrack = Object.values(localTracks).find(
       (track) => track.track?.id === this.deviceManager?.audio.media?.track?.id,
+    );
+
+    // todo add audio media
+    const screenShareVideoTrack = Object.values(localTracks).find(
+      (track) => track.track?.id === this.screenShareManager?.getSnapshot()?.videoMedia?.track?.id,
     );
 
     const devices: UseCameraAndMicrophoneResult<TrackMetadata> = {
@@ -465,17 +506,17 @@ export class Client<PeerMetadata, TrackMetadata>
 
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata).then(() => {
             this.state = this.stateToSnapshot();
-            this.emit("localTrackReplaced", { trackId: prevTrack.trackId,newTrackMetadata, type: "video" }, this);
+            this.emit("localTrackReplaced", { trackId: prevTrack.trackId, newTrackMetadata, type: "video" }, this);
           });
         },
         broadcast: broadcastedVideoTrack ?? null,
-        status: snapshot?.video?.status || null,
-        stream: snapshot?.video.media?.stream || null,
-        track: snapshot?.video.media?.track || null,
-        enabled: snapshot?.video.media?.enabled || false,
-        deviceInfo: snapshot?.video.media?.deviceInfo || null,
-        error: snapshot?.video?.error || null,
-        devices: snapshot?.video?.devices || null,
+        status: deviceManagerSnapshot?.video?.status || null,
+        stream: deviceManagerSnapshot?.video.media?.stream || null,
+        track: deviceManagerSnapshot?.video.media?.track || null,
+        enabled: deviceManagerSnapshot?.video.media?.enabled || false,
+        deviceInfo: deviceManagerSnapshot?.video.media?.deviceInfo || null,
+        error: deviceManagerSnapshot?.video?.error || null,
+        devices: deviceManagerSnapshot?.video?.devices || null,
       },
       microphone: {
         stop: () => this?.deviceManager?.stop("audio"),
@@ -524,19 +565,82 @@ export class Client<PeerMetadata, TrackMetadata>
 
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata).then(() => {
             this.state = this.stateToSnapshot();
-            this.emit("localTrackReplaced", { trackId: prevTrack.trackId,newTrackMetadata, type: "audio" }, this);
+            this.emit("localTrackReplaced", { trackId: prevTrack.trackId, newTrackMetadata, type: "audio" }, this);
           });
         },
         broadcast: broadcastedAudioTrack ?? null,
-        status: snapshot?.audio?.status || null,
-        stream: snapshot?.audio.media?.stream || null,
-        track: snapshot?.audio.media?.track || null,
-        enabled: snapshot?.audio.media?.enabled || false,
-        deviceInfo: snapshot?.audio.media?.deviceInfo || null,
-        error: snapshot?.audio?.error || null,
-        devices: snapshot?.audio?.devices || null,
+        status: deviceManagerSnapshot?.audio?.status || null,
+        stream: deviceManagerSnapshot?.audio.media?.stream || null,
+        track: deviceManagerSnapshot?.audio.media?.track || null,
+        enabled: deviceManagerSnapshot?.audio.media?.enabled || false,
+        deviceInfo: deviceManagerSnapshot?.audio.media?.deviceInfo || null,
+        error: deviceManagerSnapshot?.audio?.error || null,
+        devices: deviceManagerSnapshot?.audio?.devices || null,
       },
-      screenshare: null,
+      screenshare: {
+        stop: () => {
+          this?.screenShareManager?.stop("video");
+        },
+        setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
+        start: (config?: StartScreenShareConfig) => {
+          // todo add config
+          this.screenShareManager?.start();
+        },
+        addTrack: (
+          trackMetadata?: TrackMetadata,
+          maxBandwidth?: TrackBandwidthLimit,
+        ) => {
+          console.log("Add video track!");
+          const media = this.screenShareManager?.getSnapshot().videoMedia;
+
+          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
+          const { stream, track } = media;
+
+          const prevTrack = Object.values(localTracks).find(
+            (track) => track.track?.id === this.screenShareManager?.getSnapshot().videoMedia?.track?.id,
+          );
+
+          if (prevTrack) throw Error("Track already added");
+
+          return this.client.addTrack(track, stream, trackMetadata, undefined, maxBandwidth).then((trackId) => {
+            this.state = this.stateToSnapshot();
+            this.emit("localTrackAdded", { track, stream, trackMetadata, trackId, type: "video" }, this);
+
+            return trackId;
+          });
+        },
+        removeTrack: () => {
+          const prevTrack = Object.values(localTracks).find(
+            (track) => track.track?.id === this.screenShareManager?.getSnapshot().videoMedia?.track?.id,
+          );
+
+          if (!prevTrack) throw Error("There is no video track");
+
+          return this.client.removeTrack(prevTrack.trackId).then(() => {
+            this.state = this.stateToSnapshot();
+            this.emit("localTrackRemoved", { trackId: prevTrack.trackId, type: "video" }, this);
+          });
+        },
+        replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
+          const prevTrack = Object.values(localTracks).find(
+            (track) => track.track?.id === this.screenShareManager?.getSnapshot().videoMedia?.track?.id,
+          );
+
+          if (!prevTrack) throw Error("There is no video track");
+
+          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata).then(() => {
+            this.state = this.stateToSnapshot();
+            this.emit("localTrackReplaced", { trackId: prevTrack.trackId, newTrackMetadata, type: "video" }, this);
+          });
+        },
+        broadcast: screenShareVideoTrack ?? null,
+        // todo separate audio and video
+        status: screenShareManager?.status || null,
+        stream: screenShareManager?.videoMedia?.stream || null,
+        track: screenShareManager?.videoMedia?.track || null,
+        enabled: screenShareManager?.videoMedia?.enabled || false,
+        error: screenShareManager?.error || null,
+      },
     };
 
     if (!this.client["webrtc"]) {
