@@ -1,7 +1,7 @@
 import { Dispatch, useCallback, useMemo } from "react";
 import { State } from "../state.types";
 import { Action } from "../reducer";
-import { DeviceError, DeviceState } from "../useUserMedia/types";
+import { DeviceError, DeviceState } from "../types";
 import { parseError } from "../useUserMedia";
 
 export interface UseScreenshareConfig {
@@ -68,7 +68,7 @@ export const screenshareReducer = (state: UseScreenshareState, action: UseScreen
   throw Error(`Unhandled Action ${action}`);
 };
 
-export function useScreenshare<PeerMetadata, TrackMetadata>(
+export function useScreenShare<PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,
   dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>>,
   config: UseScreenshareConfig,

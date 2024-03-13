@@ -58,7 +58,7 @@ export const {
   useSetupMedia,
   useCamera,
   useMicrophone,
-  useScreenshare,
+  useScreenShare,
   useSelector,
 } = create<PeerMetadata, TrackMetadata>({
   peerMetadataParser: (obj) => peerMetadataSchema.parse(obj),

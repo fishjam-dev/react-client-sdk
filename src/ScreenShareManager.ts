@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
-import { DeviceError, DeviceReturnType, Media } from "./useUserMedia/types";
+import { DeviceError, DeviceReturnType, Media } from "./types";
 import { parseError } from "./useUserMedia";
 
 export type TrackUnion = "audio" | "video" | "both";

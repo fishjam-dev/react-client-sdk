@@ -19,12 +19,10 @@ export { Api } from "./api";
 
 export { useUserMedia } from "./useUserMedia";
 
-export { useSetupMedia } from "./useMedia/index";
-
 export {
   UseCameraAndMicrophoneResult,
   UseCameraResult,
-  UseScreenshareResult,
+  UseScreenShareResult,
   UseMicrophoneResult,
   UseSetupMediaResult,
   UseSetupMediaConfig,
@@ -34,7 +32,7 @@ export {
   AUDIO_TRACK_CONSTRAINTS,
   VIDEO_TRACK_CONSTRAINTS,
   SCREEN_SHARING_MEDIA_CONSTRAINTS,
-} from "./useUserMedia/constraints";
+} from "./constraints";
 
 export type {
   Peer,

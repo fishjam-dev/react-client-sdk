@@ -9,8 +9,8 @@ import {
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
-import { DeviceManager } from "./useUserMedia";
-import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./useUserMedia/constraints";
+import { DeviceManager } from "./DeviceManager";
+import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
 import { ScreenShareManager, StartScreenShareConfig } from "./ScreenShareManager";
 
@@ -577,7 +577,7 @@ export class Client<PeerMetadata, TrackMetadata>
         error: deviceManagerSnapshot?.audio?.error || null,
         devices: deviceManagerSnapshot?.audio?.devices || null,
       },
-      screenshare: {
+      screenShare: {
         stop: () => {
           this?.screenShareManager?.stop("video");
         },

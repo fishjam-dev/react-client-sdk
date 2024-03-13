@@ -1,6 +1,5 @@
 import {
   createContext,
-  Dispatch,
   JSX,
   ReactNode,
   useCallback,
@@ -15,14 +14,11 @@ import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi } from "./state";
 import { Api } from "./api";
 import { CreateConfig, ConnectConfig, JellyfishClient, Endpoint } from "@jellyfish-dev/ts-client-sdk";
-import { INITIAL_STATE } from "./useUserMedia";
-// import { Action, createDefaultDevices, reducer } from "./reducer";
-import { useSetupMedia as useSetupMediaInternal } from "./useMedia";
 import {
   UseCameraAndMicrophoneResult,
   UseCameraResult,
   UseMicrophoneResult,
-  UseScreenshareResult,
+  UseScreenShareResult,
   UseSetupMediaConfig,
   UseSetupMediaResult,
 } from "./useMedia/types";
@@ -71,7 +67,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useSetupMedia: (config: UseSetupMediaConfig<TrackMetadata>) => UseSetupMediaResult;
   useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["camera"];
   useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["microphone"];
-  useScreenshare: () => UseScreenshareResult<TrackMetadata>;
+  useScreenShare: () => UseScreenShareResult<TrackMetadata>;
 };
 
 /**
@@ -135,7 +131,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       const customCallback = (...args: any[]) => {
         console.log("Custom callback");
         console.log({ args });
-        callback()
+        callback();
       };
 
       client.on("localTrackAdded", customCallback);
@@ -246,12 +242,12 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useSetupMedia = (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state } = useJellyfishContext();
 
-    return useMemo(() => ({ init: () => state.devices.init() }), [state.devices.init]);
+    return useMemo(() => ({ init: () => state.devices.init(config) }), [state.devices.init]);
   };
 
-  const useScreenshare = (): UseScreenshareResult<TrackMetadata> => {
+  const useScreenShare = (): UseScreenShareResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
-    return state.devices.screenshare;
+    return state.devices.screenShare;
   };
 
   return {
@@ -265,6 +261,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useSetupMedia,
     useCamera,
     useMicrophone,
-    useScreenshare,
+    useScreenShare,
   };
 };

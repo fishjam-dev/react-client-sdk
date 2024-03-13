@@ -9,7 +9,7 @@ import {
   useConnect,
   useDisconnect,
   useMicrophone,
-  useScreenshare,
+  useScreenShare,
   useSelector,
   useSetupMedia,
   useStatus,
@@ -93,7 +93,7 @@ export const MainControls = () => {
 
   const video = useCamera();
   const audio = useMicrophone();
-  const screenshare = useScreenshare();
+  const screenshare = useScreenShare();
   const status = useStatus();
 
   return (

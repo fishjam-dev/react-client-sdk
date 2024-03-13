@@ -1,7 +1,7 @@
 import type { TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
 import type { Api } from "./api";
 import { JellyfishClient, SimulcastConfig } from "@jellyfish-dev/ts-client-sdk";
-import { UseUserMediaState } from "./useUserMedia/types";
+import { UseUserMediaState } from "./types";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
 import { UseScreenshareState } from "./useMedia/screenshare";
 import { Client } from "./Client";
