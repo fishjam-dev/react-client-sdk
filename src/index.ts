@@ -1,4 +1,5 @@
 export { create, CreateJellyfishClient, UseConnect } from "./create";
+export { Client, ClientEvents, ClientApiState } from "./Client";
 
 export {
   PeerState,

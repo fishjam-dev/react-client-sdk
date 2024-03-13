@@ -6,6 +6,7 @@ import { UseCameraAndMicrophoneResult, UseSetupMediaConfig, UseSetupMediaResult 
 import { State } from "../state.types";
 import { Action } from "../reducer";
 import { useScreenshare } from "./screenshare";
+import { createEmptyApi } from "../state";
 
 export const useSetupMedia = <PeerMetadata, TrackMetadata>(
   state: State<PeerMetadata, TrackMetadata>,
@@ -65,7 +66,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
 
   // const mediaRef = useRef(result);
   const screenshareMediaRef = useRef(screenshareResult);
-  const apiRef = useRef(state.connectivity.api);
+  const apiRef = useRef(createEmptyApi<PeerMetadata, TrackMetadata>());
 
   // useEffect(() => {
   //   mediaRef.current = result;
@@ -288,7 +289,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
         removeTrack: () => removeTrack("video"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("video", newTrack, stream, newTrackMetadata),
-        // broadcast: video,
+        broadcast: null,
         status: deviceManagerRef.current.getSnapshot()?.video?.status || null,
         stream: deviceManagerRef.current.getSnapshot()?.video.media?.stream || null,
         track: deviceManagerRef.current.getSnapshot()?.video.media?.track || null,
@@ -308,7 +309,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
         removeTrack: () => removeTrack("audio"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("audio", newTrack, stream, newTrackMetadata),
-        // broadcast: audio,
+        broadcast: null,
         status: deviceManagerRef.current.getSnapshot()?.audio?.status || null,
         stream: deviceManagerRef.current.getSnapshot()?.audio.media?.stream || null,
         track: deviceManagerRef.current.getSnapshot()?.audio.media?.track || null,
@@ -328,7 +329,7 @@ export const useSetupMedia = <PeerMetadata, TrackMetadata>(
         removeTrack: () => removeTrack("screenshare"),
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
           replaceTrack("screenshare", newTrack, stream, newTrackMetadata),
-        // broadcast: screenshare,
+        broadcast: null,
         status: screenshareResult.data?.status || null,
         stream: screenshareResult.data?.media?.stream ?? null,
         track: screenshareResult.data?.media?.track ?? null,

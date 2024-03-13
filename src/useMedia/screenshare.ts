@@ -73,7 +73,7 @@ export function useScreenshare<PeerMetadata, TrackMetadata>(
   dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>>,
   config: UseScreenshareConfig,
 ): UseScreenshare {
-  const screenshare = state.screenshare.screenshare;
+  const screenshare = state.screenshare?.screenshare;
 
   const stop = useCallback(async () => {
     for (const track of screenshare?.media?.stream?.getTracks() ?? []) {
@@ -116,7 +116,7 @@ export function useScreenshare<PeerMetadata, TrackMetadata>(
 
   return useMemo(
     () => ({
-      data: screenshare,
+      data: screenshare || null,
       setEnable,
       start,
       stop,
