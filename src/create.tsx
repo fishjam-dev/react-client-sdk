@@ -9,11 +9,11 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
-import type { Selector, State, Track } from "./state.types";
+import type { Selector, State } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { createEmptyApi } from "./state";
 import { Api } from "./api";
-import { CreateConfig, ConnectConfig, JellyfishClient, Endpoint } from "@jellyfish-dev/ts-client-sdk";
+import { CreateConfig, ConnectConfig} from "@jellyfish-dev/ts-client-sdk";
 import {
   UseCameraAndMicrophoneResult,
   UseCameraResult,
@@ -25,7 +25,6 @@ import {
 import TypedEmitter from "typed-emitter/rxjs";
 import EventEmitter from "events";
 import { Client, ClientEvents } from "./Client";
-import { DeviceManagerEvents } from "./DeviceManager";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -37,24 +36,6 @@ type JellyfishContextType<PeerMetadata, TrackMetadata> = {
 };
 
 export type UseConnect<PeerMetadata> = (config: ConnectConfig<PeerMetadata>) => () => void;
-
-// export const createDefaultState = <PeerMetadata, TrackMetadata>(
-//   config?: CreateConfig<PeerMetadata, TrackMetadata>,
-// ): State<PeerMetadata, TrackMetadata> => ({
-//   client: new Client<PeerMetadata, TrackMetadata>(),
-//   local: null,
-//   remote: {},
-//   status: null,
-//   tracks: {},
-//   bandwidthEstimation: 0n,
-//   media: INITIAL_STATE,
-//   devices: createDefaultDevices() | null,
-//   connectivity: {
-//     api: null,
-//     client: new JellyfishClient<PeerMetadata, TrackMetadata>(config),
-//   },
-//   screenshare: SCREENSHARE_INITIAL_STATE,
-// });
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element;
@@ -81,11 +62,6 @@ export const create = <PeerMetadata, TrackMetadata>(
 ): CreateJellyfishClient<PeerMetadata, TrackMetadata> => {
   const JellyfishContext = createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
-  type StateChangeEvents = {
-    stateChanged: () => void;
-  };
-  const messageEmitter = new EventEmitter() as TypedEmitter<StateChangeEvents>;
-
   const JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element = ({
     children,
   }: JellyfishContextProviderProps) => {
@@ -98,7 +74,6 @@ export const create = <PeerMetadata, TrackMetadata>(
       const client = clientRef.current;
       const callback = () => cb();
 
-      console.log("Setting up listeners");
       client.on("socketOpen", callback);
       client.on("socketError", callback);
       client.on("socketClose", callback);
@@ -128,9 +103,8 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("devicesReady", callback);
       client.on("error", callback);
 
-      const customCallback = (...args: any[]) => {
-        console.log("Custom callback");
-        console.log({ args });
+      // todo remove
+      const customCallback = () => {
         callback();
       };
 
@@ -139,8 +113,6 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("localTrackRemoved", customCallback);
 
       return () => {
-        console.log("Cleaning up listeners");
-
         client.removeListener("socketOpen", callback);
         client.removeListener("socketError", callback);
         client.removeListener("socketClose", callback);
@@ -182,9 +154,9 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
 
-    useEffect(() => {
-      console.log({ syncState: state });
-    }, [state]);
+    // useEffect(() => {
+    //   console.log({ syncState: state });
+    // }, [state]);
 
     return <JellyfishContext.Provider value={{ state }}>{children}</JellyfishContext.Provider>;
   };
@@ -223,7 +195,7 @@ export const create = <PeerMetadata, TrackMetadata>(
   };
 
   // todo fix or remove
-  const useApi = () => useSelector((s) => createEmptyApi<PeerMetadata, TrackMetadata>());
+  const useApi = () => useSelector(() => createEmptyApi<PeerMetadata, TrackMetadata>());
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
 
@@ -245,19 +217,21 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       if (config.startOnMount) {
-        state.devices.init();
+        state.devices.init({
+          audioTrackConstraints: config?.microphone?.trackConstraints,
+          videoTrackConstraints: config?.camera?.trackConstraints,
+        });
       }
       // eslint-disable-next-line
     }, []);
 
-    // video auto streaming: init -> connect
     useEffect(() => {
-      console.log("Adding listener")
-
-      const callback: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (_, client) => {
-        console.log("Callback started");
+      const broadcastOnCameraStart: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+        _,
+        client,
+      ) => {
         const state = client.getSnapshot();
-        if (state.status === "joined") {
+        if (state.status === "joined" && config.camera.broadcastOnDeviceStart) {
           await state.devices.camera.addTrack(
             config.camera.defaultTrackMetadata,
             config.camera.defaultSimulcastConfig,
@@ -266,16 +240,84 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      state.client.on("managerInitialized", callback);
+      state.client.on("managerInitialized", broadcastOnCameraStart);
 
       return () => {
-        console.log("Removing listener")
-
-        state.client.removeListener("managerInitialized", callback);
+        state.client.removeListener("managerInitialized", broadcastOnCameraStart);
       };
-    }, []);
+    }, [config.camera.broadcastOnDeviceStart]);
 
-    return state.devices;
+    useEffect(() => {
+      const broadcastOnMicrophoneStart: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+        _,
+        client,
+      ) => {
+        const state = client.getSnapshot();
+        if (state.status === "joined" && config.microphone.broadcastOnDeviceStart) {
+          await state.devices.microphone.addTrack(
+            config.microphone.defaultTrackMetadata,
+            config.microphone.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("managerInitialized", broadcastOnMicrophoneStart);
+
+      return () => {
+        state.client.removeListener("managerInitialized", broadcastOnMicrophoneStart);
+      };
+    }, [config.microphone.broadcastOnDeviceStart]);
+
+    useEffect(() => {
+      const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+        const state = client.getSnapshot();
+
+        if (state.devices.camera.stream && config.camera.broadcastOnConnect) {
+          await state.devices.camera.addTrack(
+            config.camera.defaultTrackMetadata,
+            config.camera.defaultSimulcastConfig,
+            config.camera.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("joined", broadcastCameraOnConnect);
+
+      return () => {
+        state.client.removeListener("joined", broadcastCameraOnConnect);
+      };
+    }, [config.camera.broadcastOnConnect]);
+
+    useEffect(() => {
+      const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+        const state = client.getSnapshot();
+
+        if (state.devices.microphone.stream && config.microphone.broadcastOnConnect) {
+          await state.devices.microphone.addTrack(
+            config.microphone.defaultTrackMetadata,
+            config.microphone.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("joined", broadcastMicrophoneOnConnect);
+
+      return () => {
+        state.client.removeListener("joined", broadcastMicrophoneOnConnect);
+      };
+    }, [config.microphone.broadcastOnConnect]);
+
+    return useMemo(
+      () => ({
+        ...state.devices,
+        init: () =>
+          state.devices.init({
+            audioTrackConstraints: config?.microphone?.trackConstraints,
+            videoTrackConstraints: config?.camera?.trackConstraints,
+          }),
+      }),
+      [state.devices],
+    );
   };
 
   const useScreenShare = (): UseScreenShareResult<TrackMetadata> => {

@@ -457,7 +457,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
     const devices: UseCameraAndMicrophoneResult<TrackMetadata> = {
       init: (config?: InitMediaConfig) => {
-        console.log("Init from new Client")
+        console.log({ name: "Init from new Client", config });
         this?.deviceManager?.init(config);
       },
       start: (config) => this?.deviceManager?.start(config),
@@ -651,7 +651,7 @@ export class Client<PeerMetadata, TrackMetadata>
     if (!this.client["webrtc"]) {
       return {
         client: this,
-        screenshare: null,
+        screenShare: null,
         media: null,
         tracks: {},
         status: this.status,

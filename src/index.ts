@@ -1,5 +1,5 @@
 export { create, CreateJellyfishClient, UseConnect } from "./create";
-// export { Client, ClientEvents, ClientApiState } from "./Client";
+export { Client, ClientEvents, ClientApiState } from "./Client";
 
 export {
   PeerState,
@@ -26,11 +26,7 @@ export {
   UseSetupMediaConfig,
 } from "./useMedia/types";
 
-export {
-  AUDIO_TRACK_CONSTRAINTS,
-  VIDEO_TRACK_CONSTRAINTS,
-  SCREEN_SHARING_MEDIA_CONSTRAINTS,
-} from "./constraints";
+export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";
 
 export type {
   Peer,

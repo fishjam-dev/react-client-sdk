@@ -3,7 +3,7 @@ import type { Api } from "./api";
 import { JellyfishClient, SimulcastConfig } from "@jellyfish-dev/ts-client-sdk";
 import { UseUserMediaState } from "./types";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
-import { UseScreenshareState } from "./useMedia/screenshare";
+import { UseScreenShareState } from "./useMedia/screenshare";
 import { Client } from "./Client";
 
 export type TrackId = string;
@@ -55,7 +55,7 @@ export type State<PeerMetadata, TrackMetadata> = {
   bandwidthEstimation: bigint;
   status: PeerStatus;
   media: UseUserMediaState | null;
-  screenshare: UseScreenshareState | null;
+  screenShare: UseScreenShareState | null;
   devices: UseCameraAndMicrophoneResult<TrackMetadata>;
   connectivity: Connectivity<PeerMetadata, TrackMetadata> | null;
   client: Client<PeerMetadata, TrackMetadata>;

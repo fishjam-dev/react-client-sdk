@@ -3,7 +3,7 @@ import {
   DEFAULT_VIDEO_TRACK_METADATA,
   EXAMPLE_PEER_METADATA,
   MANUAL_AUDIO_TRACK_METADATA,
-  MANUAL_SCREENSHARE_TRACK_METADATA,
+  MANUAL_SCREEN_SHARE_TRACK_METADATA,
   MANUAL_VIDEO_TRACK_METADATA,
   useCamera,
   useConnect,
@@ -21,7 +21,7 @@ import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
-import { Fragment, useEffect } from "react";
+import { Fragment } from "react";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 
@@ -44,11 +44,11 @@ export const MainControls = () => {
   const connect = useConnect();
   const disconnect = useDisconnect();
 
-  const fullState = useSelector((s) => s);
+  // const fullState = useSelector((s) => s);
 
-  useEffect(() => {
-    console.log({ fullState });
-  }, [fullState]);
+  // useEffect(() => {
+  //   console.log({ fullState });
+  // }, [fullState]);
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
 
@@ -93,7 +93,7 @@ export const MainControls = () => {
 
   const video = useCamera();
   const audio = useMicrophone();
-  const screenshare = useScreenShare();
+  const screenShare = useScreenShare();
   const status = useStatus();
 
   return (
@@ -236,10 +236,10 @@ export const MainControls = () => {
           <DeviceControls device={video} type="video" status={status} metadata={MANUAL_VIDEO_TRACK_METADATA} />
           <DeviceControls device={audio} type="audio" status={status} metadata={MANUAL_AUDIO_TRACK_METADATA} />
           <DeviceControls
-            device={screenshare}
+            device={screenShare}
             type="screenshare"
             status={status}
-            metadata={MANUAL_SCREENSHARE_TRACK_METADATA}
+            metadata={MANUAL_SCREEN_SHARE_TRACK_METADATA}
           />
         </div>
       </div>
@@ -250,7 +250,7 @@ export const MainControls = () => {
             <div className="max-w-[500px]">
               {video?.track?.kind === "video" && <VideoPlayer stream={video?.stream} />}
               {audio?.track?.kind === "audio" && <AudioVisualizer stream={audio?.stream} />}
-              {screenshare?.track?.kind === "video" && <VideoPlayer stream={screenshare?.stream} />}
+              {screenShare?.track?.kind === "video" && <VideoPlayer stream={screenShare?.stream} />}
             </div>
           </div>
           <div>

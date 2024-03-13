@@ -4,29 +4,50 @@ import {
   DevicePersistence,
   DeviceReturnType,
   UseUserMediaConfig,
-  UseUserMediaStartConfig
+  UseUserMediaStartConfig,
 } from "../types";
 import { Track } from "../state.types";
 
 export type UseSetupMediaConfig<TrackMetadata> = {
   camera: {
-    autoStreaming?: boolean;
-    preview?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
+     */
+    broadcastOnConnect?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
+     */
+    broadcastOnDeviceStart?: boolean;
+
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
     defaultSimulcastConfig?: SimulcastConfig;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   microphone: {
-    autoStreaming?: boolean;
-    preview?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
+     */
+    broadcastOnConnect?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
+     */
+    broadcastOnDeviceStart?: boolean;
+
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
-  screenshare: {
-    autoStreaming?: boolean;
-    preview?: boolean;
+  screenShare: {
+    /**
+     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
+     */
+    broadcastOnConnect?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
+     */
+    broadcastOnDeviceStart?: boolean;
+
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
     defaultMaxBandwidth?: TrackBandwidthLimit;

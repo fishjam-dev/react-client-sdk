@@ -6,11 +6,12 @@ import {
   DeviceReturnType,
   DeviceState,
   Errors,
-  GetMedia, InitMediaConfig,
+  GetMedia,
+  InitMediaConfig,
   Media,
   UseUserMediaConfig,
   UseUserMediaStartConfig,
-  UseUserMediaState
+  UseUserMediaState,
 } from "./types";
 import { loadObject, saveObject } from "./localStorage";
 import {
@@ -251,7 +252,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   public async init(config?: InitMediaConfig) {
     // todo implement storage
     // todo implement start on mount
-    console.log("Device manager init fn")
+    console.log({ name: "Device manager init fn", config });
 
     if (this.skip) return;
     this.skip = true;
@@ -364,7 +365,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       saveLastAudioDevice?.(audio.media?.deviceInfo);
     }
 
-    console.log("Emitting event managerInitialized from Device Manager")
+    console.log("Emitting event managerInitialized from Device Manager");
     this.emit("managerInitialized", { audio, video });
   }
 

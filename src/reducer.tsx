@@ -1,21 +1,5 @@
 import { Dispatch } from "react";
-import {
-  onAuthError,
-  onAuthSuccess,
-  onBandwidthEstimationChanged,
-  onJoinError,
-  onJoinSuccess,
-  onPeerJoined,
-  onPeerLeft,
-  onPeerUpdated,
-  onSocketError,
-  onSocketOpen,
-  onTrackAdded,
-  onTrackReady,
-  onTrackRemoved,
-  onTracksPriorityChanged,
-  onTrackUpdated,
-} from "./stateMappers";
+
 import { ConnectConfig, Endpoint, SimulcastConfig, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { UseUserMediaAction } from "./useUserMedia";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";

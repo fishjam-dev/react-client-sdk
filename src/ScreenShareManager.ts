@@ -111,18 +111,18 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
   public setEnable(type: TrackUnion, value: boolean) {
     if (type === "video" && this.data.videoMedia?.track) {
       this.data.videoMedia.track.enabled = value;
-      this.data.videoMedia.enabled = value
+      this.data.videoMedia.enabled = value;
     } else if (type === "audio" && this.data.audioMedia?.track) {
       this.data.audioMedia.track.enabled = value;
-      this.data.audioMedia.enabled = value
+      this.data.audioMedia.enabled = value;
     } else {
       if (this.data.videoMedia?.track) {
         this.data.videoMedia.track.enabled = value;
-        this.data.videoMedia.enabled = value
+        this.data.videoMedia.enabled = value;
       }
       if (this.data.audioMedia?.track) {
         this.data.audioMedia.track.enabled = value;
-        this.data.audioMedia.enabled = value
+        this.data.audioMedia.enabled = value;
       }
     }
 
