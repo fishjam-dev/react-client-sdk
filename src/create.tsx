@@ -22,10 +22,10 @@ import {
   UseSetupMediaConfig,
   UseSetupMediaResult,
 } from "./useMedia/types";
-import { INITIAL_STATE as SCREENSHARE_INITIAL_STATE } from "./useMedia/screenshare";
 import TypedEmitter from "typed-emitter/rxjs";
 import EventEmitter from "events";
-import { Client } from "./Client";
+import { Client, ClientEvents } from "./Client";
+import { DeviceManagerEvents } from "./DeviceManager";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -239,10 +239,43 @@ export const create = <PeerMetadata, TrackMetadata>(
     return state.devices.microphone;
   };
 
+  // todo for now i skipped this config
   const useSetupMedia = (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state } = useJellyfishContext();
 
-    return useMemo(() => ({ init: () => state.devices.init(config) }), [state.devices.init]);
+    useEffect(() => {
+      if (config.startOnMount) {
+        state.devices.init();
+      }
+      // eslint-disable-next-line
+    }, []);
+
+    // video auto streaming: init -> connect
+    useEffect(() => {
+      console.log("Adding listener")
+
+      const callback: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (_, client) => {
+        console.log("Callback started");
+        const state = client.getSnapshot();
+        if (state.status === "joined") {
+          await state.devices.camera.addTrack(
+            config.camera.defaultTrackMetadata,
+            config.camera.defaultSimulcastConfig,
+            config.camera.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("managerInitialized", callback);
+
+      return () => {
+        console.log("Removing listener")
+
+        state.client.removeListener("managerInitialized", callback);
+      };
+    }, []);
+
+    return state.devices;
   };
 
   const useScreenShare = (): UseScreenShareResult<TrackMetadata> => {

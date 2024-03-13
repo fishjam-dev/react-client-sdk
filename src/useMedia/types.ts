@@ -1,5 +1,11 @@
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
-import { DeviceError, DevicePersistence, DeviceReturnType, UseUserMediaStartConfig } from "../types";
+import {
+  DeviceError,
+  DevicePersistence,
+  DeviceReturnType,
+  UseUserMediaConfig,
+  UseUserMediaStartConfig
+} from "../types";
 import { Track } from "../state.types";
 
 export type UseSetupMediaConfig<TrackMetadata> = {
@@ -90,6 +96,6 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = {
   camera: UseCameraResult<TrackMetadata>;
   microphone: UseMicrophoneResult<TrackMetadata>;
   screenShare: UseScreenShareResult<TrackMetadata> | null; // todo fix
-  init: (config: UseSetupMediaConfig<TrackMetadata>) => void;
+  init: (config?: UseUserMediaConfig) => void;
   start: (config: UseUserMediaStartConfig) => void;
 };

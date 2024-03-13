@@ -6,11 +6,11 @@ import {
   DeviceReturnType,
   DeviceState,
   Errors,
-  GetMedia,
+  GetMedia, InitMediaConfig,
   Media,
   UseUserMediaConfig,
   UseUserMediaStartConfig,
-  UseUserMediaState,
+  UseUserMediaState
 } from "./types";
 import { loadObject, saveObject } from "./localStorage";
 import {
@@ -199,7 +199,7 @@ export type DeviceManagerEvents = {
 };
 
 export class DeviceManager extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>) {
-  private readonly config: UseUserMediaConfig;
+  private readonly defaultConfig?: UseUserMediaConfig;
   private readonly devicePersistence: DevicePersistence;
   private skip: boolean = false;
   private readonly audioConstraints: MediaTrackConstraints | undefined;
@@ -223,34 +223,44 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     return { video: this.video, audio: this.audio };
   }
 
-  constructor(config: UseUserMediaConfig) {
+  constructor(defaultConfig?: UseUserMediaConfig) {
     super();
-    this.config = config;
-    const { storage } = config;
-    if (storage === undefined || storage === false) {
+    this.defaultConfig = defaultConfig;
+
+    if (defaultConfig?.storage === undefined || defaultConfig?.storage === false) {
       this.devicePersistence = {
         getLastVideoDevice: null,
         getLastAudioDevice: null,
         saveLastAudioDevice: () => {},
         saveLastVideoDevice: () => {},
       };
-    } else if (storage === true) {
+    } else if (defaultConfig?.storage === true) {
       this.devicePersistence = LOCAL_STORAGE_DEVICE_PERSISTENCE;
     } else {
-      this.devicePersistence = storage;
+      this.devicePersistence = defaultConfig?.storage;
     }
 
-    this.audioConstraints = toMediaTrackConstraints(config.audioTrackConstraints);
-    this.videoConstraints = toMediaTrackConstraints(config.videoTrackConstraints);
+    this.audioConstraints = defaultConfig?.audioTrackConstraints
+      ? toMediaTrackConstraints(defaultConfig.audioTrackConstraints)
+      : undefined;
+    this.videoConstraints = defaultConfig?.videoTrackConstraints
+      ? toMediaTrackConstraints(defaultConfig.videoTrackConstraints)
+      : undefined;
   }
 
-  public async init() {
+  public async init(config?: InitMediaConfig) {
+    // todo implement storage
+    // todo implement start on mount
+    console.log("Device manager init fn")
+
     if (this.skip) return;
     this.skip = true;
     if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
     const { getLastAudioDevice, saveLastAudioDevice, getLastVideoDevice, saveLastVideoDevice } = this.devicePersistence;
-    const { storage, videoTrackConstraints, audioTrackConstraints, startOnMount = false } = this.config;
+
+    const videoTrackConstraints = config?.videoTrackConstraints ?? this.defaultConfig?.videoTrackConstraints;
+    const audioTrackConstraints = config?.audioTrackConstraints ?? this.defaultConfig?.audioTrackConstraints;
 
     const previousVideoDevice: MediaDeviceInfo | null = getLastVideoDevice?.() ?? null;
     const previousAudioDevice: MediaDeviceInfo | null = getLastAudioDevice?.() ?? null;
@@ -272,6 +282,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
 
     // this.dispatch(action1);
+    console.log("Emitting event managerStarted from DeviceManager");
+
     this.emit("managerStarted", action1);
 
     let requestedDevices: MediaStream | null = null;
@@ -352,6 +364,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       saveLastAudioDevice?.(audio.media?.deviceInfo);
     }
 
+    console.log("Emitting event managerInitialized from Device Manager")
     this.emit("managerInitialized", { audio, video });
   }
 

@@ -1,5 +1,5 @@
 export { create, CreateJellyfishClient, UseConnect } from "./create";
-export { Client, ClientEvents, ClientApiState } from "./Client";
+// export { Client, ClientEvents, ClientApiState } from "./Client";
 
 export {
   PeerState,
@@ -16,8 +16,6 @@ export {
 } from "./state.types";
 
 export { Api } from "./api";
-
-export { useUserMedia } from "./useUserMedia";
 
 export {
   UseCameraAndMicrophoneResult,

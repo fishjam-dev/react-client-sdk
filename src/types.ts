@@ -22,6 +22,11 @@ export type UseUserMediaState = {
   audio: DeviceState;
 };
 
+export type InitMediaConfig = {
+  videoTrackConstraints: boolean | MediaTrackConstraints;
+  audioTrackConstraints: boolean | MediaTrackConstraints;
+};
+
 export type UseUserMediaConfig = {
   videoTrackConstraints: boolean | MediaTrackConstraints;
   audioTrackConstraints: boolean | MediaTrackConstraints;

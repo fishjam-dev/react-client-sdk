@@ -10,9 +10,10 @@ import {
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { DeviceManager } from "./DeviceManager";
-import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
 import { UseCameraAndMicrophoneResult } from "./useMedia/types";
 import { ScreenShareManager, StartScreenShareConfig } from "./ScreenShareManager";
+import { InitMediaConfig, UseUserMediaConfig } from "./types";
+import { CreateConfig } from "../../ts-client-sdk/src";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
   getSnapshot(): State<PeerMetadata, TrackMetadata>;
@@ -175,17 +176,17 @@ export class Client<PeerMetadata, TrackMetadata>
   private state: State<PeerMetadata, TrackMetadata> | null = null;
   private status: null | PeerStatus = null;
 
-  constructor() {
+  constructor(config?: {
+    clientConfig?: CreateConfig<PeerMetadata, TrackMetadata>;
+    deviceManagerDefaultConfig?: UseUserMediaConfig;
+    screenShareManagerDefaultConfig?: StartScreenShareConfig;
+  }) {
     super();
-    this.client = new JellyfishClient<PeerMetadata, TrackMetadata>();
-    // todo fix config
-    this.deviceManager = new DeviceManager({
-      audioTrackConstraints: AUDIO_TRACK_CONSTRAINTS,
-      videoTrackConstraints: VIDEO_TRACK_CONSTRAINTS,
-    });
+    this.client = new JellyfishClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
+    this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
 
     // todo add default config?
-    this.screenShareManager = new ScreenShareManager();
+    this.screenShareManager = new ScreenShareManager(config?.screenShareManagerDefaultConfig);
 
     this.state = this.stateToSnapshot();
 
@@ -309,11 +310,15 @@ export class Client<PeerMetadata, TrackMetadata>
     this.deviceManager.on("managerInitialized", (a) => {
       this.state = this.stateToSnapshot();
 
+      console.log("Emitting event managerInitialized from New Client");
+
       this.emit("managerInitialized", a, this);
     });
 
     this.deviceManager.on("managerStarted", (a) => {
       this.state = this.stateToSnapshot();
+
+      console.log("Emitting event managerStarted from New Client");
 
       this.emit("managerStarted", a, this);
     });
@@ -425,7 +430,7 @@ export class Client<PeerMetadata, TrackMetadata>
   private stateToSnapshot(): State<PeerMetadata, TrackMetadata> {
     if (!this.deviceManager) Error("Device manager is null");
 
-    const screenShareManager = this.screenShareManager?.getSnapshot()
+    const screenShareManager = this.screenShareManager?.getSnapshot();
     const deviceManagerSnapshot = this?.deviceManager?.getSnapshot();
 
     const localEndpoint = this.client.getLocalEndpoint();
@@ -451,7 +456,10 @@ export class Client<PeerMetadata, TrackMetadata>
     );
 
     const devices: UseCameraAndMicrophoneResult<TrackMetadata> = {
-      init: () => this?.deviceManager?.init(),
+      init: (config?: InitMediaConfig) => {
+        console.log("Init from new Client")
+        this?.deviceManager?.init(config);
+      },
       start: (config) => this?.deviceManager?.start(config),
       camera: {
         stop: () => {
@@ -586,10 +594,7 @@ export class Client<PeerMetadata, TrackMetadata>
           // todo add config
           this.screenShareManager?.start();
         },
-        addTrack: (
-          trackMetadata?: TrackMetadata,
-          maxBandwidth?: TrackBandwidthLimit,
-        ) => {
+        addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
           console.log("Add video track!");
           const media = this.screenShareManager?.getSnapshot().videoMedia;
 

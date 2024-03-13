@@ -1,6 +1,6 @@
 {
   "name": "@jellyfish-dev/react-client-sdk",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "React client library for Jellyfish.",
   "license": "Apache-2.0",
   "author": "Membrane Team",
@@ -40,7 +40,7 @@
   "scripts": {
     "build": "tsc",
     "e2e": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test",
-    "docs": "typedoc src src/experimental",
+    "docs": "typedoc src",
     "format:fix": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
