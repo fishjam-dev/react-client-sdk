@@ -49,8 +49,6 @@ export const EXAMPLE_PEER_METADATA: PeerMetadata = {
 };
 
 export const {
-  useApi,
-  useTracks,
   useStatus,
   useConnect,
   useDisconnect,

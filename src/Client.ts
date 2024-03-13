@@ -6,13 +6,13 @@ import {
   JellyfishClient,
   SimulcastConfig,
   TrackBandwidthLimit,
+  CreateConfig
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { DeviceManager } from "./DeviceManager";
 import { ScreenShareManager, StartScreenShareConfig } from "./ScreenShareManager";
 import { InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
-import { CreateConfig } from "../../ts-client-sdk/src";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
   getSnapshot(): State<PeerMetadata, TrackMetadata>;

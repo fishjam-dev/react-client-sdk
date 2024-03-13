@@ -27,14 +27,20 @@ import { DeviceControls } from "./DeviceControls";
 
 const tokenAtom = atomWithStorage("token", "");
 
-const videoAutoStreamingAtom = atomWithStorage<boolean | undefined>("videoAutoStreaming", undefined);
-const videoPreviewAtom = atomWithStorage<boolean | undefined>("videoPreview", undefined);
+const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnConnect", undefined);
+const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnDeviceStart", undefined);
 
-const audioAutoStreamingAtom = atomWithStorage<boolean | undefined>("audioAutoStreaming", undefined);
-const audioPreviewAtom = atomWithStorage<boolean | undefined>("audioPreviewAtom", undefined);
+const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnConnect", undefined);
+const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnDeviceStart", undefined);
 
-const screenshareAutoStreamingAtom = atomWithStorage<boolean | undefined>("screenshareAutoStreaming", undefined);
-const screensharePreviewAtom = atomWithStorage<boolean | undefined>("screensharePreviewAtom", undefined);
+const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
+  "broadcastScreenShareOnConnect",
+  undefined,
+);
+const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
+  "broadcastScreenShareOnDeviceStart",
+  undefined,
+);
 
 const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { getOnInit: true });
 
@@ -52,22 +58,24 @@ export const MainControls = () => {
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
 
-  const [videoAutoStreaming, setVideoAutoStreaming] = useAtom(videoAutoStreamingAtom);
-  const [videoPreview, setVideoPreview] = useAtom(videoPreviewAtom);
+  const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(broadcastVideoOnConnectAtom);
+  const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(broadcastVideoOnDeviceStartAtom);
 
-  const [audioAutoStreaming, setAudioAutoStreaming] = useAtom(audioAutoStreamingAtom);
-  const [audioPreview, setAudioPreview] = useAtom(audioPreviewAtom);
+  const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(broadcastAudioOnConnectAtom);
+  const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(broadcastAudioOnDeviceStartAtom);
 
-  const [screenshareAutoStreaming, setScreenshareAutoStreaming] = useAtom(screenshareAutoStreamingAtom);
-  const [screensharePreview, setScreensharePreview] = useAtom(screensharePreviewAtom);
+  const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] = useAtom(broadcastScreenShareOnConnectAtom);
+  const [broadcastScreenShareOnDeviceStart, setBroadcastScreenShareOnDeviceStart] = useAtom(
+    broadcastScreenShareOnDeviceStartAtom,
+  );
 
   const [autostart, setAutostart] = useAtom(autostartAtom);
 
   const { init } = useSetupMedia({
     camera: {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
-      broadcastOnConnect: videoAutoStreaming,
-      broadcastOnDeviceStart: videoPreview,
+      broadcastOnConnect: broadcastVideoOnConnect,
+      broadcastOnDeviceStart: broadcastVideoOnDeviceStart,
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
@@ -77,13 +85,13 @@ export const MainControls = () => {
     },
     microphone: {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
-      broadcastOnConnect: audioAutoStreaming,
-      broadcastOnDeviceStart: audioPreview,
+      broadcastOnConnect: broadcastAudioOnConnect,
+      broadcastOnDeviceStart: broadcastAudioOnDeviceStart,
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
     screenShare: {
-      broadcastOnConnect: screenshareAutoStreaming,
-      broadcastOnDeviceStart: screensharePreview,
+      broadcastOnConnect: broadcastScreenShareOnConnect,
+      broadcastOnDeviceStart: broadcastScreenShareOnDeviceStart,
       trackConstraints: true,
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },
@@ -121,42 +129,42 @@ export const MainControls = () => {
         </div>
         <div className="flex w-full flex-col">
           <ThreeStateRadio
-            name="Video Auto Streaming (default false)"
-            value={videoAutoStreaming}
-            set={setVideoAutoStreaming}
+            name="Broadcast video on connect (default false)"
+            value={broadcastVideoOnConnect}
+            set={setBroadcastVideoOnConnect}
             radioClass="radio-primary"
           />
 
           <ThreeStateRadio
-            name="Video Preview (default true)"
-            value={videoPreview}
-            set={setVideoPreview}
+            name="Broadcast video on device start (default false)"
+            value={broadcastVideoOnDeviceStart}
+            set={setBroadcastVideoOnDeviceStart}
             radioClass="radio-primary"
           />
 
           <ThreeStateRadio
-            name="Audio Auto Streaming (default false)"
-            value={audioAutoStreaming}
-            set={setAudioAutoStreaming}
+            name="Broadcast audio on connect (default false)"
+            value={broadcastAudioOnConnect}
+            set={setBroadcastAudioOnConnect}
             radioClass="radio-secondary"
           />
           <ThreeStateRadio
-            name="Audio Preview (default true)"
-            value={audioPreview}
-            set={setAudioPreview}
+            name="Broadcast audio on device start (default false)"
+            value={broadcastAudioOnDeviceStart}
+            set={setBroadcastAudioOnDeviceStart}
             radioClass="radio-secondary"
           />
 
           <ThreeStateRadio
-            name="Screenshare Auto Streaming (default false)"
-            value={screenshareAutoStreaming}
-            set={setScreenshareAutoStreaming}
+            name="Broadcast screen share on connect (default false)"
+            value={broadcastScreenShareOnConnect}
+            set={setBroadcastScreenShareOnConnect}
             radioClass="radio-secondary"
           />
           <ThreeStateRadio
-            name="Screenshare Preview (default true)"
-            value={screensharePreview}
-            set={setScreensharePreview}
+            name="Broadcast screen share on device start (default false)"
+            value={broadcastScreenShareOnDeviceStart}
+            set={setBroadcastScreenShareOnDeviceStart}
             radioClass="radio-secondary"
           />
         </div>
