@@ -10,9 +10,8 @@ import {
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { DeviceManager } from "./DeviceManager";
-import { UseCameraAndMicrophoneResult } from "./useMedia/types";
 import { ScreenShareManager, StartScreenShareConfig } from "./ScreenShareManager";
-import { InitMediaConfig, UseUserMediaConfig } from "./types";
+import { InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
 import { CreateConfig } from "../../ts-client-sdk/src";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
@@ -651,13 +650,11 @@ export class Client<PeerMetadata, TrackMetadata>
     if (!this.client["webrtc"]) {
       return {
         client: this,
-        screenShare: null,
         media: null,
         tracks: {},
         status: this.status,
         devices: devices,
         remote: {},
-        connectivity: null,
         local: null,
         bandwidthEstimation: 0n,
       };
@@ -686,7 +683,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
     const newVar = {
       client: this,
-      screenshare: null,
+      screenShare: null,
       media: null,
       connectivity: null,
       local: localEndpoint

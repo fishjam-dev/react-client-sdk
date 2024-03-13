@@ -66,8 +66,8 @@ export const MainControls = () => {
   const { init } = useSetupMedia({
     camera: {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
-      autoStreaming: videoAutoStreaming,
-      preview: videoPreview,
+      broadcastOnConnect: videoAutoStreaming,
+      broadcastOnDeviceStart: videoPreview,
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
@@ -77,13 +77,13 @@ export const MainControls = () => {
     },
     microphone: {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
-      autoStreaming: audioAutoStreaming,
-      preview: audioPreview,
+      broadcastOnConnect: audioAutoStreaming,
+      broadcastOnDeviceStart: audioPreview,
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
-    screenshare: {
-      autoStreaming: screenshareAutoStreaming,
-      preview: screensharePreview,
+    screenShare: {
+      broadcastOnConnect: screenshareAutoStreaming,
+      broadcastOnDeviceStart: screensharePreview,
       trackConstraints: true,
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },

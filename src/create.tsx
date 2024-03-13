@@ -11,8 +11,6 @@ import {
 } from "react";
 import type { Selector, State } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
-import { createEmptyApi } from "./state";
-import { Api } from "./api";
 import { CreateConfig, ConnectConfig} from "@jellyfish-dev/ts-client-sdk";
 import {
   UseCameraAndMicrophoneResult,
@@ -21,9 +19,7 @@ import {
   UseScreenShareResult,
   UseSetupMediaConfig,
   UseSetupMediaResult,
-} from "./useMedia/types";
-import TypedEmitter from "typed-emitter/rxjs";
-import EventEmitter from "events";
+} from "./types";
 import { Client, ClientEvents } from "./Client";
 
 export type JellyfishContextProviderProps = {
@@ -41,7 +37,6 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element;
   useConnect: () => (config: ConnectConfig<PeerMetadata>) => () => void;
   useDisconnect: () => () => void;
-  useApi: () => Api<PeerMetadata, TrackMetadata>;
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
@@ -194,8 +189,8 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
   };
 
-  // todo fix or remove
-  const useApi = () => useSelector(() => createEmptyApi<PeerMetadata, TrackMetadata>());
+  // create useClient
+
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
 
@@ -330,7 +325,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useSelector,
     useConnect,
     useDisconnect,
-    useApi,
     useStatus,
     useTracks,
     useSetupMedia,

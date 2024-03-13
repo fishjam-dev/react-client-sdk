@@ -9,10 +9,12 @@ import {
   GetMedia,
   InitMediaConfig,
   Media,
+  parseError,
   UseUserMediaConfig,
   UseUserMediaStartConfig,
   UseUserMediaState,
 } from "./types";
+
 import { loadObject, saveObject } from "./localStorage";
 import {
   getExactDeviceConstraint,
@@ -79,20 +81,6 @@ const isAnyDeviceDifferentFromLastSession = (
     (currentDevices?.audioinput &&
       isDeviceDifferentFromLastSession(lastAudioDevice, currentDevices?.audioinput || null))
   );
-
-// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
-// OverconstrainedError has higher priority than NotAllowedError
-export const parseError = (error: unknown): DeviceError | null => {
-  if (error && typeof error === "object" && "name" in error) {
-    if (error.name === "NotAllowedError") {
-      return PERMISSION_DENIED;
-    } else if (error.name === "OverconstrainedError") {
-      return OVERCONSTRAINED_ERROR;
-    }
-  }
-  // todo handle unknown error
-  return null;
-};
 
 const stopTracks = (requestedDevices: MediaStream) => {
   for (const track of requestedDevices.getTracks()) {

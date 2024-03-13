@@ -1,5 +1,7 @@
+import { Track } from "@jellyfish-dev/react-client-sdk";
+import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
+
 export type AudioOrVideoType = "audio" | "video";
-export type Type = "audio" | "video" | "screenshare";
 
 export type DeviceReturnType = "OK" | "Error" | "Not requested" | "Requesting";
 
@@ -66,3 +68,133 @@ export type GetMedia =
   | { error: DeviceError | null; type: "Error"; constraints: MediaStreamConstraints };
 
 export type CurrentDevices = { videoinput: MediaDeviceInfo | null; audioinput: MediaDeviceInfo | null };
+
+export type UseSetupMediaConfig<TrackMetadata> = {
+  camera: {
+    /**
+     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
+     */
+    broadcastOnConnect?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
+     */
+    broadcastOnDeviceStart?: boolean;
+
+    trackConstraints: boolean | MediaTrackConstraints;
+    defaultTrackMetadata?: TrackMetadata;
+    defaultSimulcastConfig?: SimulcastConfig;
+    defaultMaxBandwidth?: TrackBandwidthLimit;
+  };
+  microphone: {
+    /**
+     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
+     */
+    broadcastOnConnect?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
+     */
+    broadcastOnDeviceStart?: boolean;
+
+    trackConstraints: boolean | MediaTrackConstraints;
+    defaultTrackMetadata?: TrackMetadata;
+    defaultMaxBandwidth?: TrackBandwidthLimit;
+  };
+  screenShare: {
+    /**
+     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
+     */
+    broadcastOnConnect?: boolean;
+    /**
+     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
+     */
+    broadcastOnDeviceStart?: boolean;
+
+    trackConstraints: boolean | MediaTrackConstraints;
+    defaultTrackMetadata?: TrackMetadata;
+    defaultMaxBandwidth?: TrackBandwidthLimit;
+  };
+  startOnMount?: boolean;
+  storage?: boolean | DevicePersistence;
+};
+
+export type UseSetupMediaResult = {
+  init: () => void;
+};
+
+export type UseCameraResult<TrackMetadata> = {
+  stop: () => void;
+  setEnable: (value: boolean) => void;
+  start: (deviceId?: string) => void;
+  addTrack: (
+    trackMetadata?: TrackMetadata,
+    simulcastConfig?: SimulcastConfig,
+    maxBandwidth?: TrackBandwidthLimit,
+  ) => Promise<string>;
+  removeTrack: () => Promise<void>;
+  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
+  broadcast: Track<TrackMetadata> | null;
+  status: DeviceReturnType | null; // todo how to remove null
+  stream: MediaStream | null;
+  track: MediaStreamTrack | null;
+  enabled: boolean;
+  deviceInfo: MediaDeviceInfo | null;
+  error: DeviceError | null;
+  devices: MediaDeviceInfo[] | null;
+};
+
+export type UseMicrophoneResult<TrackMetadata> = {
+  stop: () => void;
+  setEnable: (value: boolean) => void;
+  start: (deviceId?: string) => void;
+  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
+  removeTrack: () => Promise<void>;
+  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
+  broadcast: Track<TrackMetadata> | null;
+  status: DeviceReturnType | null;
+  stream: MediaStream | null;
+  track: MediaStreamTrack | null;
+  enabled: boolean;
+  deviceInfo: MediaDeviceInfo | null;
+  error: DeviceError | null;
+  devices: MediaDeviceInfo[] | null;
+};
+
+export type UseScreenShareResult<TrackMetadata> = {
+  stop: () => void;
+  setEnable: (value: boolean) => void;
+  start: () => void;
+  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
+  removeTrack: () => Promise<void>;
+  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
+  broadcast: Track<TrackMetadata> | null;
+  status: DeviceReturnType | null;
+  stream: MediaStream | null;
+  track: MediaStreamTrack | null;
+  enabled: boolean;
+  error: DeviceError | null;
+};
+
+export type UseCameraAndMicrophoneResult<TrackMetadata> = {
+  camera: UseCameraResult<TrackMetadata>;
+  microphone: UseMicrophoneResult<TrackMetadata>;
+  screenShare: UseScreenShareResult<TrackMetadata>;
+  init: (config?: UseUserMediaConfig) => void;
+  start: (config: UseUserMediaStartConfig) => void;
+};
+
+const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };
+const OVERCONSTRAINED_ERROR: DeviceError = { name: "OverconstrainedError" };
+
+// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
+// OverconstrainedError has higher priority than NotAllowedError
+export const parseError = (error: unknown): DeviceError | null => {
+  if (error && typeof error === "object" && "name" in error) {
+    if (error.name === "NotAllowedError") {
+      return PERMISSION_DENIED;
+    } else if (error.name === "OverconstrainedError") {
+      return OVERCONSTRAINED_ERROR;
+    }
+  }
+  // todo handle unknown error
+  return null;
+};
