@@ -267,7 +267,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [config.microphone.broadcastOnDeviceStart]);
 
     useEffect(() => {
-      const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+      const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (
         _,
         client,
       ) => {
@@ -280,10 +280,10 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      state.client.on("devicesReady", broadcastOnScreenShareStart);
+      state.client.on("deviceReady", broadcastOnScreenShareStart);
 
       return () => {
-        state.client.removeListener("devicesReady", broadcastOnScreenShareStart);
+        state.client.removeListener("deviceReady", broadcastOnScreenShareStart);
       };
     }, [config.screenShare.broadcastOnDeviceStart]);
 
@@ -330,6 +330,8 @@ export const create = <PeerMetadata, TrackMetadata>(
       const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
         const state = client.getSnapshot();
 
+        console.log({name: "broadcastScreenShareOnConnect", state, config})
+
         if (state.devices.screenShare.stream && config.screenShare.broadcastOnConnect) {
           await state.devices.screenShare.addTrack(
             config.screenShare.defaultTrackMetadata,
@@ -343,7 +345,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("joined", broadcastScreenShareOnConnect);
       };
-    }, [config.camera.broadcastOnConnect]);
+    }, [config.screenShare.broadcastOnConnect]);
 
     return useMemo(
       () => ({

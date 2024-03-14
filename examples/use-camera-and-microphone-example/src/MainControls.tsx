@@ -94,7 +94,8 @@ export const MainControls = () => {
       broadcastOnDeviceStart: broadcastScreenShareOnDeviceStart,
       streamConfig: {
         videoTrackConstraints: true,
-        audioTrackConstraints: true, // todo handle audio
+        // todo handle audio on gui and inside client
+        audioTrackConstraints: true,
       },
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },
