@@ -7,6 +7,8 @@ import {
   SimulcastConfig,
   TrackBandwidthLimit,
   CreateConfig,
+  BandwidthLimit,
+  TrackEncoding,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
@@ -387,7 +389,7 @@ export class Client<PeerMetadata, TrackMetadata>
   }
 
   public setScreenManagerConfig(config: StartScreenShareConfig) {
-    this.screenShareManager?.setConfig(config)
+    this.screenShareManager?.setConfig(config);
   }
 
   private trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track<TrackMetadata> {
@@ -425,6 +427,51 @@ export class Client<PeerMetadata, TrackMetadata>
 
     return this.client.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
   }
+
+  public removeTrack(trackId: string): Promise<void> {
+    return this.client.removeTrack(trackId);
+  }
+
+  public replaceTrack(trackId: string, newTrack: MediaStreamTrack, newTrackMetadata?: TrackMetadata): Promise<void> {
+    return this.client.replaceTrack(trackId, newTrack, newTrackMetadata);
+  }
+
+  public getStatistics(selector?: MediaStreamTrack | null): Promise<RTCStatsReport> {
+    return this.client.getStatistics(selector);
+  }
+
+  public getBandwidthEstimation(): bigint {
+    return this.client.getBandwidthEstimation();
+  }
+
+  public setTrackBandwidth(trackId: string, bandwidth: BandwidthLimit): Promise<boolean> {
+    return this.client.setTrackBandwidth(trackId, bandwidth);
+  }
+
+  public setEncodingBandwidth(trackId: string, rid: string, bandwidth: BandwidthLimit): Promise<boolean> {
+    return this.client.setEncodingBandwidth(trackId, rid, bandwidth);
+  }
+
+  public setTargetTrackEncoding(trackId: string, encoding: TrackEncoding) {
+    return this.client.setTargetTrackEncoding(trackId, encoding);
+  }
+
+  public enableTrackEncoding(trackId: string, encoding: TrackEncoding) {
+    return this.client.enableTrackEncoding(trackId, encoding);
+  }
+
+  public disableTrackEncoding(trackId: string, encoding: TrackEncoding) {
+    return this.client.disableTrackEncoding(trackId, encoding);
+  }
+
+  public updatePeerMetadata = (peerMetadata: PeerMetadata): void => {
+    this.client.updatePeerMetadata(peerMetadata);
+  }
+
+  public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): void => {
+    this.client.updateTrackMetadata(trackId, trackMetadata);
+  }
+
 
   private stateToSnapshot(): State<PeerMetadata, TrackMetadata> {
     if (!this.deviceManager) Error("Device manager is null");
