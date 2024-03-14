@@ -11,7 +11,7 @@ import {
 } from "react";
 import type { Selector, State } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
-import { CreateConfig, ConnectConfig} from "@jellyfish-dev/ts-client-sdk";
+import { CreateConfig, ConnectConfig } from "@jellyfish-dev/ts-client-sdk";
 import {
   UseCameraAndMicrophoneResult,
   UseCameraResult,
@@ -21,6 +21,7 @@ import {
   UseSetupMediaResult,
 } from "./types";
 import { Client, ClientEvents } from "./Client";
+import { StartScreenShareConfig } from "./ScreenShareManager";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -28,7 +29,6 @@ export type JellyfishContextProviderProps = {
 
 type JellyfishContextType<PeerMetadata, TrackMetadata> = {
   state: State<PeerMetadata, TrackMetadata>;
-  // dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>>;
 };
 
 export type UseConnect<PeerMetadata> = (config: ConnectConfig<PeerMetadata>) => () => void;
@@ -60,8 +60,7 @@ export const create = <PeerMetadata, TrackMetadata>(
   const JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element = ({
     children,
   }: JellyfishContextProviderProps) => {
-    // const prevStore = useRef(createDefaultState<PeerMetadata, TrackMetadata>());
-    const clientRef = useRef(new Client<PeerMetadata, TrackMetadata>());
+    const clientRef = useRef(new Client<PeerMetadata, TrackMetadata>({ clientConfig: config }));
 
     const subscribe = useCallback((cb: () => void) => {
       console.log("Subscribe function invoked");
@@ -210,6 +209,10 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useSetupMedia = (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state } = useJellyfishContext();
 
+    if(config.screenShare.streamConfig) {
+      state.client.setScreenManagerConfig(config.screenShare.streamConfig)
+    }
+
     useEffect(() => {
       if (config.startOnMount) {
         state.devices.init({
@@ -264,6 +267,27 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [config.microphone.broadcastOnDeviceStart]);
 
     useEffect(() => {
+      const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+        _,
+        client,
+      ) => {
+        const state = client.getSnapshot();
+        if (state.status === "joined" && config.screenShare.broadcastOnDeviceStart) {
+          await state.devices.screenShare.addTrack(
+            config.screenShare.defaultTrackMetadata,
+            config.screenShare.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("devicesReady", broadcastOnScreenShareStart);
+
+      return () => {
+        state.client.removeListener("devicesReady", broadcastOnScreenShareStart);
+      };
+    }, [config.screenShare.broadcastOnDeviceStart]);
+
+    useEffect(() => {
       const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
         const state = client.getSnapshot();
 
@@ -301,6 +325,25 @@ export const create = <PeerMetadata, TrackMetadata>(
         state.client.removeListener("joined", broadcastMicrophoneOnConnect);
       };
     }, [config.microphone.broadcastOnConnect]);
+
+    useEffect(() => {
+      const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+        const state = client.getSnapshot();
+
+        if (state.devices.screenShare.stream && config.screenShare.broadcastOnConnect) {
+          await state.devices.screenShare.addTrack(
+            config.screenShare.defaultTrackMetadata,
+            config.screenShare.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("joined", broadcastScreenShareOnConnect);
+
+      return () => {
+        state.client.removeListener("joined", broadcastScreenShareOnConnect);
+      };
+    }, [config.camera.broadcastOnConnect]);
 
     return useMemo(
       () => ({

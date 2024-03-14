@@ -6,13 +6,13 @@ import {
   JellyfishClient,
   SimulcastConfig,
   TrackBandwidthLimit,
-  CreateConfig
+  CreateConfig,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { DeviceManager } from "./DeviceManager";
-import { ScreenShareManager, StartScreenShareConfig } from "./ScreenShareManager";
-import { InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
+import { ScreenShareManager, StartScreenShareConfig, TrackType } from "./ScreenShareManager";
+import { DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
   getSnapshot(): State<PeerMetadata, TrackMetadata>;
@@ -149,9 +149,12 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
 
   // device manager events
   managerStarted: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  managerInitialized: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  deviceReady: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  devicesReady: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
+  managerInitialized: (
+    event: { audio?: DeviceState; video?: DeviceState },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
+  deviceReady: (event: { type: TrackType }, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
+  devicesReady: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
   deviceStopped: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
   deviceEnabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
   deviceDisabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
@@ -183,8 +186,6 @@ export class Client<PeerMetadata, TrackMetadata>
     super();
     this.client = new JellyfishClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
     this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
-
-    // todo add default config?
     this.screenShareManager = new ScreenShareManager(config?.screenShareManagerDefaultConfig);
 
     this.state = this.stateToSnapshot();
@@ -234,7 +235,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
       this.emit("joined", { peerId, peers: peersInRoom }, this);
     });
-    // todo handle state and handle callback
+
     this.client.on("joinError", (metadata) => {
       this.status = "error";
       this.state = this.stateToSnapshot();
@@ -306,18 +307,14 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("deviceEnabled", a, this);
     });
 
-    this.deviceManager.on("managerInitialized", (a) => {
+    this.deviceManager.on("managerInitialized", (event) => {
       this.state = this.stateToSnapshot();
 
-      console.log("Emitting event managerInitialized from New Client");
-
-      this.emit("managerInitialized", a, this);
+      this.emit("managerInitialized", event, this);
     });
 
     this.deviceManager.on("managerStarted", (a) => {
       this.state = this.stateToSnapshot();
-
-      console.log("Emitting event managerStarted from New Client");
 
       this.emit("managerStarted", a, this);
     });
@@ -364,10 +361,10 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("deviceStopped", a, this);
     });
 
-    this.screenShareManager.on("deviceReady", (a) => {
+    this.screenShareManager.on("deviceReady", (event, state) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceReady", a, this);
+      this.emit("deviceReady", event, this);
     });
 
     this.screenShareManager.on("error", (a) => {
@@ -384,10 +381,13 @@ export class Client<PeerMetadata, TrackMetadata>
   public getSnapshot() {
     if (!this.state) {
       this.state = this.stateToSnapshot();
-      // throw Error("State not initialized!");
     }
 
     return this.state;
+  }
+
+  public setScreenManagerConfig(config: StartScreenShareConfig) {
+    this.screenShareManager?.setConfig(config)
   }
 
   private trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track<TrackMetadata> {
@@ -591,7 +591,8 @@ export class Client<PeerMetadata, TrackMetadata>
         setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
         start: (config?: StartScreenShareConfig) => {
           // todo add config
-          this.screenShareManager?.start();
+          console.log({ config, name: "ScreenShare start" });
+          this.screenShareManager?.start(config);
         },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
           console.log("Add video track!");

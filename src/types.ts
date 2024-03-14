@@ -1,5 +1,6 @@
 import { Track } from "@jellyfish-dev/react-client-sdk";
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
+import { StartScreenShareConfig } from "./ScreenShareManager";
 
 export type AudioOrVideoType = "audio" | "video";
 
@@ -109,7 +110,8 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      */
     broadcastOnDeviceStart?: boolean;
 
-    trackConstraints: boolean | MediaTrackConstraints;
+    streamConfig?: StartScreenShareConfig;
+
     defaultTrackMetadata?: TrackMetadata;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
@@ -162,7 +164,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
 export type UseScreenShareResult<TrackMetadata> = {
   stop: () => void;
   setEnable: (value: boolean) => void;
-  start: () => void;
+  start: (config?: StartScreenShareConfig) => void;
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;

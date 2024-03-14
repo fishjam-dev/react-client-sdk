@@ -2,31 +2,45 @@ import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 import { DeviceError, DeviceReturnType, Media, parseError } from "./types";
 
-export type TrackUnion = "audio" | "video" | "both";
+export type TrackType = "audio" | "video" | "audiovideo";
 
 export type DisplayMediaManagerEvents = {
-  deviceReady: (arg: any) => void;
-  deviceStopped: (event: { type: TrackUnion }, state: DeviceState) => void;
-  deviceEnabled: (arg: any) => void;
-  deviceDisabled: (arg: any) => void;
-  error: (arg: any) => void;
+  deviceReady: (event: { type: TrackType }, state: ScreenShareDeviceState) => void;
+  deviceStopped: (event: { type: TrackType }, state: ScreenShareDeviceState) => void;
+  deviceEnabled: (event: { type: TrackType }, state: ScreenShareDeviceState) => void;
+  deviceDisabled: (event: { type: TrackType }, state: ScreenShareDeviceState) => void;
+  error: (
+    event: {
+      type: TrackType;
+      error: DeviceError | null;
+      rawError: any;
+    },
+    state: ScreenShareDeviceState,
+  ) => void;
 };
 
 export interface StartScreenShareConfig {
-  audioTrackConstraints: boolean | MediaTrackConstraints;
-  videoTrackConstraints: boolean | MediaTrackConstraints;
+  audioTrackConstraints?: boolean | MediaTrackConstraints;
+  videoTrackConstraints?: boolean | MediaTrackConstraints;
 }
 
-export type DeviceState = {
+export type ScreenShareMedia = {
+  stream: MediaStream | null;
+  track: MediaStreamTrack | null;
+  enabled: boolean;
+};
+
+export type ScreenShareDeviceState = {
   status: DeviceReturnType;
-  audioMedia: Media | null;
-  videoMedia: Media | null;
+  audioMedia: ScreenShareMedia | null;
+  videoMedia: ScreenShareMedia | null;
   error: DeviceError | null;
 };
 
 export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<DisplayMediaManagerEvents>) {
-  private readonly defaultConfig?: StartScreenShareConfig;
-  private data: DeviceState = {
+  private defaultConfig?: StartScreenShareConfig;
+
+  private data: ScreenShareDeviceState = {
     audioMedia: null,
     videoMedia: null,
     status: "Not requested",
@@ -34,7 +48,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
   };
 
   // todo add nested read only
-  public getSnapshot(): DeviceState {
+  public getSnapshot(): ScreenShareDeviceState {
     return this.data;
   }
 
@@ -43,23 +57,36 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
     this.defaultConfig = defaultConfig;
   }
 
+  public setConfig(config: StartScreenShareConfig) {
+    this.defaultConfig = config;
+  }
+
+  private getType(options: DisplayMediaStreamOptions): TrackType | null {
+    if (options.audio && options.video) return "audiovideo";
+    if (options.audio) return "audio";
+    if (options.video) return "video";
+    return null;
+  }
+
   public async start(config?: StartScreenShareConfig) {
+    const options: DisplayMediaStreamOptions = {
+      video: config?.videoTrackConstraints ?? this.defaultConfig?.videoTrackConstraints ?? undefined,
+      audio: config?.audioTrackConstraints ?? this.defaultConfig?.audioTrackConstraints ?? undefined,
+    };
+
+    const type = this.getType(options);
+    if (!type) return;
+
     try {
-      const newStream = await navigator.mediaDevices.getDisplayMedia({
-        video: config?.videoTrackConstraints ?? this.defaultConfig?.videoTrackConstraints ?? undefined,
-        audio: config?.audioTrackConstraints ?? this.defaultConfig?.audioTrackConstraints ?? undefined,
-      });
-      const data: DeviceState = {
-        // todo remove devices from screenShare
+      const newStream = await navigator.mediaDevices.getDisplayMedia(options);
+      const data: ScreenShareDeviceState = {
         error: null,
         videoMedia: {
-          deviceInfo: null, // todo fix me
           enabled: true,
           stream: newStream,
           track: newStream?.getVideoTracks()[0] ?? null,
         },
         audioMedia: {
-          deviceInfo: null, // todo fix me
           enabled: true,
           stream: newStream,
           track: newStream?.getVideoTracks()[0] ?? null,
@@ -73,14 +100,14 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
         data.audioMedia.track.onended = () => stop();
       }
       this.data = data;
-      this.emit("deviceReady", data);
+      this.emit("deviceReady", { type: type }, this.data);
     } catch (error: unknown) {
       const parsedError: DeviceError | null = parseError(error);
-      this.emit("error", parsedError);
+      this.emit("error", { type, error: parsedError, rawError: error }, this.data);
     }
   }
 
-  public async stop(type: TrackUnion) {
+  public async stop(type: TrackType) {
     if (type === "video") {
       for (const track of this.data?.videoMedia?.stream?.getTracks() ?? []) {
         track.stop();
@@ -107,7 +134,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
     this.emit("deviceStopped", { type }, this.data);
   }
 
-  public setEnable(type: TrackUnion, value: boolean) {
+  public setEnable(type: TrackType, value: boolean) {
     if (type === "video" && this.data.videoMedia?.track) {
       this.data.videoMedia.track.enabled = value;
       this.data.videoMedia.enabled = value;
@@ -125,10 +152,11 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
       }
     }
 
+    // todo should event be emitted if nothing changes?
     if (value) {
-      this.emit("deviceEnabled", this.data);
+      this.emit("deviceEnabled", { type }, this.data);
     } else {
-      this.emit("deviceDisabled", this.data);
+      this.emit("deviceDisabled", { type }, this.data);
     }
   }
 }

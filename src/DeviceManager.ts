@@ -25,6 +25,8 @@ import {
 
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
+import { TrackType } from "./ScreenShareManager";
+import { ClientApiState } from "./Client";
 
 const removeExact = (
   trackConstraints: boolean | MediaTrackConstraints | undefined,
@@ -178,8 +180,8 @@ const LOCAL_STORAGE_DEVICE_PERSISTENCE: DevicePersistence = {
 
 export type DeviceManagerEvents = {
   managerStarted: (arg: any) => void;
-  managerInitialized: (arg: any) => void;
-  deviceReady: (arg: any) => void;
+  managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }) => void;
+  deviceReady: (event: { type: TrackType; stream: MediaStream }) => void;
   devicesReady: (arg: any) => void;
   deviceStopped: (arg: any) => void;
   deviceEnabled: (arg: any) => void;

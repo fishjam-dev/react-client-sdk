@@ -92,7 +92,10 @@ export const MainControls = () => {
     screenShare: {
       broadcastOnConnect: broadcastScreenShareOnConnect,
       broadcastOnDeviceStart: broadcastScreenShareOnDeviceStart,
-      trackConstraints: true,
+      streamConfig: {
+        videoTrackConstraints: true,
+        audioTrackConstraints: true, // todo handle audio
+      },
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },
     startOnMount: autostart,
