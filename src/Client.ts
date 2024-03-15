@@ -162,10 +162,21 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   deviceDisabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
   error: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
 
-  // localEvents
-  localTrackAdded: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  localTrackRemoved: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  localTrackReplaced: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
+  // new
+  targetTrackEncodingRequested: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  // local events
+  localTrackAdded: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackRemoved: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackReplaced: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackBandwidthSet: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackEncodingBandwidthSet: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackEncodingEnabled: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackEncodingDisabled: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localEndpointMetadataChanged: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  localTrackMetadataChanged: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  disconnectRequested: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export class Client<PeerMetadata, TrackMetadata>
@@ -260,11 +271,13 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("peerLeft", peer, this);
     });
     this.client.on("trackReady", (ctx) => {
+      console.log({ name: "trackReady", ctx });
       this.state = this.stateToSnapshot();
 
       this.emit("trackReady", ctx, this);
     });
     this.client.on("trackAdded", (ctx) => {
+      console.log({ name: "trackAdded", ctx });
       this.state = this.stateToSnapshot();
 
       this.emit("trackAdded", ctx, this);
@@ -281,12 +294,15 @@ export class Client<PeerMetadata, TrackMetadata>
       });
     });
     this.client.on("trackRemoved", (ctx) => {
+      console.log({ name: "trackRemoved", ctx });
       this.state = this.stateToSnapshot();
 
       this.emit("trackRemoved", ctx, this);
       ctx.removeAllListeners();
     });
     this.client.on("trackUpdated", (ctx) => {
+      console.log({ name: "trackUpdated", ctx });
+
       this.state = this.stateToSnapshot();
 
       this.emit("trackUpdated", ctx, this);
@@ -357,10 +373,22 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("deviceEnabled", a, this);
     });
 
-    this.screenShareManager.on("deviceStopped", (a) => {
+    this.screenShareManager.on("deviceStopped", async (event, state) => {
+      console.log({ name: "deviceStopped", event, state });
+
+      // todo:
+      //  Add to camera and microphone
+      //  Add parameter to config
+      //  Remove track from WebRTC if it is stopped.
+      if (this.state?.devices?.screenShare?.broadcast?.trackId) {
+        console.log({ name: "removeTrack", event, state });
+
+        await this.client.removeTrack(this.state.devices.screenShare.broadcast.trackId);
+      }
+
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceStopped", a, this);
+      this.emit("deviceStopped", event, this);
     });
 
     this.screenShareManager.on("deviceReady", (event, state) => {
@@ -373,6 +401,72 @@ export class Client<PeerMetadata, TrackMetadata>
       this.state = this.stateToSnapshot();
 
       this.emit("error", a, this);
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("targetTrackEncodingRequested", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("targetTrackEncodingRequested", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackAdded", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackAdded", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackRemoved", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackRemoved", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackReplaced", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackReplaced", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackBandwidthSet", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackBandwidthSet", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackEncodingBandwidthSet", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackEncodingBandwidthSet", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackEncodingEnabled", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackEncodingEnabled", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackEncodingDisabled", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackEncodingDisabled", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localEndpointMetadataChanged", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localEndpointMetadataChanged", event, this);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.client?.on("localTrackMetadataChanged", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("localTrackMetadataChanged", event, this);
+    });
+    this.client?.on("disconnectRequested", (event: any) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("disconnectRequested", event, this);
     });
   }
 
@@ -466,12 +560,11 @@ export class Client<PeerMetadata, TrackMetadata>
 
   public updatePeerMetadata = (peerMetadata: PeerMetadata): void => {
     this.client.updatePeerMetadata(peerMetadata);
-  }
+  };
 
   public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): void => {
     this.client.updateTrackMetadata(trackId, trackMetadata);
-  }
-
+  };
 
   private stateToSnapshot(): State<PeerMetadata, TrackMetadata> {
     if (!this.deviceManager) Error("Device manager is null");
@@ -532,12 +625,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (prevTrack) throw Error("Track already added");
 
-          return this.client.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth).then((trackId) => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackAdded", { track, stream, trackMetadata, trackId, type: "video" }, this);
-
-            return trackId;
-          });
+          return this.client.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
@@ -546,10 +634,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (!prevTrack) throw Error("There is no video track");
 
-          return this.client.removeTrack(prevTrack.trackId).then(() => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackRemoved", { trackId: prevTrack.trackId, type: "video" }, this);
-          });
+          return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find(
@@ -558,10 +643,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (!prevTrack) throw Error("There is no video track");
 
-          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata).then(() => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackReplaced", { trackId: prevTrack.trackId, newTrackMetadata, type: "video" }, this);
-          });
+          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
         broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.status || null,
@@ -590,13 +672,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (prevTrack) throw Error("Track already added");
 
-          return this.client.addTrack(track, stream, trackMetadata).then((trackId) => {
-            this.state = this.stateToSnapshot();
-
-            this.emit("localTrackAdded", { track, stream, trackMetadata, trackId, type: "audio" }, this);
-
-            return trackId;
-          });
+          return this.client.addTrack(track, stream, trackMetadata);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
@@ -605,10 +681,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (!prevTrack) throw Error("There is no audio track");
 
-          return this.client.removeTrack(prevTrack.trackId).then(() => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackRemoved", { trackId: prevTrack.trackId, type: "audio" }, this);
-          });
+          return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find(
@@ -617,10 +690,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (!prevTrack) throw Error("There is no audio track");
 
-          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata).then(() => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackReplaced", { trackId: prevTrack.trackId, newTrackMetadata, type: "audio" }, this);
-          });
+          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
         broadcast: broadcastedAudioTrack ?? null,
         status: deviceManagerSnapshot?.audio?.status || null,
@@ -654,12 +724,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (prevTrack) throw Error("Track already added");
 
-          return this.client.addTrack(track, stream, trackMetadata, undefined, maxBandwidth).then((trackId) => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackAdded", { track, stream, trackMetadata, trackId, type: "video" }, this);
-
-            return trackId;
-          });
+          return this.client.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
@@ -668,10 +733,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (!prevTrack) throw Error("There is no video track");
 
-          return this.client.removeTrack(prevTrack.trackId).then(() => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackRemoved", { trackId: prevTrack.trackId, type: "video" }, this);
-          });
+          return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find(
@@ -680,10 +742,7 @@ export class Client<PeerMetadata, TrackMetadata>
 
           if (!prevTrack) throw Error("There is no video track");
 
-          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata).then(() => {
-            this.state = this.stateToSnapshot();
-            this.emit("localTrackReplaced", { trackId: prevTrack.trackId, newTrackMetadata, type: "video" }, this);
-          });
+          return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
         broadcast: screenShareVideoTrack ?? null,
         // todo separate audio and video
@@ -717,7 +776,9 @@ export class Client<PeerMetadata, TrackMetadata>
       endpoint.tracks.forEach((track) => {
         const mappedTrack = this.trackContextToTrack(track);
         tracks[track.trackId] = mappedTrack;
-        tracksWithOrigin[track.trackId] = { ...mappedTrack, origin: endpoint };
+        const trackToAdd = { ...mappedTrack, origin: endpoint };
+        console.log({ trackToAdd, mappedTrack, track });
+        tracksWithOrigin[track.trackId] = trackToAdd;
       });
 
       remote[endpoint.id] = {

@@ -79,6 +79,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
 
     try {
       const newStream = await navigator.mediaDevices.getDisplayMedia(options);
+
       const data: ScreenShareDeviceState = {
         error: null,
         videoMedia: {
@@ -89,15 +90,19 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
         audioMedia: {
           enabled: true,
           stream: newStream,
-          track: newStream?.getVideoTracks()[0] ?? null,
+          track: newStream?.getAudioTracks()[0] ?? null,
         },
         status: "OK",
       };
       if (data.videoMedia?.track) {
-        data.videoMedia.track.onended = () => stop();
+        data.videoMedia.track.addEventListener("ended", (event) => {
+          this.stop("video");
+        });
       }
       if (data.audioMedia?.track) {
-        data.audioMedia.track.onended = () => stop();
+        data.audioMedia.track.addEventListener("ended", (event) => {
+          this.stop("audio");
+        });
       }
       this.data = data;
       this.emit("deviceReady", { type: type }, this.data);
@@ -131,6 +136,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
       this.data.audioMedia = null;
     }
 
+    console.log({ name: "Stop!" });
     this.emit("deviceStopped", { type }, this.data);
   }
 

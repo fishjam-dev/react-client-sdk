@@ -437,6 +437,17 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       this.video.media = videoMedia;
       this.audio.media = audioMedia;
 
+      if (this.video?.media?.track) {
+        this.video?.media?.track.addEventListener("ended", (event) => {
+          this.stop("video");
+        });
+      }
+      if (this.audio?.media?.track) {
+        this.audio?.media?.track.addEventListener("ended", (event) => {
+          this.stop("audio");
+        });
+      }
+
       this.emit("devicesReady", action);
     } else {
       const parsedError = result.error;
