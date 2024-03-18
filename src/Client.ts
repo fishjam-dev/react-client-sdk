@@ -1,17 +1,18 @@
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 import {
+  BandwidthLimit,
   ConnectConfig,
+  CreateConfig,
   Endpoint,
   JellyfishClient,
+  Peer,
   SimulcastConfig,
   TrackBandwidthLimit,
-  CreateConfig,
-  BandwidthLimit,
+  TrackContext,
   TrackEncoding,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
-import { Peer, TrackContext } from "@jellyfish-dev/ts-client-sdk";
 import { DeviceManager } from "./DeviceManager";
 import { ScreenShareManager, StartScreenShareConfig, TrackType } from "./ScreenShareManager";
 import { DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
@@ -757,7 +758,7 @@ export class Client<PeerMetadata, TrackMetadata>
     if (!this.client["webrtc"]) {
       return {
         client: this,
-        media: null,
+        media: deviceManagerSnapshot || null,
         tracks: {},
         status: this.status,
         devices: devices,
@@ -790,11 +791,9 @@ export class Client<PeerMetadata, TrackMetadata>
       };
     });
 
-    const newVar = {
+    const newVar: State<PeerMetadata, TrackMetadata> = {
       client: this,
-      screenShare: null,
-      media: null,
-      connectivity: null,
+      media: deviceManagerSnapshot || null,
       local: localEndpoint
         ? {
             id: localEndpoint.id,
