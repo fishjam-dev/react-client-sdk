@@ -2,6 +2,8 @@ import type { TrackEncoding, VadStatus, SimulcastConfig } from "@jellyfish-dev/t
 import { UseUserMediaState } from "./types";
 import { UseCameraAndMicrophoneResult } from "./types";
 import { Client } from "./Client";
+import { DeviceManager } from "./DeviceManager";
+import { ScreenShareManager } from "./ScreenShareManager";
 
 export type TrackId = string;
 export type PeerId = string;
@@ -49,6 +51,8 @@ export type State<PeerMetadata, TrackMetadata> = {
   media: UseUserMediaState | null;
   devices: UseCameraAndMicrophoneResult<TrackMetadata>;
   client: Client<PeerMetadata, TrackMetadata>;
+  deviceManager: DeviceManager;
+  screenShareManager: ScreenShareManager;
 };
 
 export type SetStore<PeerMetadata, TrackMetadata> = (

@@ -50,12 +50,6 @@ export const MainControls = () => {
   const connect = useConnect();
   const disconnect = useDisconnect();
 
-  // const fullState = useSelector((s) => s);
-
-  // useEffect(() => {
-  //   console.log({ fullState });
-  // }, [fullState]);
-
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(broadcastVideoOnConnectAtom);

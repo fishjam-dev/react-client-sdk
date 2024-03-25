@@ -182,8 +182,11 @@ export type DeviceManagerEvents = {
   managerStarted: (arg: any) => void;
   managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }) => void;
   deviceReady: (event: { type: TrackType; stream: MediaStream }) => void;
-  devicesReady: (arg: any) => void;
-  deviceStopped: (arg: any) => void;
+  devicesReady: (arg: {
+    video: DeviceState & { restarted: boolean };
+    audio: DeviceState & { restarted: boolean };
+  }) => void;
+  deviceStopped: (event: { type: TrackType }) => void;
   deviceEnabled: (arg: any) => void;
   deviceDisabled: (arg: any) => void;
   error: (arg: any) => void;
@@ -242,7 +245,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   public async init(config?: InitMediaConfig) {
     // todo implement storage
     // todo implement start on mount
-    console.log({ name: "Device manager init fn", config });
 
     if (this.skip) return;
     this.skip = true;
@@ -271,9 +273,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
     this.video.status = shouldAskForVideo && videoConstraints ? REQUESTING : this.video.status ?? NOT_REQUESTED;
     this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
-
-    // this.dispatch(action1);
-    console.log("Emitting event managerStarted from DeviceManager");
 
     this.emit("managerStarted", action1);
 
@@ -355,7 +354,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       saveLastAudioDevice?.(audio.media?.deviceInfo);
     }
 
-    console.log("Emitting event managerInitialized from Device Manager");
     this.emit("managerInitialized", { audio, video });
   }
 
@@ -448,7 +446,10 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
         });
       }
 
-      this.emit("devicesReady", action);
+      this.emit("devicesReady", {
+        video: { ...this.video, restarted: shouldRestartVideo },
+        audio: { ...this.audio, restarted: shouldRestartAudio },
+      });
     } else {
       const parsedError = result.error;
       const action = { type: "UseUserMedia-setError" as const, parsedError, constraints: exactConstraints };
@@ -469,7 +470,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this[type].media?.track?.stop();
     this[type].media = null;
 
-    this.emit("deviceStopped", action);
+    this.emit("deviceStopped", { type });
   }
 
   public setEnable(type: AudioOrVideoType, value: boolean) {

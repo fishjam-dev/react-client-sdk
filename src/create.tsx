@@ -63,8 +63,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     const clientRef = useRef(new Client<PeerMetadata, TrackMetadata>({ clientConfig: config }));
 
     const subscribe = useCallback((cb: () => void) => {
-      console.log("Subscribe function invoked");
-
       const client = clientRef.current;
       const callback = () => cb();
 
@@ -148,10 +146,6 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
 
-    // useEffect(() => {
-    //   console.log({ syncState: state });
-    // }, [state]);
-
     return <JellyfishContext.Provider value={{ state }}>{children}</JellyfishContext.Provider>;
   };
 
@@ -172,8 +166,10 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     return useMemo(() => {
       return (config: ConnectConfig<PeerMetadata>): (() => void) => {
+        console.log("React client connect");
         state.client.connect(config);
         return () => {
+          console.log("React client disconnect");
           state.client.disconnect();
         };
       };
@@ -209,8 +205,8 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useSetupMedia = (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state } = useJellyfishContext();
 
-    if(config.screenShare.streamConfig) {
-      state.client.setScreenManagerConfig(config.screenShare.streamConfig)
+    if (config.screenShare.streamConfig) {
+      state.client.setScreenManagerConfig(config.screenShare.streamConfig);
     }
 
     useEffect(() => {
@@ -329,8 +325,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
         const state = client.getSnapshot();
-
-        console.log({name: "broadcastScreenShareOnConnect", state, config})
 
         if (state.devices.screenShare.stream && config.screenShare.broadcastOnConnect) {
           await state.devices.screenShare.addTrack(

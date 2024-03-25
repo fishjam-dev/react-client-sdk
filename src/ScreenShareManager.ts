@@ -136,7 +136,6 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
       this.data.audioMedia = null;
     }
 
-    console.log({ name: "Stop!" });
     this.emit("deviceStopped", { type }, this.data);
   }
 

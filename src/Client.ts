@@ -13,7 +13,7 @@ import {
   TrackEncoding,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
-import { DeviceManager } from "./DeviceManager";
+import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
 import { ScreenShareManager, StartScreenShareConfig, TrackType } from "./ScreenShareManager";
 import { DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
 
@@ -157,8 +157,14 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     client: ClientApiState<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceReady: (event: { type: TrackType }, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  devicesReady: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  deviceStopped: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
+  devicesReady: (
+    event: Parameters<DeviceManagerEvents["devicesReady"]>[0],
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
+  deviceStopped: (
+    arg: Parameters<DeviceManagerEvents["deviceStopped"]>[0],
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
   deviceEnabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
   deviceDisabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
   error: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
@@ -180,6 +186,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   disconnectRequested: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
+// todo store last selected device in local storage
 export class Client<PeerMetadata, TrackMetadata>
   extends (EventEmitter as {
     new <PeerMetadata, TrackMetadata>(): TypedEmitter<Required<ClientEvents<PeerMetadata, TrackMetadata>>>;
@@ -187,8 +194,8 @@ export class Client<PeerMetadata, TrackMetadata>
   implements ClientApiState<PeerMetadata, TrackMetadata>
 {
   private readonly client: JellyfishClient<PeerMetadata, TrackMetadata>;
-  private readonly deviceManager: DeviceManager | null = null;
-  private readonly screenShareManager: ScreenShareManager | null = null;
+  private readonly deviceManager: DeviceManager;
+  private readonly screenShareManager: ScreenShareManager;
   private state: State<PeerMetadata, TrackMetadata> | null = null;
   private status: null | PeerStatus = null;
 
@@ -272,13 +279,11 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("peerLeft", peer, this);
     });
     this.client.on("trackReady", (ctx) => {
-      console.log({ name: "trackReady", ctx });
       this.state = this.stateToSnapshot();
 
       this.emit("trackReady", ctx, this);
     });
     this.client.on("trackAdded", (ctx) => {
-      console.log({ name: "trackAdded", ctx });
       this.state = this.stateToSnapshot();
 
       this.emit("trackAdded", ctx, this);
@@ -295,15 +300,12 @@ export class Client<PeerMetadata, TrackMetadata>
       });
     });
     this.client.on("trackRemoved", (ctx) => {
-      console.log({ name: "trackRemoved", ctx });
       this.state = this.stateToSnapshot();
 
       this.emit("trackRemoved", ctx, this);
       ctx.removeAllListeners();
     });
     this.client.on("trackUpdated", (ctx) => {
-      console.log({ name: "trackUpdated", ctx });
-
       this.state = this.stateToSnapshot();
 
       this.emit("trackUpdated", ctx, this);
@@ -375,15 +377,11 @@ export class Client<PeerMetadata, TrackMetadata>
     });
 
     this.screenShareManager.on("deviceStopped", async (event, state) => {
-      console.log({ name: "deviceStopped", event, state });
-
       // todo:
       //  Add to camera and microphone
       //  Add parameter to config
       //  Remove track from WebRTC if it is stopped.
       if (this.state?.devices?.screenShare?.broadcast?.trackId) {
-        console.log({ name: "removeTrack", event, state });
-
         await this.client.removeTrack(this.state.devices.screenShare.broadcast.trackId);
       }
 
@@ -452,18 +450,20 @@ export class Client<PeerMetadata, TrackMetadata>
 
       this.emit("localTrackEncodingDisabled", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     this.client?.on("localEndpointMetadataChanged", (event: any) => {
       this.state = this.stateToSnapshot();
 
       this.emit("localEndpointMetadataChanged", event, this);
     });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.client?.on("localTrackMetadataChanged", (event: any) => {
       this.state = this.stateToSnapshot();
 
       this.emit("localTrackMetadataChanged", event, this);
     });
+
     this.client?.on("disconnectRequested", (event: any) => {
       this.state = this.stateToSnapshot();
 
@@ -597,7 +597,6 @@ export class Client<PeerMetadata, TrackMetadata>
 
     const devices: UseCameraAndMicrophoneResult<TrackMetadata> = {
       init: (config?: InitMediaConfig) => {
-        console.log({ name: "Init from new Client", config });
         this?.deviceManager?.init(config);
       },
       start: (config) => this?.deviceManager?.start(config),
@@ -614,7 +613,6 @@ export class Client<PeerMetadata, TrackMetadata>
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit,
         ) => {
-          console.log("Add video track!");
           const media = this.deviceManager?.video.media;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
@@ -709,11 +707,9 @@ export class Client<PeerMetadata, TrackMetadata>
         setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
         start: (config?: StartScreenShareConfig) => {
           // todo add config
-          console.log({ config, name: "ScreenShare start" });
           this.screenShareManager?.start(config);
         },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
-          console.log("Add video track!");
           const media = this.screenShareManager?.getSnapshot().videoMedia;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
@@ -757,6 +753,8 @@ export class Client<PeerMetadata, TrackMetadata>
 
     if (!this.client["webrtc"]) {
       return {
+        deviceManager: this.deviceManager,
+        screenShareManager: this.screenShareManager,
         client: this,
         media: deviceManagerSnapshot || null,
         tracks: {},
@@ -778,7 +776,6 @@ export class Client<PeerMetadata, TrackMetadata>
         const mappedTrack = this.trackContextToTrack(track);
         tracks[track.trackId] = mappedTrack;
         const trackToAdd = { ...mappedTrack, origin: endpoint };
-        console.log({ trackToAdd, mappedTrack, track });
         tracksWithOrigin[track.trackId] = trackToAdd;
       });
 
@@ -791,17 +788,19 @@ export class Client<PeerMetadata, TrackMetadata>
       };
     });
 
-    const newVar: State<PeerMetadata, TrackMetadata> = {
+    return {
+      deviceManager: this.deviceManager,
+      screenShareManager: this.screenShareManager,
       client: this,
       media: deviceManagerSnapshot || null,
       local: localEndpoint
         ? {
-            id: localEndpoint.id,
-            metadata: localEndpoint.metadata,
-            metadataParsingError: localEndpoint.metadataParsingError,
-            rawMetadata: localEndpoint.rawMetadata,
-            tracks: localTracks, // to record
-          }
+          id: localEndpoint.id,
+          metadata: localEndpoint.metadata,
+          metadataParsingError: localEndpoint.metadataParsingError,
+          rawMetadata: localEndpoint.rawMetadata,
+          tracks: localTracks, // to record
+        }
         : null,
       status: this.status,
       remote,
@@ -809,9 +808,5 @@ export class Client<PeerMetadata, TrackMetadata>
       tracks: tracksWithOrigin,
       devices: devices,
     };
-
-    console.log({ newVar });
-
-    return newVar;
   }
 }
