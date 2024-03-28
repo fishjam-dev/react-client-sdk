@@ -211,6 +211,8 @@ export class Client<PeerMetadata, TrackMetadata>
 
     this.state = this.stateToSnapshot();
 
+    // todo should we remove this callbacks in destrutcot?
+
     this.client.on("socketOpen", (event) => {
       this.status = "connected";
       this.state = this.stateToSnapshot();
@@ -795,12 +797,12 @@ export class Client<PeerMetadata, TrackMetadata>
       media: deviceManagerSnapshot || null,
       local: localEndpoint
         ? {
-          id: localEndpoint.id,
-          metadata: localEndpoint.metadata,
-          metadataParsingError: localEndpoint.metadataParsingError,
-          rawMetadata: localEndpoint.rawMetadata,
-          tracks: localTracks, // to record
-        }
+            id: localEndpoint.id,
+            metadata: localEndpoint.metadata,
+            metadataParsingError: localEndpoint.metadataParsingError,
+            rawMetadata: localEndpoint.rawMetadata,
+            tracks: localTracks, // to record
+          }
         : null,
       status: this.status,
       remote,

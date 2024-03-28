@@ -60,7 +60,11 @@ export const create = <PeerMetadata, TrackMetadata>(
   const JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element = ({
     children,
   }: JellyfishContextProviderProps) => {
-    const clientRef = useRef(new Client<PeerMetadata, TrackMetadata>({ clientConfig: config }));
+    const memoClient = useMemo(() => {
+      return new Client<PeerMetadata, TrackMetadata>({ clientConfig: config });
+    }, []);
+
+    const clientRef = useRef(memoClient);
 
     const subscribe = useCallback((cb: () => void) => {
       const client = clientRef.current;
