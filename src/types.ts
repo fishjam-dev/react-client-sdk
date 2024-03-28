@@ -1,6 +1,6 @@
 import { Track } from "@jellyfish-dev/react-client-sdk";
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
-import { StartScreenShareConfig } from "./ScreenShareManager";
+import { ScreenShareManagerConfig } from "./ScreenShareManager";
 
 export type AudioOrVideoType = "audio" | "video";
 
@@ -26,18 +26,18 @@ export type UseUserMediaState = {
 };
 
 export type InitMediaConfig = {
-  videoTrackConstraints: boolean | MediaTrackConstraints;
-  audioTrackConstraints: boolean | MediaTrackConstraints;
+  videoTrackConstraints?: boolean | MediaTrackConstraints;
+  audioTrackConstraints?: boolean | MediaTrackConstraints;
 };
 
-export type UseUserMediaConfig = {
-  videoTrackConstraints: boolean | MediaTrackConstraints;
-  audioTrackConstraints: boolean | MediaTrackConstraints;
+export type DeviceManagerConfig = {
+  videoTrackConstraints?: boolean | MediaTrackConstraints;
+  audioTrackConstraints?: boolean | MediaTrackConstraints;
   startOnMount?: boolean;
-  storage?: boolean | DevicePersistence;
+  storage?: boolean | StorageConfig;
 };
 
-export type DevicePersistence = {
+export type StorageConfig = {
   getLastAudioDevice: (() => MediaDeviceInfo | null) | null;
   saveLastAudioDevice: (info: MediaDeviceInfo) => void;
   getLastVideoDevice: (() => MediaDeviceInfo | null) | null;
@@ -110,13 +110,13 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      */
     broadcastOnDeviceStart?: boolean;
 
-    streamConfig?: StartScreenShareConfig;
+    streamConfig?: ScreenShareManagerConfig;
 
     defaultTrackMetadata?: TrackMetadata;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   startOnMount?: boolean;
-  storage?: boolean | DevicePersistence;
+  storage?: boolean | StorageConfig;
 };
 
 export type UseSetupMediaResult = {
@@ -164,7 +164,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
 export type UseScreenShareResult<TrackMetadata> = {
   stop: () => void;
   setEnable: (value: boolean) => void;
-  start: (config?: StartScreenShareConfig) => void;
+  start: (config?: ScreenShareManagerConfig) => void;
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
@@ -180,7 +180,7 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = {
   camera: UseCameraResult<TrackMetadata>;
   microphone: UseMicrophoneResult<TrackMetadata>;
   screenShare: UseScreenShareResult<TrackMetadata>;
-  init: (config?: UseUserMediaConfig) => void;
+  init: (config?: DeviceManagerConfig) => void;
   start: (config: UseUserMediaStartConfig) => void;
 };
 

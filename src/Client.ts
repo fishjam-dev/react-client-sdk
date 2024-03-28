@@ -14,8 +14,8 @@ import {
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
-import { ScreenShareManager, StartScreenShareConfig, TrackType } from "./ScreenShareManager";
-import { DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult, UseUserMediaConfig } from "./types";
+import { ScreenShareManager, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
+import { DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult, DeviceManagerConfig } from "./types";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
   getSnapshot(): State<PeerMetadata, TrackMetadata>;
@@ -186,6 +186,12 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   disconnectRequested: (event: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
+export type ReactClientCreteConfig<PeerMetadata, TrackMetadata> = {
+  clientConfig?: CreateConfig<PeerMetadata, TrackMetadata>;
+  deviceManagerDefaultConfig?: DeviceManagerConfig;
+  screenShareManagerDefaultConfig?: ScreenShareManagerConfig;
+};
+
 // todo store last selected device in local storage
 export class Client<PeerMetadata, TrackMetadata>
   extends (EventEmitter as {
@@ -199,12 +205,10 @@ export class Client<PeerMetadata, TrackMetadata>
   private state: State<PeerMetadata, TrackMetadata> | null = null;
   private status: null | PeerStatus = null;
 
-  constructor(config?: {
-    clientConfig?: CreateConfig<PeerMetadata, TrackMetadata>;
-    deviceManagerDefaultConfig?: UseUserMediaConfig;
-    screenShareManagerDefaultConfig?: StartScreenShareConfig;
-  }) {
+  constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
+    console.log({ name: "Creating React Client" });
+
     this.client = new JellyfishClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
     this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
     this.screenShareManager = new ScreenShareManager(config?.screenShareManagerDefaultConfig);
@@ -485,7 +489,7 @@ export class Client<PeerMetadata, TrackMetadata>
     return this.state;
   }
 
-  public setScreenManagerConfig(config: StartScreenShareConfig) {
+  public setScreenManagerConfig(config: ScreenShareManagerConfig) {
     this.screenShareManager?.setConfig(config);
   }
 
@@ -707,7 +711,7 @@ export class Client<PeerMetadata, TrackMetadata>
           this?.screenShareManager?.stop("video");
         },
         setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
-        start: (config?: StartScreenShareConfig) => {
+        start: (config?: ScreenShareManagerConfig) => {
           // todo add config
           this.screenShareManager?.start(config);
         },

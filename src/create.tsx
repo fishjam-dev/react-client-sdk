@@ -19,9 +19,10 @@ import {
   UseScreenShareResult,
   UseSetupMediaConfig,
   UseSetupMediaResult,
+  DeviceManagerConfig,
 } from "./types";
-import { Client, ClientEvents } from "./Client";
-import { StartScreenShareConfig } from "./ScreenShareManager";
+import { Client, ClientEvents, ReactClientCreteConfig } from "./Client";
+import { ScreenShareManagerConfig } from "./ScreenShareManager";
 
 export type JellyfishContextProviderProps = {
   children: ReactNode;
@@ -54,14 +55,22 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
  */
 export const create = <PeerMetadata, TrackMetadata>(
   config?: CreateConfig<PeerMetadata, TrackMetadata>,
+  deviceManagerDefaultConfig?: DeviceManagerConfig,
+  screenShareManagerDefaultConfig?: ScreenShareManagerConfig,
 ): CreateJellyfishClient<PeerMetadata, TrackMetadata> => {
+  console.log("Create function invoked!")
+
   const JellyfishContext = createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
   const JellyfishContextProvider: ({ children }: JellyfishContextProviderProps) => JSX.Element = ({
     children,
   }: JellyfishContextProviderProps) => {
     const memoClient = useMemo(() => {
-      return new Client<PeerMetadata, TrackMetadata>({ clientConfig: config });
+      return new Client<PeerMetadata, TrackMetadata>({
+        clientConfig: config,
+        deviceManagerDefaultConfig,
+        screenShareManagerDefaultConfig,
+      });
     }, []);
 
     const clientRef = useRef(memoClient);
