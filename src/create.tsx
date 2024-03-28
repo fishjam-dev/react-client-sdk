@@ -43,6 +43,21 @@ export const createDefaultState = <PeerMetadata, TrackMetadata>(
     client: new JellyfishClient<PeerMetadata, TrackMetadata>(config),
   },
   screenshare: SCREENSHARE_INITIAL_STATE,
+  createConfig: config,
+});
+
+export const createEmptyState = <PeerMetadata, TrackMetadata>(
+  config?: CreateConfig<PeerMetadata, TrackMetadata>,
+): Omit<State<PeerMetadata, TrackMetadata>, "connectivity"> => ({
+  local: null,
+  remote: {},
+  status: null,
+  tracks: {},
+  bandwidthEstimation: 0n,
+  media: INITIAL_STATE,
+  devices: createDefaultDevices(),
+  screenshare: SCREENSHARE_INITIAL_STATE,
+  createConfig: config,
 });
 
 export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
@@ -101,7 +116,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return (config: ConnectConfig<PeerMetadata>): (() => void) => {
         dispatch({ type: "connect", config, dispatch });
         return () => {
-          dispatch({ type: "disconnect" });
+          dispatch({ type: "disconnect", dispatch });
         };
       };
     }, [dispatch]);
@@ -111,7 +126,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     const { dispatch }: JellyfishContextType<PeerMetadata, TrackMetadata> = useJellyfishContext();
 
     return useCallback(() => {
-      dispatch({ type: "disconnect" });
+      dispatch({ type: "disconnect", dispatch });
     }, [dispatch]);
   };
 

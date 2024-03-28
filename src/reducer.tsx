@@ -41,6 +41,8 @@ import {
   UseScreenshareAction,
   INITIAL_STATE as SCREENSHARE_INITIAL_STATE,
 } from "./useMedia/screenshare";
+import { createDefaultState, createEmptyState } from "./create";
+import { configs } from "@typescript-eslint/eslint-plugin";
 
 export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneResult<TrackMetadata> => ({
   camera: {
@@ -100,29 +102,15 @@ export const createDefaultDevices = <TrackMetadata,>(): UseCameraAndMicrophoneRe
   init: () => {},
 });
 
-export const createDefaultState = <PeerMetadata, TrackMetadata>(): State<PeerMetadata, TrackMetadata> => ({
-  local: null,
-  remote: {},
-  status: null,
-  tracks: {},
-  bandwidthEstimation: 0n,
-  media: INITIAL_STATE,
-  devices: createDefaultDevices(),
-  connectivity: {
-    api: null,
-    client: new JellyfishClient<PeerMetadata, TrackMetadata>(),
-  },
-  screenshare: SCREENSHARE_INITIAL_STATE,
-});
-
 export type ConnectAction<PeerMetadata, TrackMetadata> = {
   type: "connect";
   config: ConnectConfig<PeerMetadata>;
   dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>>;
 };
 
-export type DisconnectAction = {
+export type DisconnectAction<PeerMetadata, TrackMetadata> = {
   type: "disconnect";
+  dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>>;
 };
 
 export type ConnectError = {
@@ -162,8 +150,9 @@ export type OnRemovedAction = {
   reason: string;
 };
 
-export type OnDisconnectedAction = {
+export type OnDisconnectedAction<PeerMetadata, TrackMetadata> = {
   type: "onDisconnected";
+  dispatch: Dispatch<Action<PeerMetadata, TrackMetadata>>;
 };
 
 export type OnTrackAddedAction<PeerMetadata, TrackMetadata> = {
@@ -255,14 +244,14 @@ export type SetDevices<TrackMetadata> = { type: "setDevices"; data: UseCameraAnd
 
 export type Action<PeerMetadata, TrackMetadata> =
   | ConnectAction<PeerMetadata, TrackMetadata>
-  | DisconnectAction
+  | DisconnectAction<PeerMetadata, TrackMetadata>
   | ConnectError
   | OnJoinSuccessAction<PeerMetadata, TrackMetadata>
   | OnAuthSuccessAction
   | OnAuthErrorAction
   | OnSocketOpenAction
   | OnSocketErrorAction
-  | OnDisconnectedAction
+  | OnDisconnectedAction<PeerMetadata, TrackMetadata>
   | OnRemovedAction
   | OnTrackReadyAction<PeerMetadata, TrackMetadata>
   | OnTrackAddedAction<PeerMetadata, TrackMetadata>
@@ -299,6 +288,7 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   const api = state?.connectivity.api ? state?.connectivity.api : createApiWrapper(client, action.dispatch);
 
   if (client?.status === "initialized") {
+    console.log("Initialized!");
     return {
       ...state,
       status: "connecting",
@@ -309,6 +299,8 @@ const onConnect = <PeerMetadata, TrackMetadata>(
       },
     };
   }
+
+  console.log("Adding new callbacks!");
 
   client.on("socketOpen", () => {
     action.dispatch({ type: "onSocketOpen" });
@@ -327,7 +319,7 @@ const onConnect = <PeerMetadata, TrackMetadata>(
   });
 
   client.on("disconnected", () => {
-    action.dispatch({ type: "onDisconnected" });
+    action.dispatch({ type: "onDisconnected", dispatch: action.dispatch });
   });
 
   client.on("joined", (peerId: string, peersInRoom: Endpoint<PeerMetadata, TrackMetadata>[]) => {
@@ -406,9 +398,25 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "connect":
       return onConnect<PeerMetadata, TrackMetadata>(state, action);
     case "disconnect":
-      state?.connectivity?.client?.removeAllListeners();
-      state?.connectivity?.client?.disconnect();
-      return { ...createDefaultState(), media: state.media, screenshare: state.screenshare, devices: state.devices };
+      if (!state.connectivity.client) throw Error("Client is null");
+      // state?.connectivity?.client?.removeAllListeners();
+      // state?.connectivity?.client?.disconnect();
+
+      const emptyState = createEmptyState(state?.createConfig);
+      const newState: State<PeerMetadata, TrackMetadata> = {
+        ...emptyState,
+        connectivity: {
+          api: createApiWrapper(state.connectivity.client, action.dispatch),
+          client: state.connectivity.client,
+        },
+      };
+
+      return {
+        ...newState,
+        media: state.media,
+        screenshare: state.screenshare,
+        devices: state.devices,
+      };
     case "connectError":
       return onConnectError<PeerMetadata, TrackMetadata>()(state);
     // connections events
@@ -421,10 +429,26 @@ export const reducer = <PeerMetadata, TrackMetadata>(
     case "onJoinError":
       return onJoinError<PeerMetadata, TrackMetadata>(action.metadata)(state);
     case "onDisconnected":
-      state?.connectivity?.client?.removeAllListeners();
-      state?.connectivity?.client?.disconnect();
-      // return onDisconnected<PeerMetadata, TrackMetadata>()(state)
-      return { ...createDefaultState(), media: state.media, screenshare: state.screenshare, devices: state.devices };
+      if (!state.connectivity.client) throw Error("Client is null");
+
+      // state?.connectivity?.client?.removeAllListeners();
+      // state?.connectivity?.client?.disconnect();
+
+      const emptyState1 = createEmptyState(state?.createConfig);
+      const newState1: State<PeerMetadata, TrackMetadata> = {
+        ...emptyState1,
+        connectivity: {
+          api: createApiWrapper(state.connectivity.client, action.dispatch),
+          client: state.connectivity.client,
+        },
+      };
+
+      return {
+        ...newState1,
+        media: state.media,
+        screenshare: state.screenshare,
+        devices: state.devices,
+      };
     case "onAuthSuccess":
       return onAuthSuccess<PeerMetadata, TrackMetadata>()(state);
     case "onAuthError":

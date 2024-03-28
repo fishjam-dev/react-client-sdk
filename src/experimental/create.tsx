@@ -28,7 +28,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
         return (config: ConnectConfig<PeerMetadata>): (() => void) => {
           dispatch({ type: "connect", config, dispatch });
           return () => {
-            dispatch({ type: "disconnect" });
+            dispatch({ type: "disconnect", dispatch });
           };
         };
       }, []);
@@ -38,7 +38,7 @@ export const create = <PeerMetadata, TrackMetadata>(): CreateJellyfishClient<Pee
     },
     useDisconnect: () => {
       return () => {
-        store.dispatch({ type: "disconnect" });
+        store.dispatch({ type: "disconnect", dispatch: store.dispatch });
       };
     },
   };

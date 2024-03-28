@@ -1,4 +1,4 @@
-import type { TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
+import type { CreateConfig, TrackEncoding, VadStatus } from "@jellyfish-dev/ts-client-sdk";
 import type { Api } from "./api";
 import { JellyfishClient, SimulcastConfig } from "@jellyfish-dev/ts-client-sdk";
 import { UseUserMediaState } from "./useUserMedia/types";
@@ -57,6 +57,7 @@ export type State<PeerMetadata, TrackMetadata> = {
   screenshare: UseScreenshareState;
   devices: UseCameraAndMicrophoneResult<TrackMetadata>;
   connectivity: Connectivity<PeerMetadata, TrackMetadata>;
+  createConfig?: CreateConfig<PeerMetadata, TrackMetadata>;
 };
 
 export type SetStore<PeerMetadata, TrackMetadata> = (
