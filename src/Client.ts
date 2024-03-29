@@ -493,6 +493,10 @@ export class Client<PeerMetadata, TrackMetadata>
     this.screenShareManager?.setConfig(config);
   }
 
+  public setDeviceManagerConfig(config: DeviceManagerConfig) {
+    this.deviceManager?.setConfig(config);
+  }
+
   private trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track<TrackMetadata> {
     return {
       rawMetadata: track.rawMetadata,

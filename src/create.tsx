@@ -58,7 +58,7 @@ export const create = <PeerMetadata, TrackMetadata>(
   deviceManagerDefaultConfig?: DeviceManagerConfig,
   screenShareManagerDefaultConfig?: ScreenShareManagerConfig,
 ): CreateJellyfishClient<PeerMetadata, TrackMetadata> => {
-  console.log("Create function invoked!")
+  console.log("Create function invoked!");
 
   const JellyfishContext = createContext<JellyfishContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
@@ -222,6 +222,10 @@ export const create = <PeerMetadata, TrackMetadata>(
       state.client.setScreenManagerConfig(config.screenShare.streamConfig);
     }
 
+    state.client.setDeviceManagerConfig({
+      storage: config.storage,
+    });
+
     useEffect(() => {
       if (config.startOnMount) {
         state.devices.init({
@@ -356,7 +360,6 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     return useMemo(
       () => ({
-        ...state.devices,
         init: () =>
           state.devices.init({
             audioTrackConstraints: config?.microphone?.trackConstraints,

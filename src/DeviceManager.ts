@@ -25,7 +25,7 @@ import {
 
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
-import { TrackType } from "./ScreenShareManager";
+import { ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
 import { ClientApiState } from "./Client";
 
 const removeExact = (
@@ -202,10 +202,14 @@ export type DeviceManagerEvents = {
 
 export class DeviceManager extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>) {
   private readonly defaultConfig?: DeviceManagerConfig;
-  private readonly storage: StorageConfig;
-  private skip: boolean = false;
-  private readonly audioConstraints: MediaTrackConstraints | undefined;
-  private readonly videoConstraints: MediaTrackConstraints | undefined;
+  private readonly defaultAudioConstraints: MediaTrackConstraints | undefined;
+  private readonly defaultVideoConstraints: MediaTrackConstraints | undefined;
+  private readonly defaultStorageConfig: StorageConfig;
+
+  private config: DeviceManagerConfig | undefined;
+  private audioConstraints: MediaTrackConstraints | undefined;
+  private videoConstraints: MediaTrackConstraints | undefined;
+  private storageConfig: StorageConfig | undefined;
 
   public video: DeviceState = {
     status: "Not requested",
@@ -228,40 +232,54 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   constructor(defaultConfig?: DeviceManagerConfig) {
     super();
     this.defaultConfig = defaultConfig;
-    this.storage = this.createStorageConfig(defaultConfig?.storage);
+    this.defaultStorageConfig = this.createStorageConfig(defaultConfig?.storage);
 
-    console.log({ storage: this.storage });
-
-    this.audioConstraints = defaultConfig?.audioTrackConstraints
+    this.defaultAudioConstraints = defaultConfig?.audioTrackConstraints
       ? toMediaTrackConstraints(defaultConfig.audioTrackConstraints)
       : undefined;
-    this.videoConstraints = defaultConfig?.videoTrackConstraints
+    this.defaultVideoConstraints = defaultConfig?.videoTrackConstraints
       ? toMediaTrackConstraints(defaultConfig.videoTrackConstraints)
       : undefined;
   }
 
   private createStorageConfig(storage: boolean | StorageConfig | undefined): StorageConfig {
-    if (storage === undefined || storage === false) return DISABLE_STORAGE_CONFIG;
-    if (storage === true) return LOCAL_STORAGE_CONFIG;
+    if (storage === false) return DISABLE_STORAGE_CONFIG;
+    if (storage === true || storage === undefined) return LOCAL_STORAGE_CONFIG;
     return storage;
   }
 
+  private getVideoConstraints(
+    currentConstraints: boolean | MediaTrackConstraints | undefined,
+  ): MediaTrackConstraints | undefined {
+    if (currentConstraints === false) return undefined;
+
+    if (currentConstraints === undefined || currentConstraints === true)
+      return this.videoConstraints ?? this?.defaultVideoConstraints;
+
+    return currentConstraints ?? this.videoConstraints ?? this?.defaultVideoConstraints;
+  }
+
+  private getAudioConstraints(
+    currentConstraints: boolean | MediaTrackConstraints | undefined,
+  ): MediaTrackConstraints | undefined {
+    if (currentConstraints === false) return undefined;
+
+    if (currentConstraints === undefined || currentConstraints === true)
+      return this.audioConstraints ?? this?.defaultAudioConstraints;
+
+    return currentConstraints ?? this.audioConstraints ?? this?.defaultAudioConstraints;
+  }
+
   public async init(config?: InitMediaConfig) {
-    // todo implement storage
     // todo implement start on mount
 
-    if (this.skip) return;
-    this.skip = true;
     if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
-    const { getLastAudioDevice, saveLastAudioDevice, getLastVideoDevice, saveLastVideoDevice } = this.storage;
-    console.log({ persistence: this.storage });
+    const videoTrackConstraints = this.getVideoConstraints(config?.videoTrackConstraints);
+    const audioTrackConstraints = this.getAudioConstraints(config?.audioTrackConstraints);
 
-    const videoTrackConstraints = config?.videoTrackConstraints ?? this.defaultConfig?.videoTrackConstraints;
-    const audioTrackConstraints = config?.audioTrackConstraints ?? this.defaultConfig?.audioTrackConstraints;
-
-    const previousVideoDevice: MediaDeviceInfo | null = getLastVideoDevice?.() ?? null;
-    const previousAudioDevice: MediaDeviceInfo | null = getLastAudioDevice?.() ?? null;
+    const previousVideoDevice: MediaDeviceInfo | null = this.getLastVideoDevice() ?? null;
+    const previousAudioDevice: MediaDeviceInfo | null = this.getLastAudioDevice() ?? null;
 
     const shouldAskForVideo = !!videoTrackConstraints;
     const shouldAskForAudio = !!audioTrackConstraints;
@@ -269,8 +287,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     // from reducer:
     const action1 = {
       type: "UseUserMedia-loading" as const,
-      video: { ask: shouldAskForVideo, constraints: this.videoConstraints },
-      audio: { ask: shouldAskForAudio, constraints: this.audioConstraints },
+      video: { ask: shouldAskForVideo, constraints: videoTrackConstraints },
+      audio: { ask: shouldAskForAudio, constraints: audioTrackConstraints },
     };
 
     const videoConstraints = action1.video.constraints;
@@ -283,8 +301,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
     let requestedDevices: MediaStream | null = null;
     const constraints = {
-      video: shouldAskForVideo && getExactDeviceConstraint(this.videoConstraints, previousVideoDevice?.deviceId),
-      audio: shouldAskForAudio && getExactDeviceConstraint(this.audioConstraints, previousAudioDevice?.deviceId),
+      video: shouldAskForVideo && getExactDeviceConstraint(videoTrackConstraints, previousVideoDevice?.deviceId),
+      audio: shouldAskForAudio && getExactDeviceConstraint(audioTrackConstraints, previousAudioDevice?.deviceId),
     };
 
     let result: GetMedia = await getMedia(constraints, {});
@@ -317,8 +335,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
           stopTracks(requestedDevices);
 
           const exactConstraints: MediaStreamConstraints = {
-            video: !!result.constraints.video && prepareConstraints(videoIdToStart, this.videoConstraints),
-            audio: !!result.constraints.video && prepareConstraints(audioIdToStart, this.audioConstraints),
+            video: !!result.constraints.video && prepareConstraints(videoIdToStart, videoTrackConstraints),
+            audio: !!result.constraints.video && prepareConstraints(audioIdToStart, audioTrackConstraints),
           };
 
           const correctedResult = await getMedia(exactConstraints, result.previousErrors);
@@ -352,28 +370,53 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this.audio = audio;
 
     if (video.media?.deviceInfo) {
-      saveLastVideoDevice?.(video.media?.deviceInfo);
+      this.saveLastVideoDevice(video.media?.deviceInfo);
     }
 
     if (audio.media?.deviceInfo) {
-      saveLastAudioDevice?.(audio.media?.deviceInfo);
+      this.saveLastAudioDevice(audio.media?.deviceInfo);
     }
 
     this.emit("managerInitialized", { audio, video });
+  }
+
+  private getLastVideoDevice(): MediaDeviceInfo | null {
+    return this.storageConfig?.getLastVideoDevice?.() ?? this.defaultStorageConfig?.getLastVideoDevice?.() ?? null;
+  }
+
+  private saveLastVideoDevice(info: MediaDeviceInfo) {
+    if (this.storageConfig?.saveLastVideoDevice) {
+      this.storageConfig.saveLastVideoDevice(info);
+    } else {
+      this.defaultStorageConfig.saveLastVideoDevice?.(info);
+    }
+  }
+
+  private saveLastAudioDevice(info: MediaDeviceInfo) {
+    if (this.storageConfig?.saveLastAudioDevice) {
+      this.storageConfig.saveLastAudioDevice(info);
+    } else {
+      this.defaultStorageConfig.saveLastAudioDevice?.(info);
+    }
+  }
+
+  private getLastAudioDevice(): MediaDeviceInfo | null {
+    return this.storageConfig?.getLastAudioDevice?.() ?? this.defaultStorageConfig?.getLastAudioDevice?.() ?? null;
   }
 
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
     const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
     const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;
 
-    const newVideoDevice =
-      videoDeviceId === true ? this.storage.getLastVideoDevice?.()?.deviceId || true : videoDeviceId;
-    const newAudioDevice =
-      audioDeviceId === true ? this.storage.getLastAudioDevice?.()?.deviceId || true : audioDeviceId;
+    const newVideoDevice = videoDeviceId === true ? this.getLastVideoDevice?.()?.deviceId || true : videoDeviceId;
+    const newAudioDevice = audioDeviceId === true ? this.getLastAudioDevice?.()?.deviceId || true : audioDeviceId;
+
+    const videoTrackConstraints = this.getVideoConstraints(true);
+    const audioTrackConstraints = this.getAudioConstraints(true);
 
     const exactConstraints: MediaStreamConstraints = {
-      video: shouldRestartVideo && prepareMediaTrackConstraints(newVideoDevice, this.videoConstraints),
-      audio: shouldRestartAudio && prepareMediaTrackConstraints(newAudioDevice, this.audioConstraints),
+      video: shouldRestartVideo && prepareMediaTrackConstraints(newVideoDevice, videoTrackConstraints),
+      audio: shouldRestartAudio && prepareMediaTrackConstraints(newAudioDevice, audioTrackConstraints),
     };
 
     if (!exactConstraints.video && !exactConstraints.audio) return;
@@ -386,14 +429,14 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       const currentVideoDeviceId = result.stream.getVideoTracks()?.[0]?.getSettings()?.deviceId;
       const videoInfo = currentVideoDeviceId ? getDeviceInfo(currentVideoDeviceId, this.video.devices ?? []) : null;
       if (videoInfo) {
-        this.storage.saveLastVideoDevice?.(videoInfo);
+        this.saveLastVideoDevice?.(videoInfo);
       }
 
       const currentAudioDeviceId = result.stream.getAudioTracks()?.[0]?.getSettings()?.deviceId;
       const audioInfo = currentAudioDeviceId ? getDeviceInfo(currentAudioDeviceId, this.audio.devices ?? []) : null;
 
       if (audioInfo) {
-        this.storage.saveLastAudioDevice?.(audioInfo);
+        this.saveLastAudioDevice(audioInfo);
       }
 
       // form reducer:
@@ -491,5 +534,16 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     } else {
       this.emit("deviceDisabled", value);
     }
+  }
+
+  public setConfig(config?: DeviceManagerConfig) {
+    this.config = config;
+    this.storageConfig = this.createStorageConfig(config?.storage);
+    this.audioConstraints = config?.audioTrackConstraints
+      ? toMediaTrackConstraints(config.audioTrackConstraints)
+      : undefined;
+    this.videoConstraints = config?.videoTrackConstraints
+      ? toMediaTrackConstraints(config.videoTrackConstraints)
+      : undefined;
   }
 }

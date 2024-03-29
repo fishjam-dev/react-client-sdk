@@ -38,7 +38,8 @@ export type ScreenShareDeviceState = {
 };
 
 export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<DisplayMediaManagerEvents>) {
-  private defaultConfig?: ScreenShareManagerConfig;
+  private readonly defaultConfig?: ScreenShareManagerConfig;
+  private config?: ScreenShareManagerConfig;
 
   private data: ScreenShareDeviceState = {
     audioMedia: null,
@@ -58,7 +59,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
   }
 
   public setConfig(config: ScreenShareManagerConfig) {
-    this.defaultConfig = config;
+    this.config = config;
   }
 
   private getType(options: DisplayMediaStreamOptions): TrackType | null {
@@ -70,8 +71,14 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
 
   public async start(config?: ScreenShareManagerConfig) {
     const options: DisplayMediaStreamOptions = {
-      video: config?.videoTrackConstraints ?? this.defaultConfig?.videoTrackConstraints ?? undefined,
-      audio: config?.audioTrackConstraints ?? this.defaultConfig?.audioTrackConstraints ?? undefined,
+      video:
+        config?.videoTrackConstraints ??
+        this.config?.videoTrackConstraints ??
+        this.defaultConfig?.videoTrackConstraints,
+      audio:
+        config?.audioTrackConstraints ??
+        this.config?.audioTrackConstraints ??
+        this.defaultConfig?.audioTrackConstraints,
     };
 
     const type = this.getType(options);
