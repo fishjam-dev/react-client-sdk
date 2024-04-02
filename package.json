@@ -64,7 +64,7 @@
     "typescript": "5.4.2"
   },
   "dependencies": {
-    "@jellyfish-dev/ts-client-sdk": "file:../ts-client-sdk",
+    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#feature/poc-2",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },
