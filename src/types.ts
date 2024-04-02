@@ -1,6 +1,6 @@
-import { Track } from "@jellyfish-dev/react-client-sdk";
 import { SimulcastConfig, TrackBandwidthLimit } from "@jellyfish-dev/ts-client-sdk";
 import { ScreenShareManagerConfig } from "./ScreenShareManager";
+import { Track } from "./state.types";
 
 export type AudioOrVideoType = "audio" | "video";
 
