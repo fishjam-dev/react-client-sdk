@@ -25,7 +25,7 @@ import {
 
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
-import { ScreenShareManagerConfig, ScreenShareMedia, TrackType } from "./ScreenShareManager";
+import { MediaDeviceType, ScreenShareManagerConfig, ScreenShareMedia, TrackType } from "./ScreenShareManager";
 import { ClientApiState } from "./Client";
 
 const removeExact = (
@@ -187,20 +187,27 @@ const LOCAL_STORAGE_CONFIG: StorageConfig = {
 };
 
 export type DeviceManagerEvents = {
-  managerStarted: (arg: any, state: DeviceManagerState) => void;
+  managerStarted: (
+    event: {
+      trackType: TrackType;
+      videoConstraints: MediaTrackConstraints | undefined;
+      audioConstraints: MediaTrackConstraints | undefined;
+    },
+    state: DeviceManagerState,
+  ) => void;
   managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }, state: DeviceManagerState) => void;
-  deviceReady: (event: { type: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
+  deviceReady: (event: { trackType: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
   devicesReady: (
-    arg: {
+    event: {
       video: DeviceState & { restarted: boolean };
       audio: DeviceState & { restarted: boolean };
     },
     state: DeviceManagerState,
   ) => void;
-  deviceStopped: (event: { type: TrackType }, state: DeviceManagerState) => void;
-  deviceEnabled: (arg: any, state: DeviceManagerState) => void;
-  deviceDisabled: (arg: any, state: DeviceManagerState) => void;
-  error: (arg: any, state: DeviceManagerState) => void;
+  deviceStopped: (event: { trackType: TrackType }, state: DeviceManagerState) => void;
+  deviceEnabled: (event: { trackType: TrackType }, state: DeviceManagerState) => void;
+  deviceDisabled: (event: { trackType: TrackType }, state: DeviceManagerState) => void;
+  error: (event: any, state: DeviceManagerState) => void;
 };
 
 export type DeviceManagerState = {
@@ -306,7 +313,15 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this.video.status = shouldAskForVideo && videoConstraints ? REQUESTING : this.video.status ?? NOT_REQUESTED;
     this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
 
-    this.emit("managerStarted", action1, { audio: this.audio, video: this.video });
+    // todo create Method for calculatin audio video audiovideo
+    this.emit(
+      "managerStarted",
+      { trackType: "audiovideo", videoConstraints, audioConstraints },
+      {
+        audio: this.audio,
+        video: this.video,
+      },
+    );
 
     let requestedDevices: MediaStream | null = null;
     const constraints = {
@@ -531,7 +546,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this[type].media?.track?.stop();
     this[type].media = null;
 
-    this.emit("deviceStopped", { type }, { audio: this.audio, video: this.video });
+    this.emit("deviceStopped", { trackType: type }, { audio: this.audio, video: this.video });
   }
 
   public setEnable(type: AudioOrVideoType, value: boolean) {
@@ -543,9 +558,9 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this[type!].media!.enabled = value;
 
     if (value) {
-      this.emit("deviceEnabled", value, { audio: this.audio, video: this.video });
+      this.emit("deviceEnabled", { trackType: type }, { audio: this.audio, video: this.video });
     } else {
-      this.emit("deviceDisabled", value, { audio: this.audio, video: this.video });
+      this.emit("deviceDisabled", { trackType: type }, { audio: this.audio, video: this.video });
     }
   }
 

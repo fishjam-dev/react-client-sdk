@@ -14,8 +14,8 @@ import {
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
-import { ScreenShareManager, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
-import { DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult, DeviceManagerConfig } from "./types";
+import { MediaDeviceType, ScreenShareManager, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
+import { DeviceManagerConfig, DeviceState, InitMediaConfig, UseCameraAndMicrophoneResult } from "./types";
 
 export type ClientApiState<PeerMetadata, TrackMetadata> = {
   getSnapshot(): State<PeerMetadata, TrackMetadata>;
@@ -151,27 +151,40 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   ) => void;
 
   // device manager events
-  managerStarted: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  managerInitialized: (
-    event: { audio?: DeviceState; video?: DeviceState },
-    client: ClientApiState<PeerMetadata, TrackMetadata>,
-  ) => void;
-  deviceReady: (
-    event: {
-      type: TrackType;
+  managerStarted: (
+    arg: Parameters<DeviceManagerEvents["managerInitialized"]>[0] & {
+      mediaDeviceType: MediaDeviceType;
     },
     client: ClientApiState<PeerMetadata, TrackMetadata>,
   ) => void;
+  managerInitialized: (
+    event: { audio?: DeviceState; video?: DeviceState; mediaDeviceType: MediaDeviceType },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
+  deviceReady: (
+    event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & { mediaDeviceType: MediaDeviceType },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
   devicesReady: (
-    event: Parameters<DeviceManagerEvents["devicesReady"]>[0],
+    event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & { mediaDeviceType: MediaDeviceType },
     client: ClientApiState<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceStopped: (
-    arg: Parameters<DeviceManagerEvents["deviceStopped"]>[0],
+    event: Parameters<DeviceManagerEvents["deviceStopped"]>[0] & { mediaDeviceType: MediaDeviceType },
     client: ClientApiState<PeerMetadata, TrackMetadata>,
   ) => void;
-  deviceEnabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
-  deviceDisabled: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
+  deviceEnabled: (
+    event: Parameters<DeviceManagerEvents["deviceEnabled"]>[0] & {
+      mediaDeviceType: MediaDeviceType;
+    },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
+  deviceDisabled: (
+    event: Parameters<DeviceManagerEvents["deviceDisabled"]>[0] & {
+      mediaDeviceType: MediaDeviceType;
+    },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
   error: (arg: any, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
 
   // new
@@ -210,11 +223,12 @@ export class Client<PeerMetadata, TrackMetadata>
   private state: State<PeerMetadata, TrackMetadata> | null = null;
   private status: null | PeerStatus = null;
 
-  private lastAudioTrackId: string | null = null;
+  private currentMicrophoneTrackIc: string | null = null;
+  private currentCameraTrackId: string | null = null;
+  private currentScreenShareTrackId: string | null = null;
 
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
-    console.log({ name: "Creating React Client" });
 
     this.client = new JellyfishClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
     this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
@@ -329,84 +343,94 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("bandwidthEstimationChanged", estimation, this);
     });
 
-    this.deviceManager.on("deviceDisabled", (a) => {
+    this.deviceManager.on("deviceDisabled", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceDisabled", a, this);
+      this.emit("deviceDisabled", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("deviceEnabled", (a) => {
+    this.deviceManager.on("deviceEnabled", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceEnabled", a, this);
+      this.emit("deviceEnabled", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
     this.deviceManager.on("managerInitialized", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("managerInitialized", event, this);
+      this.emit("managerInitialized", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("managerStarted", (a) => {
+    this.deviceManager.on("managerStarted", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("managerStarted", a, this);
+      this.emit("managerStarted", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("deviceStopped", (a) => {
+    this.deviceManager.on("deviceStopped", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceStopped", a, this);
+      this.emit("deviceStopped", { trackType: event.trackType, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("deviceReady", (a) => {
+    this.deviceManager.on("deviceReady", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceReady", a, this);
+      this.emit("deviceReady", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("devicesReady", (a) => {
+    this.deviceManager.on("devicesReady", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("devicesReady", a, this);
+      this.emit("devicesReady", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("error", (a) => {
+    this.deviceManager.on("error", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("error", a, this);
+      this.emit("error", event, this);
     });
 
-    this.screenShareManager.on("deviceDisabled", (a) => {
+    this.screenShareManager.on("deviceDisabled", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceDisabled", a, this);
+      this.emit("deviceDisabled", { trackType: event.type, mediaDeviceType: "displayMedia" }, this);
     });
 
-    this.screenShareManager.on("deviceEnabled", (a) => {
+    this.screenShareManager.on("deviceEnabled", (event) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceEnabled", a, this);
+      this.emit("deviceEnabled", { trackType: event.type, mediaDeviceType: "displayMedia" }, this);
     });
 
     this.screenShareManager.on("deviceStopped", async (event, state) => {
-      // todo:
-      //  Add to camera and microphone
-      //  Add parameter to config
-      //  Remove track from WebRTC if it is stopped.
-      if (this.state?.devices?.screenShare?.broadcast?.trackId) {
-        await this.client.removeTrack(this.state.devices.screenShare.broadcast.trackId);
-      }
+      // // todo:
+      // //  Add to camera and microphone
+      // //  Add parameter to config
+      // //  Remove track from WebRTC if it is stopped.
+      // if (this.state?.devices?.screenShare?.broadcast?.trackId) {
+      //   await this.client.removeTrack(this.state.devices.screenShare.broadcast.trackId);
+      // }
 
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceStopped", event, this);
+      this.emit("deviceStopped", { trackType: event.type, mediaDeviceType: "displayMedia" }, this);
     });
 
     this.screenShareManager.on("deviceReady", (event, state) => {
       this.state = this.stateToSnapshot();
 
-      this.emit("deviceReady", event, this);
+      if (!state.videoMedia?.stream) throw Error("Invalid screen share state");
+
+      this.emit(
+        "deviceReady",
+        {
+          trackType: event.type,
+          stream: state.videoMedia.stream,
+          mediaDeviceType: "displayMedia",
+        },
+        this,
+      );
     });
 
     this.screenShareManager.on("error", (a) => {
@@ -597,21 +621,17 @@ export class Client<PeerMetadata, TrackMetadata>
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
-    console.log({ localTracks, lastAudioTrack: this.lastAudioTrackId });
-
-    // todo this could be track from device manager or different track
-    //  if user invoked replaceTrack with custom stream
     const broadcastedVideoTrack = Object.values(localTracks).find(
-      (track) => track.track?.id === this.deviceManager?.video.media?.track?.id,
+      (track) => track.track?.id === this.currentCameraTrackId,
     );
 
     const broadcastedAudioTrack = Object.values(localTracks).find(
-      (track) => track.track?.id === this.lastAudioTrackId,
+      (track) => track.track?.id === this.currentMicrophoneTrackIc,
     );
 
     // todo add audio media
     const screenShareVideoTrack = Object.values(localTracks).find(
-      (track) => track.track?.id === this.screenShareManager?.getSnapshot()?.videoMedia?.track?.id,
+      (track) => track.track?.id === this.currentScreenShareTrackId,
     );
 
     const devices: UseCameraAndMicrophoneResult<TrackMetadata> = {
@@ -637,29 +657,29 @@ export class Client<PeerMetadata, TrackMetadata>
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
           const { stream, track } = media;
 
-          const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.deviceManager?.video.media?.track?.id,
-          );
+          const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
 
           if (prevTrack) throw Error("Track already added");
+
+          this.currentCameraTrackId = track?.id;
 
           return this.client.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
         },
         removeTrack: () => {
-          const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.deviceManager?.video.media?.track?.id,
-          );
+          const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
+
+          this.currentCameraTrackId = null;
 
           return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
-          const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.deviceManager?.video.media?.track?.id,
-          );
+          const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
+
+          this.currentCameraTrackId = newTrack.id;
 
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
@@ -679,43 +699,40 @@ export class Client<PeerMetadata, TrackMetadata>
           this?.deviceManager?.start({ audioDeviceId: deviceId ?? true });
         },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
-          console.log("Add track in ReactClientWrapper in devices.microphone.addTrack");
           const media = this.deviceManager?.audio.media;
 
-          console.log({ trackMetadata, maxBandwidth, media });
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
           const { stream, track } = media;
 
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.lastAudioTrackId,
+            (track) => track.track?.id === this.currentMicrophoneTrackIc,
           );
 
-          console.log({ prevTrack });
           if (prevTrack) throw Error("Track already added");
 
-          this.lastAudioTrackId = track.id
+          this.currentMicrophoneTrackIc = track.id;
 
           return this.client.addTrack(track, stream, trackMetadata);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.lastAudioTrackId,
+            (track) => track.track?.id === this.currentMicrophoneTrackIc,
           );
 
           if (!prevTrack) throw Error("There is no audio track");
 
-          this.lastAudioTrackId = null
+          this.currentMicrophoneTrackIc = null;
 
           return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.lastAudioTrackId,
+            (track) => track.track?.id === this.currentMicrophoneTrackIc,
           );
 
           if (!prevTrack) throw Error("There is no audio track");
 
-          this.lastAudioTrackId = newTrack.id
+          this.currentMicrophoneTrackIc = newTrack.id;
 
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
@@ -744,28 +761,34 @@ export class Client<PeerMetadata, TrackMetadata>
           const { stream, track } = media;
 
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.screenShareManager?.getSnapshot().videoMedia?.track?.id,
+            (track) => track.track?.id === this.currentScreenShareTrackId,
           );
 
           if (prevTrack) throw Error("Track already added");
+
+          this.currentScreenShareTrackId = track?.id;
 
           return this.client.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.screenShareManager?.getSnapshot().videoMedia?.track?.id,
+            (track) => track.track?.id === this.currentScreenShareTrackId,
           );
 
           if (!prevTrack) throw Error("There is no video track");
+
+          this.currentScreenShareTrackId = null;
 
           return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.screenShareManager?.getSnapshot().videoMedia?.track?.id,
+            (track) => track.track?.id === this.currentScreenShareTrackId,
           );
 
           if (!prevTrack) throw Error("There is no video track");
+
+          this.currentScreenShareTrackId = newTrack.id;
 
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
@@ -803,8 +826,7 @@ export class Client<PeerMetadata, TrackMetadata>
       endpoint.tracks.forEach((track) => {
         const mappedTrack = this.trackContextToTrack(track);
         tracks[track.trackId] = mappedTrack;
-        const trackToAdd = { ...mappedTrack, origin: endpoint };
-        tracksWithOrigin[track.trackId] = trackToAdd;
+        tracksWithOrigin[track.trackId] = { ...mappedTrack, origin: endpoint };
       });
 
       remote[endpoint.id] = {

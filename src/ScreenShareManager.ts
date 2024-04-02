@@ -3,6 +3,7 @@ import TypedEmitter from "typed-emitter";
 import { DeviceError, DeviceReturnType, Media, parseError } from "./types";
 
 export type TrackType = "audio" | "video" | "audiovideo";
+export type MediaDeviceType = "displayMedia" | "userMedia";
 
 export type DisplayMediaManagerEvents = {
   deviceReady: (event: { type: TrackType }, state: ScreenShareDeviceState) => void;
