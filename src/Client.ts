@@ -156,7 +156,12 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     event: { audio?: DeviceState; video?: DeviceState },
     client: ClientApiState<PeerMetadata, TrackMetadata>,
   ) => void;
-  deviceReady: (event: { type: TrackType }, client: ClientApiState<PeerMetadata, TrackMetadata>) => void;
+  deviceReady: (
+    event: {
+      type: TrackType;
+    },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
   devicesReady: (
     event: Parameters<DeviceManagerEvents["devicesReady"]>[0],
     client: ClientApiState<PeerMetadata, TrackMetadata>,
@@ -204,6 +209,8 @@ export class Client<PeerMetadata, TrackMetadata>
   private readonly screenShareManager: ScreenShareManager;
   private state: State<PeerMetadata, TrackMetadata> | null = null;
   private status: null | PeerStatus = null;
+
+  private lastAudioTrackId: string | null = null;
 
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
@@ -590,6 +597,8 @@ export class Client<PeerMetadata, TrackMetadata>
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
+    console.log({ localTracks, lastAudioTrack: this.lastAudioTrackId });
+
     // todo this could be track from device manager or different track
     //  if user invoked replaceTrack with custom stream
     const broadcastedVideoTrack = Object.values(localTracks).find(
@@ -597,7 +606,7 @@ export class Client<PeerMetadata, TrackMetadata>
     );
 
     const broadcastedAudioTrack = Object.values(localTracks).find(
-      (track) => track.track?.id === this.deviceManager?.audio.media?.track?.id,
+      (track) => track.track?.id === this.lastAudioTrackId,
     );
 
     // todo add audio media
@@ -669,35 +678,44 @@ export class Client<PeerMetadata, TrackMetadata>
         start: (deviceId?: string) => {
           this?.deviceManager?.start({ audioDeviceId: deviceId ?? true });
         },
-        addTrack: (trackMetadata?: TrackMetadata) => {
+        addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
+          console.log("Add track in ReactClientWrapper in devices.microphone.addTrack");
           const media = this.deviceManager?.audio.media;
 
+          console.log({ trackMetadata, maxBandwidth, media });
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
           const { stream, track } = media;
 
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.deviceManager?.audio.media?.track?.id,
+            (track) => track.track?.id === this.lastAudioTrackId,
           );
 
+          console.log({ prevTrack });
           if (prevTrack) throw Error("Track already added");
+
+          this.lastAudioTrackId = track.id
 
           return this.client.addTrack(track, stream, trackMetadata);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.deviceManager?.audio.media?.track?.id,
+            (track) => track.track?.id === this.lastAudioTrackId,
           );
 
           if (!prevTrack) throw Error("There is no audio track");
+
+          this.lastAudioTrackId = null
 
           return this.client.removeTrack(prevTrack.trackId);
         },
         replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.deviceManager?.audio.media?.track?.id,
+            (track) => track.track?.id === this.lastAudioTrackId,
           );
 
           if (!prevTrack) throw Error("There is no audio track");
+
+          this.lastAudioTrackId = newTrack.id
 
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },

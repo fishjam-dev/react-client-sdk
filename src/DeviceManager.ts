@@ -25,7 +25,7 @@ import {
 
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
-import { ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
+import { ScreenShareManagerConfig, ScreenShareMedia, TrackType } from "./ScreenShareManager";
 import { ClientApiState } from "./Client";
 
 const removeExact = (
@@ -187,17 +187,25 @@ const LOCAL_STORAGE_CONFIG: StorageConfig = {
 };
 
 export type DeviceManagerEvents = {
-  managerStarted: (arg: any) => void;
-  managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }) => void;
-  deviceReady: (event: { type: TrackType; stream: MediaStream }) => void;
-  devicesReady: (arg: {
-    video: DeviceState & { restarted: boolean };
-    audio: DeviceState & { restarted: boolean };
-  }) => void;
-  deviceStopped: (event: { type: TrackType }) => void;
-  deviceEnabled: (arg: any) => void;
-  deviceDisabled: (arg: any) => void;
-  error: (arg: any) => void;
+  managerStarted: (arg: any, state: DeviceManagerState) => void;
+  managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }, state: DeviceManagerState) => void;
+  deviceReady: (event: { type: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
+  devicesReady: (
+    arg: {
+      video: DeviceState & { restarted: boolean };
+      audio: DeviceState & { restarted: boolean };
+    },
+    state: DeviceManagerState,
+  ) => void;
+  deviceStopped: (event: { type: TrackType }, state: DeviceManagerState) => void;
+  deviceEnabled: (arg: any, state: DeviceManagerState) => void;
+  deviceDisabled: (arg: any, state: DeviceManagerState) => void;
+  error: (arg: any, state: DeviceManagerState) => void;
+};
+
+export type DeviceManagerState = {
+  video: DeviceState;
+  audio: DeviceState;
 };
 
 export class DeviceManager extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>) {
@@ -272,6 +280,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
   public async init(config?: InitMediaConfig) {
     // todo implement start on mount
+    // start camera and microphone does not work, if microphone is available
 
     if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
 
@@ -297,7 +306,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this.video.status = shouldAskForVideo && videoConstraints ? REQUESTING : this.video.status ?? NOT_REQUESTED;
     this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
 
-    this.emit("managerStarted", action1);
+    this.emit("managerStarted", action1, { audio: this.audio, video: this.video });
 
     let requestedDevices: MediaStream | null = null;
     const constraints = {
@@ -377,7 +386,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       this.saveLastAudioDevice(audio.media?.deviceInfo);
     }
 
-    this.emit("managerInitialized", { audio, video });
+    this.emit("managerInitialized", { audio, video }, { audio: this.audio, video: this.video });
   }
 
   private getLastVideoDevice(): MediaDeviceInfo | null {
@@ -494,10 +503,14 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
         });
       }
 
-      this.emit("devicesReady", {
-        video: { ...this.video, restarted: shouldRestartVideo },
-        audio: { ...this.audio, restarted: shouldRestartAudio },
-      });
+      this.emit(
+        "devicesReady",
+        {
+          video: { ...this.video, restarted: shouldRestartVideo },
+          audio: { ...this.audio, restarted: shouldRestartAudio },
+        },
+        { audio: this.audio, video: this.video },
+      );
     } else {
       const parsedError = result.error;
       const action = { type: "UseUserMedia-setError" as const, parsedError, constraints: exactConstraints };
@@ -508,7 +521,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       this.video.error = videoError;
       this.audio.error = audioError;
 
-      this.emit("error", action);
+      this.emit("error", action, { audio: this.audio, video: this.video });
     }
   }
 
@@ -518,7 +531,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this[type].media?.track?.stop();
     this[type].media = null;
 
-    this.emit("deviceStopped", { type });
+    this.emit("deviceStopped", { type }, { audio: this.audio, video: this.video });
   }
 
   public setEnable(type: AudioOrVideoType, value: boolean) {
@@ -530,9 +543,9 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this[type!].media!.enabled = value;
 
     if (value) {
-      this.emit("deviceEnabled", value);
+      this.emit("deviceEnabled", value, { audio: this.audio, video: this.video });
     } else {
-      this.emit("deviceDisabled", value);
+      this.emit("deviceDisabled", value, { audio: this.audio, video: this.video });
     }
   }
 
