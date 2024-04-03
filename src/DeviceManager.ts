@@ -286,6 +286,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   }
 
   public async init(config?: InitMediaConfig) {
+    console.log({ name: "deviceManager - init()", config });
     // todo implement start on mount
     // start camera and microphone does not work, if microphone is available
 
@@ -429,6 +430,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   }
 
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
+    console.log({ name: "deviceManager - start()", audioDeviceId, videoDeviceId });
+
     const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
     const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;
 
