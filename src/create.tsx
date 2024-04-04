@@ -11,15 +11,15 @@ import {
 } from "react";
 import type { Selector, State } from "./state.types";
 import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
-import { CreateConfig, ConnectConfig } from "@jellyfish-dev/ts-client-sdk";
+import { ConnectConfig, CreateConfig } from "@jellyfish-dev/ts-client-sdk";
 import {
+  DeviceManagerConfig,
   UseCameraAndMicrophoneResult,
   UseCameraResult,
   UseMicrophoneResult,
   UseScreenShareResult,
   UseSetupMediaConfig,
   UseSetupMediaResult,
-  DeviceManagerConfig,
 } from "./types";
 import { Client, ClientApi, ClientEvents } from "./Client";
 import { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
@@ -72,10 +72,15 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     const clientRef = useRef(memoClient);
+    const mutationRef = useRef(false);
 
     const subscribe = useCallback((cb: () => void) => {
       const client = clientRef.current;
-      const callback = () => cb();
+
+      const callback = () => {
+        mutationRef.current = true;
+        cb();
+      };
 
       client.on("socketOpen", callback);
       client.on("socketError", callback);
@@ -168,19 +173,26 @@ export const create = <PeerMetadata, TrackMetadata>(
       };
     }, []);
 
+    const lastSnapshotRef = useRef<State<PeerMetadata, TrackMetadata> | null>(null);
+
     const getSnapshot: () => State<PeerMetadata, TrackMetadata> = useCallback(() => {
-      return {
-        remote: clientRef.current.remote,
-        screenShareManager: clientRef.current.screenShareManager,
-        media: clientRef.current.media,
-        bandwidthEstimation: clientRef.current.bandwidthEstimation,
-        tracks: clientRef.current.tracks,
-        local: clientRef.current.local,
-        status: clientRef.current.status,
-        devices: clientRef.current.devices,
-        deviceManager: clientRef.current.deviceManager,
-        client: clientRef.current,
-      };
+      if (mutationRef.current || lastSnapshotRef.current === null) {
+        lastSnapshotRef.current = {
+          remote: clientRef.current.remote,
+          screenShareManager: clientRef.current.screenShareManager,
+          media: clientRef.current.media,
+          bandwidthEstimation: clientRef.current.bandwidthEstimation,
+          tracks: clientRef.current.tracks,
+          local: clientRef.current.local,
+          status: clientRef.current.status,
+          devices: clientRef.current.devices,
+          deviceManager: clientRef.current.deviceManager,
+          client: clientRef.current,
+        };
+        mutationRef.current = false;
+      }
+
+      return lastSnapshotRef.current;
     }, []);
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
