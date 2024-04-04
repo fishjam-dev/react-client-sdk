@@ -115,23 +115,30 @@ const handleOverconstrainedError = async (constraints: MediaStreamConstraints): 
 };
 
 const handleNotAllowedError = async (constraints: MediaStreamConstraints): Promise<GetMedia> => {
-  const videoResult = await getMedia({ video: false, audio: constraints.audio }, { video: PERMISSION_DENIED });
-  if (videoResult.type === "OK") {
-    return videoResult;
+  console.log({ name: "handleNotAllowedError", constraints });
+  const withoutVideo = await getMedia({ video: false, audio: constraints.audio }, { video: PERMISSION_DENIED });
+  if (withoutVideo.type === "OK") {
+    console.log({ name: "handleNotAllowedError-withoutVideo OK", constraints });
+    return withoutVideo;
   }
 
-  const audioResult = await getMedia({ video: constraints.video, audio: false }, { audio: PERMISSION_DENIED });
-  if (audioResult.type === "OK") {
-    return audioResult;
+  const withoutAudio = await getMedia({ video: constraints.video, audio: false }, { audio: PERMISSION_DENIED });
+  if (withoutAudio.type === "OK") {
+    console.log({ name: "handleNotAllowedError-withoutAudio OK", constraints });
+    return withoutAudio;
   }
 
   return await getMedia({ video: false, audio: false }, { video: PERMISSION_DENIED, audio: PERMISSION_DENIED });
 };
 
 const getError = (result: GetMedia, type: AudioOrVideoType): DeviceError | null => {
+  console.log({ name: "getError init", result, type });
   if (result.type === "OK") {
+    console.log({ name: "getError ok", result, type });
     return result.previousErrors[type] || null;
   }
+
+  console.log({ name: "getError default error", result, type });
   return PERMISSION_DENIED;
 };
 
@@ -151,10 +158,12 @@ const prepareDeviceState = (
   track: MediaStreamTrack | null,
   devices: MediaDeviceInfo[],
   error: DeviceError | null,
-  shouldAskForVideo: boolean,
+  shouldAsk: boolean,
 ): DeviceState => {
+  console.log({ stream, track, devices, error, shouldAsk });
+
   const deviceInfo = getDeviceInfo(track?.getSettings()?.deviceId || null, devices);
-  const [devicesStatus, newError] = prepareStatus(shouldAskForVideo, track, error);
+  const [devicesStatus, newError] = prepareStatus(shouldAsk, track, error);
 
   return {
     devices,
@@ -344,13 +353,18 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     };
 
     let result: GetMedia = await getMedia(constraints, {});
+    console.log({ name: "GetMedia", result });
 
     if (result.type === "Error" && result.error?.name === "OverconstrainedError") {
-      result = await handleOverconstrainedError(constraints);
+      const result1 = await handleOverconstrainedError(constraints);
+      console.log({ name: "GetMedia1", result1 });
+      result = result1;
     }
 
     if (result.type === "Error" && result.error?.name === "NotAllowedError") {
-      result = await handleNotAllowedError(result.constraints);
+      const result2 = await handleNotAllowedError(result.constraints);
+      console.log({ name: "GetMedia2", result2 });
+      result = result2;
     }
 
     const mediaDeviceInfos: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
@@ -378,6 +392,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
           };
 
           const correctedResult = await getMedia(exactConstraints, result.previousErrors);
+          console.log({ name: "GetMedia3 correctedResult", correctedResult });
 
           if (correctedResult.type === "OK") {
             requestedDevices = correctedResult.stream;
@@ -403,6 +418,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       getError(result, "audio"),
       shouldAskForAudio,
     );
+
+    console.log({ video, audio });
 
     this.video = video;
     this.audio = audio;
