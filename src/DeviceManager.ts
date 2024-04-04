@@ -196,6 +196,7 @@ export type DeviceManagerEvents = {
     state: DeviceManagerState,
   ) => void;
   managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }, state: DeviceManagerState) => void;
+  // nigdy nie jest publikowany
   deviceReady: (event: { trackType: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
   devicesReady: (
     event: {

@@ -232,67 +232,98 @@ export const create = <PeerMetadata, TrackMetadata>(
       // eslint-disable-next-line
     }, []);
 
-    // useEffect(() => {
-    //   const broadcastOnCameraStart = async (
-    //     event: { mediaDeviceType: MediaDeviceType },
-    //     client: ClientApiState<PeerMetadata, TrackMetadata>,
-    //   ) => {
-    //     const state = client.getSnapshot();
-    //     if (
-    //       state.status === "joined" &&
-    //       event.mediaDeviceType === "userMedia" &&
-    //       config.camera.broadcastOnDeviceStart
-    //     ) {
-    //       await state.devices.camera.addTrack(
-    //         config.camera.defaultTrackMetadata,
-    //         config.camera.defaultSimulcastConfig,
-    //         config.camera.defaultMaxBandwidth,
-    //       );
-    //     }
-    //   };
-    //
-    //   const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (event, client) => {
-    //     await broadcastOnCameraStart(event, client);
-    //   };
-    //
-    //   const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
-    //     await broadcastOnCameraStart(event, client);
-    //   };
-    //
-    //   state.client.on("managerInitialized", devicesReady);
-    //   state.client.on("devicesReady", devicesReady);
-    //   state.client.on("deviceReady", deviceReady);
-    //
-    //   return () => {
-    //     state.client.removeListener("managerInitialized", devicesReady);
-    //     state.client.removeListener("devicesReady", devicesReady);
-    //     state.client.removeListener("deviceReady", deviceReady);
-    //   };
-    // }, [config.camera.broadcastOnDeviceStart]);
+    useEffect(() => {
+      const broadcastOnCameraStart = async (
+        event: { mediaDeviceType: MediaDeviceType },
+        client: ClientApiState<PeerMetadata, TrackMetadata>,
+      ) => {
+        const state = client.getSnapshot();
+        if (
+          state.status === "joined" &&
+          event.mediaDeviceType === "userMedia" &&
+          config.camera.broadcastOnDeviceStart
+        ) {
+          await state.devices.camera.addTrack(
+            config.camera.defaultTrackMetadata,
+            config.camera.defaultSimulcastConfig,
+            config.camera.defaultMaxBandwidth,
+          );
+        }
+      };
 
-    // useEffect(() => {
-    //   const removeOnCameraStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
-    //     event,
-    //     client,
-    //   ) => {
-    //     const state = client.getSnapshot();
-    //
-    //     if (
-    //       state.status === "joined" &&
-    //       event.mediaDeviceType === "userMedia" &&
-    //       event.trackType === "video" &&
-    //       state.devices.camera.broadcast?.stream
-    //     ) {
-    //       await state.devices.camera.removeTrack();
-    //     }
-    //   };
-    //
-    //   state.client.on("deviceStopped", removeOnCameraStopped);
-    //
-    //   return () => {
-    //     state.client.removeListener("deviceStopped", removeOnCameraStopped);
-    //   };
-    // }, []);
+      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (event, client) => {
+        if (event.video?.media?.stream) {
+          await broadcastOnCameraStart(event, client);
+        }
+      };
+
+      const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
+        console.log({name: "ReactClient devicesReady broadcastOnMicrophoneStart", event})
+        if (event.video.restarted && event.video?.media?.stream) {
+          await broadcastOnCameraStart(event, client);
+        }
+      };
+
+      const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
+        if(event.trackType === "video") {
+          await broadcastOnCameraStart(event, client);
+        }
+      };
+
+      state.client.on("managerInitialized", managerInitialized);
+      state.client.on("devicesReady", devicesReady);
+      state.client.on("deviceReady", deviceReady);
+
+      return () => {
+        state.client.removeListener("managerInitialized", managerInitialized);
+        state.client.removeListener("devicesReady", devicesReady);
+        state.client.removeListener("deviceReady", deviceReady);
+      };
+    }, [config.camera.broadcastOnDeviceStart]);
+
+    useEffect(() => {
+      const removeOnCameraStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
+        event,
+        client,
+      ) => {
+        const state = client.getSnapshot();
+
+        if (
+          state.status === "joined" &&
+          event.mediaDeviceType === "userMedia" &&
+          event.trackType === "video" &&
+          state.devices.camera.broadcast?.stream
+        ) {
+          await state.devices.camera.removeTrack();
+        }
+      };
+
+      state.client.on("deviceStopped", removeOnCameraStopped);
+
+      return () => {
+        state.client.removeListener("deviceStopped", removeOnCameraStopped);
+      };
+    }, []);
+
+    useEffect(() => {
+      const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+        const state = client.getSnapshot();
+
+        if (state.devices.camera.stream && config.camera.broadcastOnConnect) {
+          await state.devices.camera.addTrack(
+            config.camera.defaultTrackMetadata,
+            config.camera.defaultSimulcastConfig,
+            config.camera.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("joined", broadcastCameraOnConnect);
+
+      return () => {
+        state.client.removeListener("joined", broadcastCameraOnConnect);
+      };
+    }, [config.camera.broadcastOnConnect]);
 
     useEffect(() => {
       const broadcastOnMicrophoneStart = async (
@@ -313,8 +344,15 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (event, client) => {
+      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (event, client) => {
         if (event.audio?.media?.stream) {
+          await broadcastOnMicrophoneStart(event, client);
+        }
+      };
+
+      const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
+        console.log({name: "ReactClient devicesReady broadcastOnMicrophoneStart", event})
+        if (event.audio.restarted && event.audio?.media?.stream) {
           await broadcastOnMicrophoneStart(event, client);
         }
       };
@@ -325,12 +363,12 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      state.client.on("managerInitialized", devicesReady);
+      state.client.on("managerInitialized", managerInitialized);
       state.client.on("deviceReady", deviceReady);
       state.client.on("devicesReady", devicesReady);
 
       return () => {
-        state.client.removeListener("managerInitialized", devicesReady);
+        state.client.removeListener("managerInitialized", managerInitialized);
         state.client.removeListener("deviceReady", deviceReady);
         state.client.removeListener("devicesReady", devicesReady);
       };
@@ -359,6 +397,25 @@ export const create = <PeerMetadata, TrackMetadata>(
         state.client.removeListener("deviceStopped", removeOnMicrophoneStopped);
       };
     }, []);
+
+    useEffect(() => {
+      const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+        const state = client.getSnapshot();
+
+        if (state.devices.microphone.stream && config.microphone.broadcastOnConnect) {
+          await state.devices.microphone.addTrack(
+            config.microphone.defaultTrackMetadata,
+            config.microphone.defaultMaxBandwidth,
+          );
+        }
+      };
+
+      state.client.on("joined", broadcastMicrophoneOnConnect);
+
+      return () => {
+        state.client.removeListener("joined", broadcastMicrophoneOnConnect);
+      };
+    }, [config.microphone.broadcastOnConnect])
 
     useEffect(() => {
       const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (
@@ -408,45 +465,6 @@ export const create = <PeerMetadata, TrackMetadata>(
         state.client.removeListener("deviceStopped", removeOnScreenShareStopped);
       };
     }, []);
-
-    // useEffect(() => {
-    //   const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-    //     const state = client.getSnapshot();
-    //
-    //     if (state.devices.camera.stream && config.camera.broadcastOnConnect) {
-    //       await state.devices.camera.addTrack(
-    //         config.camera.defaultTrackMetadata,
-    //         config.camera.defaultSimulcastConfig,
-    //         config.camera.defaultMaxBandwidth,
-    //       );
-    //     }
-    //   };
-    //
-    //   state.client.on("joined", broadcastCameraOnConnect);
-    //
-    //   return () => {
-    //     state.client.removeListener("joined", broadcastCameraOnConnect);
-    //   };
-    // }, [config.camera.broadcastOnConnect]);
-
-    useEffect(() => {
-      const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-        const state = client.getSnapshot();
-
-        if (state.devices.microphone.stream && config.microphone.broadcastOnConnect) {
-          await state.devices.microphone.addTrack(
-            config.microphone.defaultTrackMetadata,
-            config.microphone.defaultMaxBandwidth,
-          );
-        }
-      };
-
-      state.client.on("joined", broadcastMicrophoneOnConnect);
-
-      return () => {
-        state.client.removeListener("joined", broadcastMicrophoneOnConnect);
-      };
-    }, [config.microphone.broadcastOnConnect]);
 
     useEffect(() => {
       const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
