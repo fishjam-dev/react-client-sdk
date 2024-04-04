@@ -42,6 +42,7 @@ const removeExact = (
 const REQUESTING = "Requesting";
 const NOT_REQUESTED = "Not requested";
 const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };
+const NOT_FOUND: DeviceError = { name: "NotAllowedError" };
 const OVERCONSTRAINED_ERROR: DeviceError = { name: "OverconstrainedError" };
 
 const isVideo = (device: MediaDeviceInfo) => device.kind === "videoinput";
@@ -100,18 +101,55 @@ const getMedia = async (constraints: MediaStreamConstraints, previousErrors: Err
   }
 };
 
+const handleNotFoundError = async (constraints: MediaStreamConstraints): Promise<GetMedia> => {
+  const withoutVideo = await getMedia({ video: false, audio: constraints.audio }, {});
+
+  // if (withoutVideo.type === "OK" || withoutVideo.error?.name === "NotAllowedError") {
+  if (withoutVideo.type === "OK") {
+    return withoutVideo;
+  }
+
+  const withoutAudio = await getMedia({ video: constraints.video, audio: false }, {});
+
+  // if (withoutAudio.type === "OK" || withoutAudio.error?.name === "NotAllowedError") {
+  if (withoutAudio.type === "OK") {
+    return withoutAudio;
+  }
+
+  return await getMedia({ video: false, audio: false }, {});
+};
+
 const handleOverconstrainedError = async (constraints: MediaStreamConstraints): Promise<GetMedia> => {
-  const videoResult = await getMedia({ video: removeExact(constraints.video), audio: constraints.audio }, {});
-  if (videoResult.type === "OK" || videoResult.error?.name === "NotAllowedError") {
-    return videoResult;
+  const notExactVideo = await getMedia(
+    {
+      video: removeExact(constraints.video),
+      audio: constraints.audio,
+    },
+    { video: NOT_FOUND },
+  );
+  if (notExactVideo.type === "OK" || notExactVideo.error?.name === "NotAllowedError") {
+    return notExactVideo;
   }
 
-  const audioResult = await getMedia({ video: constraints.video, audio: removeExact(constraints.audio) }, {});
-  if (audioResult.type === "OK" || audioResult.error?.name === "NotAllowedError") {
-    return audioResult;
+  const notExactAudio = await getMedia(
+    {
+      video: constraints.video,
+      audio: removeExact(constraints.audio),
+    },
+    { audio: NOT_FOUND },
+  );
+
+  if (notExactAudio.type === "OK" || notExactAudio.error?.name === "NotAllowedError") {
+    return notExactAudio;
   }
 
-  return await getMedia({ video: removeExact(constraints.video), audio: removeExact(constraints.audio) }, {});
+  return await getMedia(
+    { video: removeExact(constraints.video), audio: removeExact(constraints.audio) },
+    {
+      video: NOT_FOUND,
+      audio: NOT_FOUND,
+    },
+  );
 };
 
 const handleNotAllowedError = async (constraints: MediaStreamConstraints): Promise<GetMedia> => {
@@ -354,6 +392,12 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
     let result: GetMedia = await getMedia(constraints, {});
     console.log({ name: "GetMedia", result });
+
+    if (result.type === "Error" && result.error?.name === "NotFoundError") {
+      const result1 = await handleNotFoundError(constraints);
+      console.log({ name: "GetMedia1", result1 });
+      result = result1;
+    }
 
     if (result.type === "Error" && result.error?.name === "OverconstrainedError") {
       const result1 = await handleOverconstrainedError(constraints);

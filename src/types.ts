@@ -16,7 +16,7 @@ export type Media = {
 
 export type DeviceState = {
   media: Media | null;
-  mediaStatus: MediaStatus,
+  mediaStatus: MediaStatus;
   devices: MediaDeviceInfo[] | null;
   devicesStatus: DevicesStatus;
   error: DeviceError | null;
@@ -59,7 +59,7 @@ export type UseUserMedia = {
   init: () => void;
 };
 
-export type DeviceError = { name: "OverconstrainedError" } | { name: "NotAllowedError" };
+export type DeviceError = { name: "OverconstrainedError" } | { name: "NotAllowedError" } | { name: "NotFoundError" };
 
 export type Errors = {
   audio?: DeviceError | null;
@@ -141,7 +141,7 @@ export type UseCameraResult<TrackMetadata> = {
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
-  mediaStatus: MediaStatus | null,
+  mediaStatus: MediaStatus | null;
   deviceInfo: MediaDeviceInfo | null;
   error: DeviceError | null;
   devices: MediaDeviceInfo[] | null;
@@ -159,7 +159,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
-  mediaStatus: MediaStatus | null,
+  mediaStatus: MediaStatus | null;
   deviceInfo: MediaDeviceInfo | null;
   error: DeviceError | null;
   devices: MediaDeviceInfo[] | null;
@@ -176,7 +176,7 @@ export type UseScreenShareResult<TrackMetadata> = {
   status: DevicesStatus | null;
   stream: MediaStream | null;
   // todo is mediaStatus necessary?,
-  mediaStatus: MediaStatus | null,
+  mediaStatus: MediaStatus | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
   error: DeviceError | null;
@@ -192,17 +192,23 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = {
 
 const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };
 const OVERCONSTRAINED_ERROR: DeviceError = { name: "OverconstrainedError" };
+const NOT_FOUND_ERROR: DeviceError = { name: "NotFoundError" };
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
 // OverconstrainedError has higher priority than NotAllowedError
 export const parseError = (error: unknown): DeviceError | null => {
+  console.log({ name: "parseError" });
+
   if (error && typeof error === "object" && "name" in error) {
     if (error.name === "NotAllowedError") {
       return PERMISSION_DENIED;
     } else if (error.name === "OverconstrainedError") {
       return OVERCONSTRAINED_ERROR;
+    } else if (error.name === "NotFoundError") {
+      return NOT_FOUND_ERROR;
     }
   }
-  // todo handle unknown error
+
+  console.warn({ name: "Unhandled getUserMedia error", error });
   return null;
 };
