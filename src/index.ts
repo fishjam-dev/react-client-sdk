@@ -2,7 +2,7 @@ export { create } from "./create";
 export type { CreateJellyfishClient, UseConnect } from "./create";
 
 export { Client } from "./Client";
-export type { ClientEvents, ClientApiState } from "./Client";
+export type { ClientEvents } from "./Client";
 
 export type {
   PeerState,

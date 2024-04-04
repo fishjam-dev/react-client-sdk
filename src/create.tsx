@@ -21,7 +21,7 @@ import {
   UseSetupMediaResult,
   DeviceManagerConfig,
 } from "./types";
-import { Client, ClientApiState, ClientEvents, ReactClientCreteConfig } from "./Client";
+import { Client, ClientApi, ClientEvents } from "./Client";
 import { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
 
 export type JellyfishContextProviderProps = {
@@ -169,7 +169,18 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     const getSnapshot: () => State<PeerMetadata, TrackMetadata> = useCallback(() => {
-      return clientRef.current.getSnapshot();
+      return {
+        remote: clientRef.current.remote,
+        screenShareManager: clientRef.current.screenShareManager,
+        media: clientRef.current.media,
+        bandwidthEstimation: clientRef.current.bandwidthEstimation,
+        tracks: clientRef.current.tracks,
+        local: clientRef.current.local,
+        status: clientRef.current.status,
+        devices: clientRef.current.devices,
+        deviceManager: clientRef.current.deviceManager,
+        client: clientRef.current,
+      };
     }, []);
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
@@ -252,15 +263,14 @@ export const create = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const broadcastOnCameraStart = async (
         event: { mediaDeviceType: MediaDeviceType },
-        client: ClientApiState<PeerMetadata, TrackMetadata>,
+        client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        const state = client.getSnapshot();
         if (
-          state.status === "joined" &&
+          client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
           config.camera.broadcastOnDeviceStart
         ) {
-          await state.devices.camera.addTrack(
+          await client.devices.camera.addTrack(
             config.camera.defaultTrackMetadata,
             config.camera.defaultSimulcastConfig,
             config.camera.defaultMaxBandwidth,
@@ -305,15 +315,13 @@ export const create = <PeerMetadata, TrackMetadata>(
         event,
         client,
       ) => {
-        const state = client.getSnapshot();
-
         if (
-          state.status === "joined" &&
+          client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
           event.trackType === "video" &&
-          state.devices.camera.broadcast?.stream
+          client.devices.camera.broadcast?.stream
         ) {
-          await state.devices.camera.removeTrack();
+          await client.devices.camera.removeTrack();
         }
       };
 
@@ -326,10 +334,8 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-        const state = client.getSnapshot();
-
-        if (state.devices.camera.stream && config.camera.broadcastOnConnect) {
-          await state.devices.camera.addTrack(
+        if (client.devices.camera.stream && config.camera.broadcastOnConnect) {
+          await client.devices.camera.addTrack(
             config.camera.defaultTrackMetadata,
             config.camera.defaultSimulcastConfig,
             config.camera.defaultMaxBandwidth,
@@ -347,16 +353,14 @@ export const create = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const broadcastOnMicrophoneStart = async (
         event: { mediaDeviceType: MediaDeviceType },
-        client: ClientApiState<PeerMetadata, TrackMetadata>,
+        client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        const state = client.getSnapshot();
-
         if (
-          state.status === "joined" &&
+          client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
           config.microphone.broadcastOnDeviceStart
         ) {
-          await state.devices.microphone.addTrack(
+          await client.devices.microphone.addTrack(
             config.microphone.defaultTrackMetadata,
             config.microphone.defaultMaxBandwidth,
           );
@@ -400,15 +404,13 @@ export const create = <PeerMetadata, TrackMetadata>(
         event,
         client,
       ) => {
-        const state = client.getSnapshot();
-
         if (
-          state.status === "joined" &&
+          client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
           event.trackType === "audio" &&
-          state.devices.microphone.broadcast?.stream
+          client.devices.microphone.broadcast?.stream
         ) {
-          await state.devices.microphone.removeTrack();
+          await client.devices.microphone.removeTrack();
         }
       };
 
@@ -421,10 +423,8 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-        const state = client.getSnapshot();
-
-        if (state.devices.microphone.stream && config.microphone.broadcastOnConnect) {
-          await state.devices.microphone.addTrack(
+        if (client.devices.microphone.stream && config.microphone.broadcastOnConnect) {
+          await client.devices.microphone.addTrack(
             config.microphone.defaultTrackMetadata,
             config.microphone.defaultMaxBandwidth,
           );
@@ -443,13 +443,12 @@ export const create = <PeerMetadata, TrackMetadata>(
         event: { mediaDeviceType: MediaDeviceType },
         client,
       ) => {
-        const state = client.getSnapshot();
         if (
-          state.status === "joined" &&
+          client.status === "joined" &&
           event.mediaDeviceType === "displayMedia" &&
           config.screenShare.broadcastOnDeviceStart
         ) {
-          await state.devices.screenShare.addTrack(
+          await client.devices.screenShare.addTrack(
             config.screenShare.defaultTrackMetadata,
             config.screenShare.defaultMaxBandwidth,
           );
@@ -468,15 +467,14 @@ export const create = <PeerMetadata, TrackMetadata>(
         event,
         client,
       ) => {
-        const state = client.getSnapshot();
         const screenShareStatus = state.devices.screenShare.broadcast?.stream;
         if (
-          state.status === "joined" &&
+          client.status === "joined" &&
           event.mediaDeviceType === "displayMedia" &&
           event.trackType === "video" &&
           screenShareStatus
         ) {
-          await state.devices.screenShare.removeTrack();
+          await client.devices.screenShare.removeTrack();
         }
       };
 
@@ -489,10 +487,8 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-        const state = client.getSnapshot();
-
-        if (state.devices.screenShare.stream && config.screenShare.broadcastOnConnect) {
-          await state.devices.screenShare.addTrack(
+        if (client.devices.screenShare.stream && config.screenShare.broadcastOnConnect) {
+          await client.devices.screenShare.addTrack(
             config.screenShare.defaultTrackMetadata,
             config.screenShare.defaultMaxBandwidth,
           );
