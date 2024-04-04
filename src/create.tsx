@@ -278,7 +278,6 @@ export const create = <PeerMetadata, TrackMetadata>(
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
-        console.log({ name: "ReactClient devicesReady broadcastOnMicrophoneStart", event });
         if (event.video.restarted && event.video?.media?.stream) {
           await broadcastOnCameraStart(event, client);
         }
@@ -374,7 +373,6 @@ export const create = <PeerMetadata, TrackMetadata>(
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
-        console.log({ name: "ReactClient devicesReady broadcastOnMicrophoneStart", event });
         if (event.audio.restarted && event.audio?.media?.stream) {
           await broadcastOnMicrophoneStart(event, client);
         }
