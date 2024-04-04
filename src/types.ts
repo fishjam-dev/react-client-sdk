@@ -4,7 +4,8 @@ import { Track } from "./state.types";
 
 export type AudioOrVideoType = "audio" | "video";
 
-export type DeviceReturnType = "OK" | "Error" | "Not requested" | "Requesting";
+export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
+export type MediaStatus = "OK" | "Error" | "Not requested" | "Requesting";
 
 export type Media = {
   stream: MediaStream | null;
@@ -14,10 +15,11 @@ export type Media = {
 };
 
 export type DeviceState = {
-  status: DeviceReturnType;
   media: Media | null;
-  error: DeviceError | null;
+  mediaStatus: MediaStatus,
   devices: MediaDeviceInfo[] | null;
+  devicesStatus: DevicesStatus;
+  error: DeviceError | null;
 };
 
 export type UseUserMediaState = {
@@ -135,10 +137,11 @@ export type UseCameraResult<TrackMetadata> = {
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
-  status: DeviceReturnType | null; // todo how to remove null
+  status: DevicesStatus | null; // todo how to remove null
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
+  mediaStatus: MediaStatus | null,
   deviceInfo: MediaDeviceInfo | null;
   error: DeviceError | null;
   devices: MediaDeviceInfo[] | null;
@@ -152,10 +155,11 @@ export type UseMicrophoneResult<TrackMetadata> = {
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
-  status: DeviceReturnType | null;
+  status: DevicesStatus | null;
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
+  mediaStatus: MediaStatus | null,
   deviceInfo: MediaDeviceInfo | null;
   error: DeviceError | null;
   devices: MediaDeviceInfo[] | null;
@@ -169,8 +173,10 @@ export type UseScreenShareResult<TrackMetadata> = {
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
-  status: DeviceReturnType | null;
+  status: DevicesStatus | null;
   stream: MediaStream | null;
+  // todo is mediaStatus necessary?,
+  mediaStatus: MediaStatus | null,
   track: MediaStreamTrack | null;
   enabled: boolean;
   error: DeviceError | null;

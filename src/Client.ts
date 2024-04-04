@@ -165,6 +165,10 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & { mediaDeviceType: MediaDeviceType },
     client: ClientApiState<PeerMetadata, TrackMetadata>,
   ) => void;
+  devicesStarted: (
+    event: Parameters<DeviceManagerEvents["devicesStarted"]>[0] & { mediaDeviceType: MediaDeviceType },
+    client: ClientApiState<PeerMetadata, TrackMetadata>,
+  ) => void;
   devicesReady: (
     event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & { mediaDeviceType: MediaDeviceType },
     client: ClientApiState<PeerMetadata, TrackMetadata>,
@@ -377,6 +381,12 @@ export class Client<PeerMetadata, TrackMetadata>
       this.state = this.stateToSnapshot();
 
       this.emit("deviceReady", { ...event, mediaDeviceType: "userMedia" }, this);
+    });
+
+    this.deviceManager.on("devicesStarted", (event) => {
+      this.state = this.stateToSnapshot();
+
+      this.emit("devicesStarted", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
     console.log("Setting up devicesReady event");
@@ -686,11 +696,12 @@ export class Client<PeerMetadata, TrackMetadata>
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
         broadcast: broadcastedVideoTrack ?? null,
-        status: deviceManagerSnapshot?.video?.status || null,
+        status: deviceManagerSnapshot?.video?.devicesStatus || null,
         stream: deviceManagerSnapshot?.video.media?.stream || null,
         track: deviceManagerSnapshot?.video.media?.track || null,
         enabled: deviceManagerSnapshot?.video.media?.enabled || false,
         deviceInfo: deviceManagerSnapshot?.video.media?.deviceInfo || null,
+        mediaStatus: deviceManagerSnapshot?.video.mediaStatus || null,
         error: deviceManagerSnapshot?.video?.error || null,
         devices: deviceManagerSnapshot?.video?.devices || null,
       },
@@ -740,11 +751,12 @@ export class Client<PeerMetadata, TrackMetadata>
           return this.client.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
         broadcast: broadcastedAudioTrack ?? null,
-        status: deviceManagerSnapshot?.audio?.status || null,
+        status: deviceManagerSnapshot?.audio?.devicesStatus || null,
         stream: deviceManagerSnapshot?.audio.media?.stream || null,
         track: deviceManagerSnapshot?.audio.media?.track || null,
         enabled: deviceManagerSnapshot?.audio.media?.enabled || false,
         deviceInfo: deviceManagerSnapshot?.audio.media?.deviceInfo || null,
+        mediaStatus: deviceManagerSnapshot?.video.mediaStatus || null,
         error: deviceManagerSnapshot?.audio?.error || null,
         devices: deviceManagerSnapshot?.audio?.devices || null,
       },
@@ -798,6 +810,8 @@ export class Client<PeerMetadata, TrackMetadata>
         broadcast: screenShareVideoTrack ?? null,
         // todo separate audio and video
         status: screenShareManager?.status || null,
+        // deviceStatus: screenShareManager?.devicesStatus || null,
+        mediaStatus: null,
         stream: screenShareManager?.videoMedia?.stream || null,
         track: screenShareManager?.videoMedia?.track || null,
         enabled: screenShareManager?.videoMedia?.enabled || false,

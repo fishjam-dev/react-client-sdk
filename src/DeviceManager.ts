@@ -3,7 +3,7 @@ import {
   CurrentDevices,
   DeviceError,
   StorageConfig,
-  DeviceReturnType,
+  DevicesStatus,
   DeviceState,
   Errors,
   GetMedia,
@@ -139,7 +139,7 @@ const prepareStatus = (
   requested: boolean,
   track: MediaStreamTrack | null,
   deviceError: DeviceError | null,
-): [DeviceReturnType, DeviceError | null] => {
+): [DevicesStatus, DeviceError | null] => {
   if (!requested) return ["Not requested", null];
   if (track) return ["OK", null];
   if (deviceError) return ["Error", deviceError];
@@ -152,19 +152,20 @@ const prepareDeviceState = (
   devices: MediaDeviceInfo[],
   error: DeviceError | null,
   shouldAskForVideo: boolean,
-) => {
+): DeviceState => {
   const deviceInfo = getDeviceInfo(track?.getSettings()?.deviceId || null, devices);
-  const [status, newError] = prepareStatus(shouldAskForVideo, track, error);
+  const [devicesStatus, newError] = prepareStatus(shouldAskForVideo, track, error);
 
   return {
     devices,
-    status,
+    devicesStatus,
     media: {
       stream: track ? stream : null,
       track: track,
       deviceInfo,
       enabled: !!track,
     },
+    mediaStatus: devicesStatus,
     error: error ?? newError,
   };
 };
@@ -196,6 +197,13 @@ export type DeviceManagerEvents = {
     state: DeviceManagerState,
   ) => void;
   managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }, state: DeviceManagerState) => void;
+  devicesStarted: (
+    event: {
+      audio?: DeviceState & { restarting: boolean; constraints?: string | boolean };
+      video?: DeviceState & { restarting: boolean; constraints?: string | boolean };
+    },
+    state: DeviceManagerState,
+  ) => void;
   // nigdy nie jest publikowany
   deviceReady: (event: { trackType: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
   devicesReady: (
@@ -228,16 +236,18 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   private storageConfig: StorageConfig | undefined;
 
   public video: DeviceState = {
-    status: "Not requested",
     media: null,
+    mediaStatus: "Not requested",
     devices: null,
+    devicesStatus: "Not requested",
     error: null,
   };
 
   public audio: DeviceState = {
-    status: "Not requested",
     media: null,
+    mediaStatus: "Not requested",
     devices: null,
+    devicesStatus: "Not requested",
     error: null,
   };
 
@@ -312,8 +322,10 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     const videoConstraints = action1.video.constraints;
     const audioConstraints = action1.audio.constraints;
 
-    this.video.status = shouldAskForVideo && videoConstraints ? REQUESTING : this.video.status ?? NOT_REQUESTED;
-    this.audio.status = shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.status ?? NOT_REQUESTED;
+    this.video.devicesStatus =
+      shouldAskForVideo && videoConstraints ? REQUESTING : this.video.devicesStatus ?? NOT_REQUESTED;
+    this.audio.devicesStatus =
+      shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.devicesStatus ?? NOT_REQUESTED;
 
     // todo create Method for calculatin audio video audiovideo
     this.emit(
@@ -430,6 +442,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     return this.storageConfig?.getLastAudioDevice?.() ?? this.defaultStorageConfig?.getLastAudioDevice?.() ?? null;
   }
 
+  // todo in audioDeviceId / videoDeviceId true means use last device
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
     console.log({ name: "deviceManager - start()", audioDeviceId, videoDeviceId });
 
@@ -448,6 +461,23 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     };
 
     if (!exactConstraints.video && !exactConstraints.audio) return;
+
+    if (exactConstraints.audio) {
+      this.audio.mediaStatus = "Requesting";
+    }
+
+    if (exactConstraints.video) {
+      this.video.mediaStatus = "Requesting";
+    }
+
+    this.emit(
+      "devicesStarted",
+      {
+        audio: { ...this.audio, restarting: shouldRestartAudio, constraints: audioDeviceId },
+        video: { ...this.video, restarting: shouldRestartVideo, constraints: videoDeviceId },
+      },
+      { audio: this.audio, video: this.video },
+    );
 
     const result = await getMedia(exactConstraints, {});
 
@@ -520,6 +550,14 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
         this.audio?.media?.track.addEventListener("ended", (event) => {
           this.stop("audio");
         });
+      }
+
+      if (exactConstraints.audio) {
+        this.audio.mediaStatus = "OK";
+      }
+
+      if (exactConstraints.video) {
+        this.video.mediaStatus = "OK";
       }
 
       this.emit(

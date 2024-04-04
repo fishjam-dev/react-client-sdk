@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
-import { DeviceError, DeviceReturnType, Media, parseError } from "./types";
+import { DeviceError, DevicesStatus, Media, parseError } from "./types";
 
 export type TrackType = "audio" | "video" | "audiovideo";
 export type MediaDeviceType = "displayMedia" | "userMedia";
@@ -32,7 +32,7 @@ export type ScreenShareMedia = {
 };
 
 export type ScreenShareDeviceState = {
-  status: DeviceReturnType;
+  status: DevicesStatus;
   audioMedia: ScreenShareMedia | null;
   videoMedia: ScreenShareMedia | null;
   error: DeviceError | null;

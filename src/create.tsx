@@ -77,6 +77,13 @@ export const create = <PeerMetadata, TrackMetadata>(
       const client = clientRef.current;
       const callback = () => cb();
 
+      // todo remove
+      const customCallback = () => {
+        console.log("Custom callbacks!");
+        callback();
+      };
+
+
       client.on("socketOpen", callback);
       client.on("socketError", callback);
       client.on("socketClose", callback);
@@ -103,13 +110,11 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("managerStarted", callback);
       client.on("deviceStopped", callback);
       client.on("deviceReady", callback);
+      client.on("devicesStarted", customCallback);
       client.on("devicesReady", callback);
       client.on("error", callback);
 
-      // todo remove
-      const customCallback = () => {
-        callback();
-      };
+
 
       client.on("localTrackAdded", customCallback);
       client.on("localTrackReplaced", customCallback);
@@ -142,6 +147,7 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("managerStarted", callback);
         client.removeListener("deviceStopped", callback);
         client.removeListener("deviceReady", callback);
+        client.removeListener("devicesStarted", customCallback);
         client.removeListener("devicesReady", callback);
         client.removeListener("error", callback);
 
@@ -251,21 +257,24 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (event, client) => {
+      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+        event,
+        client,
+      ) => {
         if (event.video?.media?.stream) {
           await broadcastOnCameraStart(event, client);
         }
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
-        console.log({name: "ReactClient devicesReady broadcastOnMicrophoneStart", event})
+        console.log({ name: "ReactClient devicesReady broadcastOnMicrophoneStart", event });
         if (event.video.restarted && event.video?.media?.stream) {
           await broadcastOnCameraStart(event, client);
         }
       };
 
       const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
-        if(event.trackType === "video") {
+        if (event.trackType === "video") {
           await broadcastOnCameraStart(event, client);
         }
       };
@@ -344,14 +353,17 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (event, client) => {
+      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+        event,
+        client,
+      ) => {
         if (event.audio?.media?.stream) {
           await broadcastOnMicrophoneStart(event, client);
         }
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
-        console.log({name: "ReactClient devicesReady broadcastOnMicrophoneStart", event})
+        console.log({ name: "ReactClient devicesReady broadcastOnMicrophoneStart", event });
         if (event.audio.restarted && event.audio?.media?.stream) {
           await broadcastOnMicrophoneStart(event, client);
         }
@@ -415,7 +427,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("joined", broadcastMicrophoneOnConnect);
       };
-    }, [config.microphone.broadcastOnConnect])
+    }, [config.microphone.broadcastOnConnect]);
 
     useEffect(() => {
       const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (
