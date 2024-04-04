@@ -77,12 +77,6 @@ export const create = <PeerMetadata, TrackMetadata>(
       const client = clientRef.current;
       const callback = () => cb();
 
-      // todo remove
-      const customCallback = () => {
-        console.log("Custom callbacks!");
-        callback();
-      };
-
       client.on("socketOpen", callback);
       client.on("socketError", callback);
       client.on("socketClose", callback);
@@ -109,7 +103,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("managerStarted", callback);
       client.on("deviceStopped", callback);
       client.on("deviceReady", callback);
-      client.on("devicesStarted", customCallback);
+      client.on("devicesStarted", callback);
       client.on("devicesReady", callback);
       client.on("error", callback);
 
@@ -154,7 +148,7 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("managerStarted", callback);
         client.removeListener("deviceStopped", callback);
         client.removeListener("deviceReady", callback);
-        client.removeListener("devicesStarted", customCallback);
+        client.removeListener("devicesStarted", callback);
         client.removeListener("devicesReady", callback);
         client.removeListener("error", callback);
 

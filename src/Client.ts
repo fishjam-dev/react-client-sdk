@@ -389,11 +389,9 @@ export class Client<PeerMetadata, TrackMetadata>
       this.emit("devicesStarted", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
-    console.log("Setting up devicesReady event");
     this.deviceManager.on("devicesReady", (event) => {
       this.state = this.stateToSnapshot();
 
-      console.log("ReactClient publishing devicesReady event");
       this.emit("devicesReady", { ...event, mediaDeviceType: "userMedia" }, this);
     });
 
@@ -705,7 +703,6 @@ export class Client<PeerMetadata, TrackMetadata>
         },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
           const media = this.deviceManager?.audio.media;
-          console.log({ media });
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
           const { stream, track } = media;

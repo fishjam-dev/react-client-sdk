@@ -59,7 +59,11 @@ export type UseUserMedia = {
   init: () => void;
 };
 
-export type DeviceError = { name: "OverconstrainedError" } | { name: "NotAllowedError" } | { name: "NotFoundError" };
+export type DeviceError =
+  | { name: "OverconstrainedError" }
+  | { name: "NotAllowedError" }
+  | { name: "NotFoundError" }
+  | { name: "UNHANDLED_ERROR" };
 
 export type Errors = {
   audio?: DeviceError | null;
@@ -190,15 +194,14 @@ export type UseCameraAndMicrophoneResult<TrackMetadata> = {
   start: (config: UseUserMediaStartConfig) => void;
 };
 
-const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };
-const OVERCONSTRAINED_ERROR: DeviceError = { name: "OverconstrainedError" };
-const NOT_FOUND_ERROR: DeviceError = { name: "NotFoundError" };
+export const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };
+export const OVERCONSTRAINED_ERROR: DeviceError = { name: "OverconstrainedError" };
+export const NOT_FOUND_ERROR: DeviceError = { name: "NotFoundError" };
+export const UNHANDLED_ERROR: DeviceError = { name: "UNHANDLED_ERROR" };
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
 // OverconstrainedError has higher priority than NotAllowedError
 export const parseError = (error: unknown): DeviceError | null => {
-  console.log({ name: "parseError" });
-
   if (error && typeof error === "object" && "name" in error) {
     if (error.name === "NotAllowedError") {
       return PERMISSION_DENIED;
