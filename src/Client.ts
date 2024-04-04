@@ -416,14 +416,6 @@ export class Client<PeerMetadata, TrackMetadata>
     });
 
     this.screenShareManager.on("deviceStopped", async (event, state) => {
-      // // todo:
-      // //  Add to camera and microphone
-      // //  Add parameter to config
-      // //  Remove track from WebRTC if it is stopped.
-      // if (this.state?.devices?.screenShare?.broadcast?.trackId) {
-      //   await this.client.removeTrack(this.state.devices.screenShare.broadcast.trackId);
-      // }
-
       this.state = this.stateToSnapshot();
 
       this.emit("deviceStopped", { trackType: event.type, mediaDeviceType: "displayMedia" }, this);

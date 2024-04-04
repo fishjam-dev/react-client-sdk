@@ -83,7 +83,6 @@ export const create = <PeerMetadata, TrackMetadata>(
         callback();
       };
 
-
       client.on("socketOpen", callback);
       client.on("socketError", callback);
       client.on("socketClose", callback);
@@ -114,11 +113,19 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("devicesReady", callback);
       client.on("error", callback);
 
+      client.on("targetTrackEncodingRequested", callback);
 
+      client.on("localTrackAdded", callback);
+      client.on("localTrackRemoved", callback);
+      client.on("localTrackReplaced", callback);
+      client.on("localTrackBandwidthSet", callback);
+      client.on("localTrackEncodingBandwidthSet", callback);
+      client.on("localTrackEncodingEnabled", callback);
+      client.on("localTrackEncodingDisabled", callback);
+      client.on("localEndpointMetadataChanged", callback);
+      client.on("localTrackMetadataChanged", callback);
 
-      client.on("localTrackAdded", customCallback);
-      client.on("localTrackReplaced", customCallback);
-      client.on("localTrackRemoved", customCallback);
+      client.on("disconnectRequested", callback);
 
       return () => {
         client.removeListener("socketOpen", callback);
@@ -151,9 +158,19 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("devicesReady", callback);
         client.removeListener("error", callback);
 
-        client.removeListener("localTrackAdded", customCallback);
-        client.removeListener("localTrackReplaced", customCallback);
-        client.removeListener("localTrackRemoved", customCallback);
+        client.removeListener("targetTrackEncodingRequested", callback);
+
+        client.removeListener("localTrackAdded", callback);
+        client.removeListener("localTrackRemoved", callback);
+        client.removeListener("localTrackReplaced", callback);
+        client.removeListener("localTrackBandwidthSet", callback);
+        client.removeListener("localTrackEncodingBandwidthSet", callback);
+        client.removeListener("localTrackEncodingEnabled", callback);
+        client.removeListener("localTrackEncodingDisabled", callback);
+        client.removeListener("localEndpointMetadataChanged", callback);
+        client.removeListener("localTrackMetadataChanged", callback);
+
+        client.removeListener("disconnectRequested", callback);
       };
     }, []);
 
