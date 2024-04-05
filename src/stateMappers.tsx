@@ -44,7 +44,7 @@ export const onDisconnected =
 export const onPeerJoined =
   <PeerMetadata, TrackMetadata>(peer: JellyfishClientPeer<PeerMetadata, TrackMetadata>) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    if (!(peer.type !== "webrtc")) return prevState;
+    if (peer.type !== "webrtc") return prevState;
 
     const remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {
       ...prevState.remote,
@@ -57,7 +57,7 @@ export const onPeerJoined =
 export const onPeerUpdated =
   <PeerMetadata, TrackMetadata>(peer: JellyfishClientPeer<PeerMetadata, TrackMetadata>) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    if (!(peer.type !== "webrtc")) return prevState;
+    if (peer.type !== "webrtc") return prevState;
 
     return {
       ...prevState,
@@ -75,7 +75,7 @@ export const onPeerUpdated =
 export const onPeerLeft =
   <PeerMetadata, TrackMetadata>(peer: JellyfishClientPeer<PeerMetadata, TrackMetadata>) =>
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
-    if (!(peer.type !== "webrtc")) return prevState;
+    if (peer.type !== "webrtc") return prevState;
 
     const remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {
       ...prevState.remote,
@@ -128,7 +128,7 @@ export const onTrackReady =
     if (!ctx.stream) return prevState;
     if (!ctx.endpoint) return prevState;
     if (!ctx.trackId) return prevState;
-    if (!(ctx.endpoint.type !== "webrtc")) return prevState;
+    if (ctx.endpoint.type !== "webrtc") return prevState;
 
     const peer = prevState.remote[ctx.endpoint.id];
     const track = createTrack<PeerMetadata, TrackMetadata>(ctx);
@@ -163,7 +163,7 @@ export const onTrackAdded =
   (prevState: State<PeerMetadata, TrackMetadata>): State<PeerMetadata, TrackMetadata> => {
     if (!ctx.endpoint) return prevState;
     if (!ctx.trackId) return prevState;
-    if (!(ctx.endpoint.type !== "webrtc")) return prevState;
+    if (ctx.endpoint.type !== "webrtc") return prevState;
 
     const peer = prevState.remote[ctx.endpoint.id];
     const track = createTrack<PeerMetadata, TrackMetadata>(ctx);
@@ -196,7 +196,7 @@ export const onTrackRemoved = <PeerMetadata, TrackMetadata>(
 ): State<PeerMetadata, TrackMetadata> => {
   if (!ctx.endpoint) return prevState;
   if (!ctx.trackId) return prevState;
-  if (!(ctx.endpoint.type !== "webrtc")) return prevState;
+  if (ctx.endpoint.type !== "webrtc") return prevState;
 
   const remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {
     ...prevState.remote,
@@ -244,7 +244,7 @@ export const onTrackUpdated = <PeerMetadata, TrackMetadata>(
   prevState: State<PeerMetadata, TrackMetadata>,
   ctx: TrackContext<PeerMetadata, TrackMetadata>,
 ): State<PeerMetadata, TrackMetadata> => {
-  if (!(ctx.endpoint.type !== "webrtc")) return prevState;
+  if (ctx.endpoint.type !== "webrtc") return prevState;
 
   const remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {
     ...prevState.remote,
@@ -459,7 +459,7 @@ export const onEncodingChanged = <PeerMetadata, TrackMetadata>(
   ctx: TrackContext<PeerMetadata, TrackMetadata>,
 ): State<PeerMetadata, TrackMetadata> => {
   if (!ctx.encoding) return prevState;
-  if (!(ctx.endpoint.type !== "webrtc")) return prevState;
+  if (ctx.endpoint.type !== "webrtc") return prevState;
 
   return onTrackEncodingChanged<PeerMetadata, TrackMetadata>(prevState, ctx.endpoint.id, ctx.trackId, ctx.encoding);
 };
