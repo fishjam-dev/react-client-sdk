@@ -45,6 +45,8 @@ export type PeerStatus = "connecting" | "connected" | "authenticated" | "joined"
 export type State<PeerMetadata, TrackMetadata> = {
   local: PeerState<PeerMetadata, TrackMetadata> | null;
   remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>>;
+  // only peer tracks
+  // todo unlock other component tracks (e.g. file component)
   tracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
   bandwidthEstimation: bigint;
   status: PeerStatus;

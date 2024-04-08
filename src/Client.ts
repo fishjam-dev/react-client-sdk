@@ -384,7 +384,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("disconnected", this);
     });
 
-    this.tsClient.on("joined", (peerId: string, peersInRoom: Endpoint<PeerMetadata, TrackMetadata>[]) => {
+    this.tsClient.on("joined", (peerId: string, peersInRoom: Peer<PeerMetadata, TrackMetadata>[]) => {
       this.status = "joined";
       this.stateToSnapshot();
 
@@ -912,10 +912,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     const remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
 
-    // todo delete?
     const tracksWithOrigin: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
 
-    Object.values(this.tsClient.getRemoteEndpoints()).forEach((endpoint) => {
+    Object.values(this.tsClient.getRemotePeers()).forEach((endpoint) => {
       const tracks: Record<TrackId, Track<TrackMetadata>> = {};
       endpoint.tracks.forEach((track) => {
         const mappedTrack = this.trackContextToTrack(track);
