@@ -45,6 +45,7 @@ export type CreateJellyfishClient<PeerMetadata, TrackMetadata> = {
   useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["camera"];
   useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["microphone"];
   useScreenShare: () => UseScreenShareResult<TrackMetadata>;
+  useClient: () => Client<PeerMetadata, TrackMetadata>;
 };
 
 /**
@@ -77,7 +78,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     const subscribe = useCallback((cb: () => void) => {
       const client = clientRef.current;
 
-      const callback = () => {
+      const callback = (event: any) => {
         mutationRef.current = true;
         cb();
       };
@@ -233,10 +234,9 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
   };
 
-  // create useClient
-
   const useStatus = () => useSelector((s) => s.status);
   const useTracks = () => useSelector((s) => s.tracks);
+  const useClient = () => useSelector((s) => s.client);
 
   const useCamera = (): UseCameraResult<TrackMetadata> => {
     const { state } = useJellyfishContext();
@@ -542,5 +542,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useCamera,
     useMicrophone,
     useScreenShare,
+    useClient,
   };
 };

@@ -6,6 +6,7 @@ import {
   CreateConfig,
   Endpoint,
   JellyfishClient,
+  MessageEvents,
   Peer,
   SimulcastConfig,
   TrackBandwidthLimit,
@@ -198,21 +199,50 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   ) => void;
   error: (arg: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
-  // new
-  targetTrackEncodingRequested: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  // local events
-  localTrackAdded: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackRemoved: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackReplaced: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackBandwidthSet: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackEncodingBandwidthSet: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackEncodingEnabled: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackEncodingDisabled: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localEndpointMetadataChanged: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  localTrackMetadataChanged: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  disconnectRequested: (event: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  targetTrackEncodingRequested: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["targetTrackEncodingRequested"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackAdded: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackAdded"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackRemoved: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackRemoved"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackReplaced: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackReplaced"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackBandwidthSet: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackBandwidthSet"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackEncodingBandwidthSet: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackEncodingBandwidthSet"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackEncodingEnabled: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackEncodingEnabled"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackEncodingDisabled: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackEncodingDisabled"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localEndpointMetadataChanged: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localEndpointMetadataChanged"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  localTrackMetadataChanged: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["localTrackMetadataChanged"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+  disconnectRequested: (
+    event: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["disconnectRequested"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
 }
 
 export type ReactClientCreteConfig<PeerMetadata, TrackMetadata> = {
@@ -902,6 +932,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       };
     });
 
+    this.tracks = tracksWithOrigin;
     this.media = deviceManagerSnapshot || null;
     this.local = localEndpoint
       ? {
