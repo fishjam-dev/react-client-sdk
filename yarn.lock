@@ -73,7 +73,7 @@
 
 "@jellyfish-dev/ts-client-sdk@github:jellyfish-dev/ts-client-sdk#RC1-add-event-emitters":
   version "0.3.1"
-  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#d4120093ea451fffde3b9b6b4ed64f09f241c804"
+  resolved "git+ssh://git@github.com/jellyfish-dev/ts-client-sdk.git#1a4fbb5628cb6ac75d7c1549bd14daf2e9137877"
   dependencies:
     "@jellyfish-dev/membrane-webrtc-js" "github:jellyfish-dev/membrane-webrtc-js#feature/expose-private-state"
     events "^3.3.0"

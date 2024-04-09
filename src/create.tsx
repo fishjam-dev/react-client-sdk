@@ -94,6 +94,11 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("peerJoined", callback);
       client.on("peerUpdated", callback);
       client.on("peerLeft", callback);
+
+      client.on("componentAdded", callback);
+      client.on("componentUpdated", callback);
+      client.on("componentRemoved", callback);
+
       client.on("trackReady", callback);
       client.on("trackAdded", callback);
       client.on("trackRemoved", callback);
@@ -139,6 +144,11 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("peerJoined", callback);
         client.removeListener("peerUpdated", callback);
         client.removeListener("peerLeft", callback);
+
+        client.removeListener("componentAdded", callback);
+        client.removeListener("componentUpdated", callback);
+        client.removeListener("componentRemoved", callback);
+
         client.removeListener("trackReady", callback);
         client.removeListener("trackAdded", callback);
         client.removeListener("trackRemoved", callback);
@@ -178,18 +188,20 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     const getSnapshot: () => State<PeerMetadata, TrackMetadata> = useCallback(() => {
       if (mutationRef.current || lastSnapshotRef.current === null) {
-        lastSnapshotRef.current = {
-          remote: clientRef.current.remote,
+        const state = {
+          remote: clientRef.current.peers,
           screenShareManager: clientRef.current.screenShareManager,
           media: clientRef.current.media,
           bandwidthEstimation: clientRef.current.bandwidthEstimation,
-          tracks: clientRef.current.tracks,
+          tracks: clientRef.current.peersTracks,
           local: clientRef.current.local,
           status: clientRef.current.status,
           devices: clientRef.current.devices,
           deviceManager: clientRef.current.deviceManager,
           client: clientRef.current,
         };
+
+        lastSnapshotRef.current = state;
         mutationRef.current = false;
       }
 

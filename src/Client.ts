@@ -12,6 +12,7 @@ import {
   TrackBandwidthLimit,
   TrackContext,
   TrackEncoding,
+  Component,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
@@ -26,8 +27,13 @@ import {
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
   local: PeerState<PeerMetadata, TrackMetadata> | null;
-  remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>>;
-  tracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
+
+  peers: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>>;
+  peersTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
+
+  components: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>>;
+  componentsTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
+
   bandwidthEstimation: bigint;
   status: PeerStatus;
   media: UseUserMediaState | null;
@@ -74,6 +80,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     event: {
       peerId: string;
       peers: Peer<PeerMetadata, TrackMetadata>[];
+      components: Component<PeerMetadata, TrackMetadata>[];
     },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
@@ -130,6 +137,30 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
    * Called each time peer has its metadata updated.
    */
   peerUpdated: (peer: Peer<PeerMetadata, TrackMetadata>, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
+  /**
+   * Called each time new Component is added to the room.
+   */
+  componentAdded: (
+    peer: Component<PeerMetadata, TrackMetadata>,
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+
+  /**
+   * Called each time Component is removed from the room.
+   */
+  componentRemoved: (
+    peer: Component<PeerMetadata, TrackMetadata>,
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
+
+  /**
+   * Called each time Component has its metadata updated.
+   */
+  componentUpdated: (
+    peer: Component<PeerMetadata, TrackMetadata>,
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
 
   /**
    * Called in case of errors related to multimedia session e.g. ICE connection.
@@ -262,8 +293,13 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   public readonly screenShareManager: ScreenShareManager;
 
   public local: PeerState<PeerMetadata, TrackMetadata> | null = null;
-  public remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
-  public tracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
+
+  public peers: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
+  public components: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
+
+  public peersTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
+  public componentsTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
+
   public bandwidthEstimation: bigint = BigInt(0);
   public status: PeerStatus = null;
   public media: UseUserMediaState | null = null;
@@ -384,11 +420,11 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("disconnected", this);
     });
 
-    this.tsClient.on("joined", (peerId: string, peersInRoom: Peer<PeerMetadata, TrackMetadata>[]) => {
+    this.tsClient.on("joined", (peerId, peers, components) => {
       this.status = "joined";
       this.stateToSnapshot();
 
-      this.emit("joined", { peerId, peers: peersInRoom }, this);
+      this.emit("joined", { peerId, peers, components }, this);
     });
 
     this.tsClient.on("joinError", (metadata) => {
@@ -412,6 +448,25 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
       this.emit("peerLeft", peer, this);
     });
+
+    this.tsClient.on("componentAdded", (component) => {
+      this.stateToSnapshot();
+
+      this.emit("componentAdded", component, this);
+    });
+
+    this.tsClient.on("componentUpdated", (component) => {
+      this.stateToSnapshot();
+
+      this.emit("componentUpdated", component, this);
+    });
+
+    this.tsClient.on("componentRemoved", (component) => {
+      this.stateToSnapshot();
+
+      this.emit("componentRemoved", component, this);
+    });
+
     this.tsClient.on("trackReady", (ctx) => {
       this.stateToSnapshot();
 
@@ -901,28 +956,33 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     if (!this.tsClient["webrtc"]) {
       this.media = deviceManagerSnapshot || null;
-      this.tracks = {};
+      this.peersTracks = {};
+      this.componentsTracks = {};
       this.devices = devices;
-      this.remote = {};
+      this.peers = {};
+      this.components = {};
       this.local = null;
       this.bandwidthEstimation = 0n;
 
       return;
     }
 
-    const remote: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
+    const peers: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
+    const components: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
 
-    const tracksWithOrigin: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
+
+    const peersTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
+    const componentTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
 
     Object.values(this.tsClient.getRemotePeers()).forEach((endpoint) => {
       const tracks: Record<TrackId, Track<TrackMetadata>> = {};
       endpoint.tracks.forEach((track) => {
         const mappedTrack = this.trackContextToTrack(track);
         tracks[track.trackId] = mappedTrack;
-        tracksWithOrigin[track.trackId] = { ...mappedTrack, origin: endpoint };
+        peersTracks[track.trackId] = { ...mappedTrack, origin: endpoint };
       });
 
-      remote[endpoint.id] = {
+      peers[endpoint.id] = {
         rawMetadata: endpoint.rawMetadata,
         metadata: endpoint.metadata,
         metadataParsingError: endpoint.metadataParsingError,
@@ -931,7 +991,25 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       };
     });
 
-    this.tracks = tracksWithOrigin;
+    Object.values(this.tsClient.getRemoteComponents()).forEach((endpoint) => {
+      const tracks: Record<TrackId, Track<TrackMetadata>> = {};
+      endpoint.tracks.forEach((track) => {
+        const mappedTrack = this.trackContextToTrack(track);
+        tracks[track.trackId] = mappedTrack;
+        componentTracks[track.trackId] = { ...mappedTrack, origin: endpoint };
+      });
+
+      components[endpoint.id] = {
+        rawMetadata: endpoint.rawMetadata,
+        metadata: endpoint.metadata,
+        metadataParsingError: endpoint.metadataParsingError,
+        id: endpoint.id,
+        tracks,
+      };
+    });
+
+    this.peersTracks = peersTracks;
+    this.componentsTracks = componentTracks;
     this.media = deviceManagerSnapshot || null;
     this.local = localEndpoint
       ? {
@@ -942,7 +1020,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           tracks: localTracks, // to record
         }
       : null;
-    this.remote = remote;
+    this.peers = peers;
+    this.components = components
     this.bandwidthEstimation = this.tsClient.getBandwidthEstimation();
     this.devices = devices;
   }
