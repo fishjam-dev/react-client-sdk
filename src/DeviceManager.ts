@@ -369,6 +369,9 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this.audio.devicesStatus =
       shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.devicesStatus ?? NOT_REQUESTED;
 
+    this.video.mediaStatus = this.video.devicesStatus
+    this.audio.mediaStatus = this.audio.devicesStatus
+
     // todo create Method for calculatin audio video audiovideo
     this.emit(
       "managerStarted",

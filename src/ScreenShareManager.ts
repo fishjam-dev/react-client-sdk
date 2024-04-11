@@ -104,12 +104,12 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
       };
       if (data.videoMedia?.track) {
         data.videoMedia.track.addEventListener("ended", (event) => {
-          this.stop("video");
+          this.stop("audiovideo");
         });
       }
       if (data.audioMedia?.track) {
         data.audioMedia.track.addEventListener("ended", (event) => {
-          this.stop("audio");
+          this.stop("audiovideo");
         });
       }
       this.data = data;

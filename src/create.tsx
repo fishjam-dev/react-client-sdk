@@ -491,12 +491,10 @@ export const create = <PeerMetadata, TrackMetadata>(
         event,
         client,
       ) => {
-        const screenShareStatus = state.devices.screenShare.broadcast?.stream;
         if (
           client.status === "joined" &&
           event.mediaDeviceType === "displayMedia" &&
-          event.trackType === "video" &&
-          screenShareStatus
+          client.devices.screenShare.broadcast?.stream
         ) {
           await client.devices.screenShare.removeTrack();
         }

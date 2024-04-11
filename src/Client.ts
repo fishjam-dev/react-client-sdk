@@ -1021,7 +1021,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         }
       : null;
     this.peers = peers;
-    this.components = components
+    this.components = components;
     this.bandwidthEstimation = this.tsClient.getBandwidthEstimation();
     this.devices = devices;
   }
