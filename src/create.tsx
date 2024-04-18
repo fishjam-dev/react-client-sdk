@@ -275,7 +275,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     });
 
     useEffect(() => {
-      if (config.startOnMount) {
+      if (config.startOnMount && state.deviceManager.getStatus() === "uninitialized") {
         state.devices.init({
           audioTrackConstraints: config?.microphone?.trackConstraints,
           videoTrackConstraints: config?.camera?.trackConstraints,

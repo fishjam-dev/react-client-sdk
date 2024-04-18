@@ -5,14 +5,14 @@ import {
   MANUAL_AUDIO_TRACK_METADATA,
   MANUAL_SCREEN_SHARE_TRACK_METADATA,
   MANUAL_VIDEO_TRACK_METADATA,
-  useCamera,
+  useCamera, useClient,
   useConnect,
   useDisconnect,
   useMicrophone,
   useScreenShare,
   useSelector,
   useSetupMedia,
-  useStatus,
+  useStatus
 } from "./jellyfishSetup";
 import VideoPlayer from "./VideoPlayer";
 import { DeviceSelector } from "./DeviceSelector";
@@ -51,6 +51,7 @@ export const MainControls = () => {
   const disconnect = useDisconnect();
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
+  const client = useClient()
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(broadcastVideoOnConnectAtom);
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(broadcastVideoOnDeviceStartAtom);
@@ -169,11 +170,12 @@ export const MainControls = () => {
         <div className="flex w-full flex-row flex-wrap gap-2">
           <button
             className="btn btn-info btn-sm"
+            disabled={client.deviceManager.getStatus() !== "uninitialized"}
             onClick={() => {
               init();
             }}
           >
-            Start devices
+            Init device manager
           </button>
 
           <button

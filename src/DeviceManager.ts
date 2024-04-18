@@ -247,7 +247,7 @@ export type DeviceManagerEvents = {
     },
     state: DeviceManagerState,
   ) => void;
-  // nigdy nie jest publikowany
+  // todo: This event is never used.
   deviceReady: (event: { trackType: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
   devicesReady: (
     event: {
@@ -267,16 +267,18 @@ export type DeviceManagerState = {
   audio: DeviceState;
 };
 
+export type DeviceManagerStatus = "uninitialized" | "initializing" | "initialized" | "error";
+
 export class DeviceManager extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>) {
-  private readonly defaultConfig?: DeviceManagerConfig;
   private readonly defaultAudioConstraints: MediaTrackConstraints | undefined;
   private readonly defaultVideoConstraints: MediaTrackConstraints | undefined;
   private readonly defaultStorageConfig: StorageConfig;
 
-  private config: DeviceManagerConfig | undefined;
   private audioConstraints: MediaTrackConstraints | undefined;
   private videoConstraints: MediaTrackConstraints | undefined;
   private storageConfig: StorageConfig | undefined;
+
+  private status: DeviceManagerStatus = "uninitialized";
 
   public video: DeviceState = {
     media: null,
@@ -294,13 +296,13 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     error: null,
   };
 
+  // todo remove
   public getSnapshot(): UseUserMediaState {
     return { video: this.video, audio: this.audio };
   }
 
   constructor(defaultConfig?: DeviceManagerConfig) {
     super();
-    this.defaultConfig = defaultConfig;
     this.defaultStorageConfig = this.createStorageConfig(defaultConfig?.storage);
 
     this.defaultAudioConstraints = defaultConfig?.audioTrackConstraints
@@ -339,11 +341,20 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     return currentConstraints ?? this.audioConstraints ?? this?.defaultAudioConstraints;
   }
 
-  public async init(config?: InitMediaConfig) {
-    // todo implement start on mount
-    // start camera and microphone does not work, if microphone is available
+  public getStatus(): DeviceManagerStatus {
+    return this.status;
+  }
 
-    if (!navigator?.mediaDevices) throw Error("Navigator is available only in secure contexts");
+  public async init(config?: InitMediaConfig): Promise<"initialized" | "error"> {
+    if (this.status !== "uninitialized") {
+      return Promise.reject("Device manager already initialized");
+    }
+    this.status = "initializing";
+
+    if (!navigator?.mediaDevices) {
+      console.error("Cannot initialize DeviceManager. Navigator is available only in secure contexts");
+      return Promise.resolve("error");
+    }
 
     const videoTrackConstraints = this.getVideoConstraints(config?.videoTrackConstraints);
     const audioTrackConstraints = this.getAudioConstraints(config?.audioTrackConstraints);
@@ -369,8 +380,8 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     this.audio.devicesStatus =
       shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.devicesStatus ?? NOT_REQUESTED;
 
-    this.video.mediaStatus = this.video.devicesStatus
-    this.audio.mediaStatus = this.audio.devicesStatus
+    this.video.mediaStatus = this.video.devicesStatus;
+    this.audio.mediaStatus = this.audio.devicesStatus;
 
     // todo create Method for calculatin audio video audiovideo
     this.emit(
@@ -465,6 +476,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     }
 
     this.emit("managerInitialized", { audio, video }, { audio: this.audio, video: this.video });
+    return Promise.resolve("initialized");
   }
 
   private getLastVideoDevice(): MediaDeviceInfo | null {
@@ -654,7 +666,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
   }
 
   public setConfig(config?: DeviceManagerConfig) {
-    this.config = config;
     this.storageConfig = this.createStorageConfig(config?.storage);
     this.audioConstraints = config?.audioTrackConstraints
       ? toMediaTrackConstraints(config.audioTrackConstraints)
