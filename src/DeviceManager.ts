@@ -475,9 +475,33 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       this.saveLastAudioDevice(audio.media?.deviceInfo);
     }
 
+    this.setupOnEndedCallback();
+
     this.emit("managerInitialized", { audio, video }, { audio: this.audio, video: this.video });
     return Promise.resolve("initialized");
   }
+
+  private setupOnEndedCallback() {
+    if (this.video?.media?.track) {
+      this.video.media.track.addEventListener(
+        "ended",
+        async (event) => await this.onTrackEnded("video", (event.target as MediaStreamTrack).id),
+      );
+    }
+
+    if (this.audio?.media?.track) {
+      this.audio.media.track.addEventListener(
+        "ended",
+        async (event) => await this.onTrackEnded("audio", (event.target as MediaStreamTrack).id),
+      );
+    }
+  }
+
+  private onTrackEnded = async (type: AudioOrVideoType, trackId: string) => {
+    if (trackId === this?.[type].media?.track?.id) {
+      await this.stop(type);
+    }
+  };
 
   private getLastVideoDevice(): MediaDeviceInfo | null {
     return this.storageConfig?.getLastVideoDevice?.() ?? this.defaultStorageConfig?.getLastVideoDevice?.() ?? null;
@@ -505,6 +529,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
   // todo in audioDeviceId / videoDeviceId true means use last device
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
+    console.log("");
     const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
     const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;
 
@@ -571,6 +596,18 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
         },
       };
 
+      // The device manager assumes that there is only one audio and video track.
+      // All previous tracks are deactivated even if the browser is able to handle multiple active sessions. (Chrome, Firefox)
+      //
+      // Safari always deactivates the track and emits the `ended` event.
+      // Its handling is asynchronous and can be executed even before returning a value from the re-execution of `getUserMedia`.
+      // In such a case, the tracks are already deactivated at this point (logic in `onTrackEnded` method).
+      // The track is null, so the stop method will not execute.
+      //
+      // However, if Safari has not yet handled this event, the tracks are manually stopped at this point.
+      // Manually stopping tracks on its own does not generate the `ended` event.
+      // The ended event in Safari has already been emitted and will be handled in the future.
+      // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
       if (action.video.restart) {
         this.video?.media?.track?.stop();
       }
@@ -600,16 +637,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       this.video.media = videoMedia;
       this.audio.media = audioMedia;
 
-      if (this.video?.media?.track) {
-        this.video?.media?.track.addEventListener("ended", (event) => {
-          this.stop("video");
-        });
-      }
-      if (this.audio?.media?.track) {
-        this.audio?.media?.track.addEventListener("ended", (event) => {
-          this.stop("audio");
-        });
-      }
+      this.setupOnEndedCallback();
 
       if (exactConstraints.audio) {
         this.audio.mediaStatus = "OK";

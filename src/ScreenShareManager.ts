@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
-import { DeviceError, DevicesStatus, Media, parseError } from "./types";
+import { AudioOrVideoType, DeviceError, DevicesStatus, parseError } from "./types";
 
 export type TrackType = "audio" | "video" | "audiovideo";
 export type MediaDeviceType = "displayMedia" | "userMedia";
@@ -88,7 +88,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
     try {
       const newStream = await navigator.mediaDevices.getDisplayMedia(options);
 
-      const data: ScreenShareDeviceState = {
+      this.data = {
         error: null,
         videoMedia: {
           enabled: true,
@@ -102,23 +102,38 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
         },
         status: "OK",
       };
-      if (data.videoMedia?.track) {
-        data.videoMedia.track.addEventListener("ended", (event) => {
-          this.stop("audiovideo");
-        });
-      }
-      if (data.audioMedia?.track) {
-        data.audioMedia.track.addEventListener("ended", (event) => {
-          this.stop("audiovideo");
-        });
-      }
-      this.data = data;
+
+      this.setupOnEndedCallback();
+
       this.emit("deviceReady", { type: type }, this.data);
     } catch (error: unknown) {
       const parsedError: DeviceError | null = parseError(error);
       this.emit("error", { type, error: parsedError, rawError: error }, this.data);
     }
   }
+
+  private setupOnEndedCallback() {
+    if (this.data.videoMedia?.track) {
+      this.data.videoMedia.track.addEventListener(
+        "ended",
+        async (event) => await this.onTrackEnded("video", (event.target as MediaStreamTrack).id),
+      );
+    }
+
+    if (this.data.audioMedia?.track) {
+      this.data.audioMedia.track.addEventListener(
+        "ended",
+        async (event) => await this.onTrackEnded("audio", (event.target as MediaStreamTrack).id),
+      );
+    }
+  }
+
+  private onTrackEnded = async (type: AudioOrVideoType, trackId: string) => {
+    const mediaType = type === "video" ? "videoMedia" : "audioMedia";
+    if (trackId === this?.data[mediaType]?.track?.id) {
+      await this.stop("audiovideo");
+    }
+  };
 
   public async stop(type: TrackType) {
     if (type === "video") {
