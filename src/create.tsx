@@ -285,6 +285,8 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     useEffect(() => {
+      let adding = false;
+
       const broadcastOnCameraStart = async (
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
@@ -292,13 +294,21 @@ export const create = <PeerMetadata, TrackMetadata>(
         if (
           client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
+          !adding &&
+          !client.devices.camera.broadcast?.stream &&
           config.camera.broadcastOnDeviceStart
         ) {
-          await client.devices.camera.addTrack(
-            config.camera.defaultTrackMetadata,
-            config.camera.defaultSimulcastConfig,
-            config.camera.defaultMaxBandwidth,
-          );
+          adding = true;
+
+          await client.devices.camera
+            .addTrack(
+              config.camera.defaultTrackMetadata,
+              config.camera.defaultSimulcastConfig,
+              config.camera.defaultMaxBandwidth,
+            )
+            .finally(() => {
+              adding = false;
+            });
         }
       };
 
@@ -375,6 +385,8 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [config.camera.broadcastOnConnect]);
 
     useEffect(() => {
+      let adding = false;
+
       const broadcastOnMicrophoneStart = async (
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
@@ -382,12 +394,17 @@ export const create = <PeerMetadata, TrackMetadata>(
         if (
           client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
+          !adding &&
+          !client.devices.microphone.broadcast?.stream &&
           config.microphone.broadcastOnDeviceStart
         ) {
-          await client.devices.microphone.addTrack(
-            config.microphone.defaultTrackMetadata,
-            config.microphone.defaultMaxBandwidth,
-          );
+          adding = true;
+
+          await client.devices.microphone
+            .addTrack(config.microphone.defaultTrackMetadata, config.microphone.defaultMaxBandwidth)
+            .finally(() => {
+              adding = false;
+            });
         }
       };
 
@@ -463,6 +480,8 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [config.microphone.broadcastOnConnect]);
 
     useEffect(() => {
+      let adding = false;
+
       const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (
         event: { mediaDeviceType: MediaDeviceType },
         client,
@@ -470,12 +489,17 @@ export const create = <PeerMetadata, TrackMetadata>(
         if (
           client.status === "joined" &&
           event.mediaDeviceType === "displayMedia" &&
+          !adding &&
+          !client.devices.screenShare.broadcast?.stream &&
           config.screenShare.broadcastOnDeviceStart
         ) {
-          await client.devices.screenShare.addTrack(
-            config.screenShare.defaultTrackMetadata,
-            config.screenShare.defaultMaxBandwidth,
-          );
+          adding = true;
+
+          await client.devices.screenShare
+            .addTrack(config.screenShare.defaultTrackMetadata, config.screenShare.defaultMaxBandwidth)
+            .finally(() => {
+              adding = false;
+            });
         }
       };
 
