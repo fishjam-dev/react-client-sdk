@@ -13,6 +13,7 @@ import {
   TrackContext,
   TrackEncoding,
   Component,
+  AuthErrorReason,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
@@ -68,7 +69,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   authSuccess: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /** Emitted when authentication fails */
-  authError: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  authError: (reason: AuthErrorReason, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /** Emitted when the connection is closed */
   disconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
@@ -407,10 +408,11 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("authSuccess", this);
     });
 
-    this.tsClient.on("authError", () => {
+    this.tsClient.on("authError", (reason) => {
       this.stateToSnapshot();
+      this.status = "error"
 
-      this.emit("authError", this);
+      this.emit("authError", reason, this);
     });
 
     this.tsClient.on("disconnected", () => {
@@ -969,7 +971,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     const peers: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
     const components: Record<PeerId, PeerState<PeerMetadata, TrackMetadata>> = {};
-
 
     const peersTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
     const componentTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};

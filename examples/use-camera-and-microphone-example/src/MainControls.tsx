@@ -5,14 +5,16 @@ import {
   MANUAL_AUDIO_TRACK_METADATA,
   MANUAL_SCREEN_SHARE_TRACK_METADATA,
   MANUAL_VIDEO_TRACK_METADATA,
-  useCamera, useClient,
+  useAuthErrorReason,
+  useCamera,
+  useClient,
   useConnect,
   useDisconnect,
   useMicrophone,
   useScreenShare,
   useSelector,
   useSetupMedia,
-  useStatus
+  useStatus,
 } from "./jellyfishSetup";
 import VideoPlayer from "./VideoPlayer";
 import { DeviceSelector } from "./DeviceSelector";
@@ -20,7 +22,7 @@ import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
-import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
+import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, ClientEvents } from "@jellyfish-dev/react-client-sdk";
 import { Fragment } from "react";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
@@ -51,7 +53,9 @@ export const MainControls = () => {
   const disconnect = useDisconnect();
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
-  const client = useClient()
+  const client = useClient();
+
+  const authError = useAuthErrorReason();
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(broadcastVideoOnConnectAtom);
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(broadcastVideoOnDeviceStartAtom);
@@ -113,7 +117,7 @@ export const MainControls = () => {
           onChange={(e) => setToken(() => e?.target?.value)}
           placeholder="token"
         />
-        <div className="flex flex-row">
+        <div className="flex w-full flex-row flex-wrap items-center gap-2">
           <div className="form-control">
             <label className="label flex cursor-pointer flex-row gap-2">
               <span className="label-text">Autostart</span>
@@ -125,7 +129,69 @@ export const MainControls = () => {
               />
             </label>
           </div>
+
+          <button
+            className="btn btn-info btn-sm"
+            disabled={client.deviceManager.getStatus() !== "uninitialized"}
+            onClick={() => {
+              init();
+            }}
+          >
+            Init device manager
+          </button>
+
+          <button
+            className="btn btn-success btn-sm"
+            disabled={token === "" || status === "authenticated" || status === "connected" || status === "joined"}
+            onClick={() => {
+              if (!token || token === "") throw Error("Token is empty");
+              connect({
+                peerMetadata: EXAMPLE_PEER_METADATA,
+                token: token,
+              });
+            }}
+          >
+            Connect
+          </button>
+
+          <button
+            className="btn btn-success btn-sm"
+            disabled={token === "" || status === "authenticated" || status === "connected" || status === "joined"}
+            onClick={() => {
+              if (!token || token === "") throw Error("Token is empty");
+              disconnect();
+
+              connect({
+                peerMetadata: { name: "John Doe" }, // example metadata
+                token: token,
+              });
+            }}
+          >
+            Reconnect
+          </button>
+
+          <button
+            className="btn btn-error btn-sm"
+            disabled={status === null || status === "closed" || status === "error"}
+            onClick={() => {
+              disconnect();
+            }}
+          >
+            Disconnect
+          </button>
         </div>
+
+        <div className="flex w-full flex-row flex-wrap items-center gap-2">
+          <Badge status={status} />
+
+          {authError && (
+            <div className="flex items-center gap-1">
+              <span>Auth error:</span>
+              <span className={`badge badge-error`}>{authError}</span>
+            </div>
+          )}
+        </div>
+
         <div className="flex w-full flex-col">
           <ThreeStateRadio
             name="Broadcast video on connect (default false)"
@@ -166,59 +232,6 @@ export const MainControls = () => {
             set={setBroadcastScreenShareOnDeviceStart}
             radioClass="radio-secondary"
           />
-        </div>
-        <div className="flex w-full flex-row flex-wrap gap-2">
-          <button
-            className="btn btn-info btn-sm"
-            disabled={client.deviceManager.getStatus() !== "uninitialized"}
-            onClick={() => {
-              init();
-            }}
-          >
-            Init device manager
-          </button>
-
-          <button
-            className="btn btn-success btn-sm"
-            disabled={token === "" || status !== null}
-            onClick={() => {
-              if (!token || token === "") throw Error("Token is empty");
-              connect({
-                peerMetadata: EXAMPLE_PEER_METADATA,
-                token: token,
-              });
-            }}
-          >
-            Connect
-          </button>
-
-          <button
-            className="btn btn-success btn-sm"
-            disabled={token === ""}
-            onClick={() => {
-              if (!token || token === "") throw Error("Token is empty");
-              disconnect();
-
-              connect({
-                peerMetadata: { name: "John Doe" }, // example metadata
-                token: token,
-              });
-            }}
-          >
-            Reconnect
-          </button>
-
-          <button
-            className="btn btn-error btn-sm"
-            disabled={status === null}
-            onClick={() => {
-              disconnect();
-            }}
-          >
-            Disconnect
-          </button>
-
-          <Badge status={status} />
         </div>
         <DeviceSelector
           name="Video"

@@ -50,6 +50,7 @@ export type {
   EncodingReason,
   MetadataParser,
   ConnectConfig,
+  AuthErrorReason,
 } from "@jellyfish-dev/ts-client-sdk";
 
 export { JellyfishClient } from "@jellyfish-dev/ts-client-sdk";

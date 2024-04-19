@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { create } from "@jellyfish-dev/react-client-sdk";
+import { ClientEvents, create } from "@jellyfish-dev/react-client-sdk";
+import { useEffect, useState } from "react";
 
 const peerMetadataSchema = z.object({
   name: z.string(),
@@ -63,3 +64,28 @@ export const {
   peerMetadataParser: (obj) => peerMetadataSchema.parse(obj),
   trackMetadataParser: (obj) => trackMetadataSchema.passthrough().parse(obj),
 });
+
+export const useAuthErrorReason = () => {
+  const client = useClient();
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const authError: ClientEvents<PeerMetadata, TrackMetadata>["authError"] = (reason) => {
+      setAuthError(reason);
+    };
+
+    const authSuccess: ClientEvents<PeerMetadata, TrackMetadata>["authSuccess"] = () => {
+      setAuthError(null);
+    };
+
+    client.on("authError", authError);
+    client.on("authSuccess", authSuccess);
+
+    return () => {
+      client.removeListener("authError", authError);
+      client.removeListener("authSuccess", authSuccess);
+    };
+  }, [setAuthError]);
+
+  return authError;
+};
