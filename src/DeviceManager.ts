@@ -529,7 +529,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
   // todo in audioDeviceId / videoDeviceId true means use last device
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
-    console.log("");
     const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
     const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;
 
