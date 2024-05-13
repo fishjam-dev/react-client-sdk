@@ -285,7 +285,6 @@ export type ReactClientCreteConfig<PeerMetadata, TrackMetadata> = {
 
 const NOOP = () => {};
 
-// todo store last selected device in local storage
 export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   new <PeerMetadata, TrackMetadata>(): TypedEmitter<Required<ClientEvents<PeerMetadata, TrackMetadata>>>;
 })<PeerMetadata, TrackMetadata> {
@@ -380,8 +379,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.stateToSnapshot();
 
-    // todo should we remove this callbacks in destrutcot?
-
     this.tsClient.on("socketOpen", (event) => {
       this.status = "connected";
       this.stateToSnapshot();
@@ -410,7 +407,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.tsClient.on("authError", (reason) => {
       this.stateToSnapshot();
-      this.status = "error"
+      this.status = "error";
 
       this.emit("authError", reason, this);
     });
@@ -601,69 +598,67 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("error", a, this);
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("targetTrackEncodingRequested", (event: any) => {
+    this.tsClient?.on("targetTrackEncodingRequested", (event) => {
       this.stateToSnapshot();
 
       this.emit("targetTrackEncodingRequested", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackAdded", (event: any) => {
+
+    this.tsClient?.on("localTrackAdded", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackAdded", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackRemoved", (event: any) => {
+
+    this.tsClient?.on("localTrackRemoved", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackRemoved", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackReplaced", (event: any) => {
+
+    this.tsClient?.on("localTrackReplaced", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackReplaced", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackBandwidthSet", (event: any) => {
+
+    this.tsClient?.on("localTrackBandwidthSet", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackBandwidthSet", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackEncodingBandwidthSet", (event: any) => {
+
+    this.tsClient?.on("localTrackEncodingBandwidthSet", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackEncodingBandwidthSet", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackEncodingEnabled", (event: any) => {
+
+    this.tsClient?.on("localTrackEncodingEnabled", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackEncodingEnabled", event, this);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackEncodingDisabled", (event: any) => {
+
+    this.tsClient?.on("localTrackEncodingDisabled", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackEncodingDisabled", event, this);
     });
 
-    this.tsClient?.on("localEndpointMetadataChanged", (event: any) => {
+    this.tsClient?.on("localEndpointMetadataChanged", (event) => {
       this.stateToSnapshot();
 
       this.emit("localEndpointMetadataChanged", event, this);
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.tsClient?.on("localTrackMetadataChanged", (event: any) => {
+    this.tsClient?.on("localTrackMetadataChanged", (event) => {
       this.stateToSnapshot();
 
       this.emit("localTrackMetadataChanged", event, this);
     });
 
-    this.tsClient?.on("disconnectRequested", (event: any) => {
+    this.tsClient?.on("disconnectRequested", (event) => {
       this.stateToSnapshot();
 
       this.emit("disconnectRequested", event, this);
@@ -779,7 +774,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       (track) => track.track?.id === this.currentMicrophoneTrackId,
     );
 
-    // todo add audio media
     const screenShareVideoTrack = Object.values(localTracks).find(
       (track) => track.track?.id === this.currentScreenShareTrackId,
     );
@@ -903,7 +897,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         },
         setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
         start: (config?: ScreenShareManagerConfig) => {
-          // todo add config
           this.screenShareManager?.start(config);
         },
         addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
@@ -945,9 +938,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           return this.tsClient.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
         },
         broadcast: screenShareVideoTrack ?? null,
-        // todo separate audio and video
         status: screenShareManager?.status || null,
-        // deviceStatus: screenShareManager?.devicesStatus || null,
         mediaStatus: null,
         stream: screenShareManager?.videoMedia?.stream || null,
         track: screenShareManager?.videoMedia?.track || null,

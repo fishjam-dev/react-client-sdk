@@ -247,8 +247,6 @@ export type DeviceManagerEvents = {
     },
     state: DeviceManagerState,
   ) => void;
-  // todo: This event is never used.
-  deviceReady: (event: { trackType: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
   devicesReady: (
     event: {
       video: DeviceState & { restarted: boolean };
@@ -295,11 +293,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     devicesStatus: "Not requested",
     error: null,
   };
-
-  // todo remove
-  public getSnapshot(): UseUserMediaState {
-    return { video: this.video, audio: this.audio };
-  }
 
   constructor(defaultConfig?: DeviceManagerConfig) {
     super();
@@ -365,28 +358,17 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     const shouldAskForVideo = !!videoTrackConstraints;
     const shouldAskForAudio = !!audioTrackConstraints;
 
-    // from reducer:
-    const action1 = {
-      type: "UseUserMedia-loading" as const,
-      video: { ask: shouldAskForVideo, constraints: videoTrackConstraints },
-      audio: { ask: shouldAskForAudio, constraints: audioTrackConstraints },
-    };
-
-    const videoConstraints = action1.video.constraints;
-    const audioConstraints = action1.audio.constraints;
-
     this.video.devicesStatus =
-      shouldAskForVideo && videoConstraints ? REQUESTING : this.video.devicesStatus ?? NOT_REQUESTED;
+      shouldAskForVideo && videoTrackConstraints ? REQUESTING : this.video.devicesStatus ?? NOT_REQUESTED;
     this.audio.devicesStatus =
-      shouldAskForAudio && audioConstraints ? REQUESTING : this.audio.devicesStatus ?? NOT_REQUESTED;
+      shouldAskForAudio && audioTrackConstraints ? REQUESTING : this.audio.devicesStatus ?? NOT_REQUESTED;
 
     this.video.mediaStatus = this.video.devicesStatus;
     this.audio.mediaStatus = this.audio.devicesStatus;
 
-    // todo create Method for calculatin audio video audiovideo
     this.emit(
       "managerStarted",
-      { trackType: "audiovideo", videoConstraints, audioConstraints },
+      { trackType: "audiovideo", videoConstraints: videoTrackConstraints, audioConstraints: audioTrackConstraints },
       {
         audio: this.audio,
         video: this.video,
@@ -527,7 +509,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     return this.storageConfig?.getLastAudioDevice?.() ?? this.defaultStorageConfig?.getLastAudioDevice?.() ?? null;
   }
 
-  // todo in audioDeviceId / videoDeviceId true means use last device
+  // todo in `audioDeviceId / videoDeviceId === true` means use last device
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
     const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
     const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;
@@ -580,21 +562,6 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
         this.saveLastAudioDevice(audioInfo);
       }
 
-      // form reducer:
-
-      const action = {
-        type: "UseUserMedia-setMedia" as const,
-        stream: stream,
-        video: {
-          restart: shouldRestartVideo,
-          info: videoInfo,
-        },
-        audio: {
-          restart: shouldRestartAudio,
-          info: audioInfo,
-        },
-      };
-
       // The device manager assumes that there is only one audio and video track.
       // All previous tracks are deactivated even if the browser is able to handle multiple active sessions. (Chrome, Firefox)
       //
@@ -607,28 +574,28 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       // Manually stopping tracks on its own does not generate the `ended` event.
       // The ended event in Safari has already been emitted and will be handled in the future.
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
-      if (action.video.restart) {
+      if (shouldRestartVideo) {
         this.video?.media?.track?.stop();
       }
 
-      if (action.audio.restart) {
+      if (shouldRestartAudio) {
         this.audio?.media?.track?.stop();
       }
 
-      const videoMedia: Media | null = action.video.restart
+      const videoMedia: Media | null = shouldRestartVideo
         ? {
-            stream: action.stream,
-            track: action.stream.getVideoTracks()[0] || null,
-            deviceInfo: action.video.info,
+            stream: stream,
+            track: stream.getVideoTracks()[0] || null,
+            deviceInfo: videoInfo,
             enabled: true,
           }
         : this.video.media;
 
-      const audioMedia: Media | null = action.audio.restart
+      const audioMedia: Media | null = shouldRestartAudio
         ? {
-            stream: action.stream,
-            track: action.stream.getAudioTracks()[0] || null,
-            deviceInfo: action.audio.info,
+            stream: stream,
+            track: stream.getAudioTracks()[0] || null,
+            deviceInfo: audioInfo,
             enabled: true,
           }
         : this.audio.media;
@@ -656,21 +623,23 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       );
     } else {
       const parsedError = result.error;
-      const action = { type: "UseUserMedia-setError" as const, parsedError, constraints: exactConstraints };
 
-      const videoError = action.constraints.video ? action.parsedError : this.video.error;
-      const audioError = action.constraints.audio ? action.parsedError : this.audio.error;
+      const event = {
+        parsedError,
+        constraints: exactConstraints
+      };
+
+      const videoError = exactConstraints.video ? parsedError : this.video.error;
+      const audioError = exactConstraints.audio ? parsedError : this.audio.error;
 
       this.video.error = videoError;
       this.audio.error = audioError;
 
-      this.emit("error", action, { audio: this.audio, video: this.video });
+      this.emit("error", event, { audio: this.audio, video: this.video });
     }
   }
 
   public async stop(type: AudioOrVideoType) {
-    const action = { type: "UseUserMedia-stopDevice" as const, mediaType: type };
-
     this[type].media?.track?.stop();
     this[type].media = null;
 

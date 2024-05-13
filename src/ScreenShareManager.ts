@@ -180,7 +180,6 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
       }
     }
 
-    // todo should event be emitted if nothing changes?
     if (value) {
       this.emit("deviceEnabled", { type }, this.data);
     } else {
