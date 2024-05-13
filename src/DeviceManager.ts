@@ -16,7 +16,6 @@ import {
   StorageConfig,
   UNHANDLED_ERROR,
   UseUserMediaStartConfig,
-  UseUserMediaState,
 } from "./types";
 
 import { loadObject, saveObject } from "./localStorage";
@@ -247,6 +246,8 @@ export type DeviceManagerEvents = {
     },
     state: DeviceManagerState,
   ) => void;
+  // todo: This event is never used.
+  deviceReady: (event: { trackType: TrackType; stream: MediaStream }, state: DeviceManagerState) => void;
   devicesReady: (
     event: {
       video: DeviceState & { restarted: boolean };
@@ -509,7 +510,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     return this.storageConfig?.getLastAudioDevice?.() ?? this.defaultStorageConfig?.getLastAudioDevice?.() ?? null;
   }
 
-  // todo in `audioDeviceId / videoDeviceId === true` means use last device
+  // todo `audioDeviceId / videoDeviceId === true` means use last device
   public async start({ audioDeviceId, videoDeviceId }: UseUserMediaStartConfig) {
     const shouldRestartVideo = !!videoDeviceId && videoDeviceId !== this.video.media?.deviceInfo?.deviceId;
     const shouldRestartAudio = !!audioDeviceId && audioDeviceId !== this.audio.media?.deviceInfo?.deviceId;

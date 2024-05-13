@@ -51,14 +51,6 @@ export type UseUserMediaStartConfig = {
   videoDeviceId?: string | boolean;
 };
 
-export type UseUserMedia = {
-  data: UseUserMediaState | null;
-  start: (config: UseUserMediaStartConfig) => void;
-  stop: (type: AudioOrVideoType) => void;
-  setEnable: (type: AudioOrVideoType, value: boolean) => void;
-  init: () => void;
-};
-
 export type DeviceError =
   | { name: "OverconstrainedError" }
   | { name: "NotAllowedError" }

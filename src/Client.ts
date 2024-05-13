@@ -4,7 +4,6 @@ import {
   BandwidthLimit,
   ConnectConfig,
   CreateConfig,
-  Endpoint,
   JellyfishClient,
   MessageEvents,
   Peer,
@@ -15,9 +14,9 @@ import {
   Component,
   AuthErrorReason,
 } from "@jellyfish-dev/ts-client-sdk";
-import { PeerId, PeerState, PeerStatus, State, Track, TrackId, TrackWithOrigin } from "./state.types";
+import { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
-import { MediaDeviceType, ScreenShareManager, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
+import { MediaDeviceType, ScreenShareManager, ScreenShareManagerConfig } from "./ScreenShareManager";
 import {
   DeviceManagerConfig,
   DeviceState,
@@ -757,7 +756,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     if (!this.deviceManager) Error("Device manager is null");
 
     const screenShareManager = this.screenShareManager?.getSnapshot();
-    const deviceManagerSnapshot = this?.deviceManager?.getSnapshot();
+    const deviceManagerSnapshot = {
+      audio: this?.deviceManager?.audio,
+      video: this?.deviceManager?.video
+    };
 
     const localEndpoint = this.tsClient.getLocalEndpoint();
 

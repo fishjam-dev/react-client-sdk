@@ -163,7 +163,6 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("managerInitialized", callback);
         client.removeListener("managerStarted", callback);
         client.removeListener("deviceStopped", callback);
-        client.removeListener("deviceReady", callback);
         client.removeListener("devicesStarted", callback);
         client.removeListener("devicesReady", callback);
         client.removeListener("error", callback);
