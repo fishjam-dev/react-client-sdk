@@ -228,6 +228,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: (arg: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   targetTrackEncodingRequested: (
@@ -323,12 +324,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         setEnable: NOOP,
         start: NOOP,
         addTrack: (
-          trackMetadata?: TrackMetadata,
-          simulcastConfig?: SimulcastConfig,
-          maxBandwidth?: TrackBandwidthLimit,
+          _trackMetadata?: TrackMetadata,
+          _simulcastConfig?: SimulcastConfig,
+          _maxBandwidth?: TrackBandwidthLimit,
         ) => Promise.reject(),
         removeTrack: () => Promise.reject(),
-        replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
+        replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
           Promise.reject(),
         broadcast: null,
         status: null,
@@ -344,9 +345,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         stop: NOOP,
         setEnable: NOOP,
         start: NOOP,
-        addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
+        addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
         removeTrack: () => Promise.reject(),
-        replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
+        replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
           Promise.reject(),
         broadcast: null,
         status: null,
@@ -362,9 +363,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         stop: NOOP,
         setEnable: NOOP,
         start: NOOP,
-        addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
+        addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
         removeTrack: () => Promise.reject(),
-        replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) =>
+        replaceTrack: (_newTrack: MediaStreamTrack, _stream: MediaStream, _newTrackMetadata?: TrackMetadata) =>
           Promise.reject(),
         broadcast: null,
         status: null,
@@ -569,7 +570,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("deviceEnabled", { trackType: event.type, mediaDeviceType: "displayMedia" }, this);
     });
 
-    this.screenShareManager.on("deviceStopped", async (event, state) => {
+    this.screenShareManager.on("deviceStopped", async (event) => {
       this.stateToSnapshot();
 
       this.emit("deviceStopped", { trackType: event.type, mediaDeviceType: "displayMedia" }, this);
@@ -758,7 +759,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     const screenShareManager = this.screenShareManager?.getSnapshot();
     const deviceManagerSnapshot = {
       audio: this?.deviceManager?.audio,
-      video: this?.deviceManager?.video
+      video: this?.deviceManager?.video,
     };
 
     const localEndpoint = this.tsClient.getLocalEndpoint();
@@ -859,7 +860,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           this.currentMicrophoneTrackId = track.id;
 
-          return this.tsClient.addTrack(track, stream, trackMetadata);
+          return this.tsClient.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(

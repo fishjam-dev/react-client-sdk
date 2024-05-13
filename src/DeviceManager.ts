@@ -258,6 +258,7 @@ export type DeviceManagerEvents = {
   deviceStopped: (event: { trackType: TrackType }, state: DeviceManagerState) => void;
   deviceEnabled: (event: { trackType: TrackType }, state: DeviceManagerState) => void;
   deviceDisabled: (event: { trackType: TrackType }, state: DeviceManagerState) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: (event: any, state: DeviceManagerState) => void;
 };
 
@@ -627,7 +628,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
       const event = {
         parsedError,
-        constraints: exactConstraints
+        constraints: exactConstraints,
       };
 
       const videoError = exactConstraints.video ? parsedError : this.video.error;

@@ -78,7 +78,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     const subscribe = useCallback((cb: () => void) => {
       const client = clientRef.current;
 
-      const callback = (event: any) => {
+      const callback = () => {
         mutationRef.current = true;
         cb();
       };

@@ -22,7 +22,7 @@ import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
-import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, ClientEvents } from "@jellyfish-dev/react-client-sdk";
+import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { Fragment } from "react";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
