@@ -64,7 +64,7 @@
     "typescript": "5.4.2"
   },
   "dependencies": {
-    "@jellyfish-dev/ts-client-sdk": "github:jellyfish-dev/ts-client-sdk#RC1-add-event-emitters",
+    "@jellyfish-dev/ts-client-sdk": "^0.4.0",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },
