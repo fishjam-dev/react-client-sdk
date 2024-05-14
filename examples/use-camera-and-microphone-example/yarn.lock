@@ -219,10 +219,11 @@
   integrity sha512-RQw9DemMbIq35Bprbboyf8SmOr4UXsRVxJ97LgB55VKKeJOOdvsIPy0nFyF2l8U+h4PtBx/1kRf0BelOYCiQcw==
 
 "@jellyfish-dev/react-client-sdk@file:../..":
-  version "0.2.1"
+  version "0.3.0"
   resolved "file:../.."
   dependencies:
-    "@jellyfish-dev/ts-client-sdk" "file:../ts-client-sdk"
+    "@jellyfish-dev/ts-client-sdk" "^0.4.0"
+    "@typescript-eslint/parser" "^7.8.0"
     events "3.3.0"
     lodash.isequal "4.5.0"
 

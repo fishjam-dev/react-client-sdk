@@ -288,7 +288,78 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     useEffect(() => {
+      // let adding = false;
+
+      const broadcastOnCameraStart = async (
+        event: { mediaDeviceType: MediaDeviceType },
+        client: ClientApi<PeerMetadata, TrackMetadata>,
+      ) => {
+        // if (
+        //   client.status === "joined" &&
+        //   event.mediaDeviceType === "userMedia" &&
+        //   !adding &&
+        //   !client.devices.camera.broadcast?.stream &&
+        //   configRef.current.camera.broadcastOnDeviceStart
+        // ) {
+        //   adding = true;
+        //
+        //   await client.devices.camera
+        //     .addTrack(
+        //       configRef.current.camera.defaultTrackMetadata,
+        //       configRef.current.camera.defaultSimulcastConfig,
+        //       configRef.current.camera.defaultMaxBandwidth,
+        //     )
+        //     .finally(() => {
+        //       adding = false;
+        //     });
+        // }
+      };
+
+      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+        event,
+        client,
+      ) => {
+        // if (event.video?.media?.stream) {
+        //   await broadcastOnCameraStart(event, client);
+        // }
+      };
+
+      const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
+        // if (event.video.restarted && event.video?.media?.stream) {
+        //   await broadcastOnCameraStart(event, client);
+        // }
+        console.log({ name: "devicesReady", event });
+      };
+
+      const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
+        // if (event.trackType === "video") {
+        //   await broadcastOnCameraStart(event, client);
+        // }
+      };
+
+      const deviceStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
+        // if (event.trackType === "video") {
+        //   await broadcastOnCameraStart(event, client);
+        // }
+        console.log({ name: "deviceStopped", event });
+      };
+
+      state.client.on("managerInitialized", managerInitialized);
+      state.client.on("devicesReady", devicesReady);
+      state.client.on("deviceReady", deviceReady);
+      state.client.on("deviceStopped", deviceStopped);
+
+      return () => {
+        state.client.removeListener("managerInitialized", managerInitialized);
+        state.client.removeListener("devicesReady", devicesReady);
+        state.client.removeListener("deviceReady", deviceReady);
+        state.client.removeListener("deviceStopped", deviceStopped);
+      };
+    }, []);
+
+    useEffect(() => {
       let adding = false;
+      const mediaStream = new MediaStream();
 
       const broadcastOnCameraStart = async (
         event: { mediaDeviceType: MediaDeviceType },
@@ -298,20 +369,42 @@ export const create = <PeerMetadata, TrackMetadata>(
           client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
           !adding &&
-          !client.devices.camera.broadcast?.stream &&
           configRef.current.camera.broadcastOnDeviceStart
         ) {
-          adding = true;
+          if (client.devices.camera.broadcast?.stream) {
+            const newTrack = client.devices.camera.stream?.getVideoTracks()[0];
 
-          await client.devices.camera
-            .addTrack(
-              configRef.current.camera.defaultTrackMetadata,
-              configRef.current.camera.defaultSimulcastConfig,
-              configRef.current.camera.defaultMaxBandwidth,
-            )
-            .finally(() => {
-              adding = false;
-            });
+            if (!newTrack || !client.devices.camera.stream) {
+              console.log("New track is empty");
+              return;
+            }
+
+            // if(mediaStream.getVideoTracks().length) {
+            //   console.log("Removing old tracks")
+            //   mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
+            // }
+            // mediaStream.addTrack(newTrack);
+            //
+            console.log("Replacing track");
+
+            await client.devices.camera.replaceTrack(newTrack, client.devices.camera.stream);
+
+          } else {
+            adding = true;
+
+            console.log("Adding track")
+            await client.devices.camera
+              .addTrack(
+                configRef.current.camera.defaultTrackMetadata,
+                configRef.current.camera.defaultSimulcastConfig,
+                configRef.current.camera.defaultMaxBandwidth,
+              )
+              .finally(() => {
+                adding = false;
+              });
+          }
+        } else {
+          console.log({ name: "ignoring" });
         }
       };
 
@@ -325,7 +418,10 @@ export const create = <PeerMetadata, TrackMetadata>(
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
+        console.log({ name: "devicesReady - broadcastOnCameraStart", event });
+
         if (event.video.restarted && event.video?.media?.stream) {
+          console.log({ name: "devicesReady - broadcastOnCameraStart restarted", event });
           await broadcastOnCameraStart(event, client);
         }
       };

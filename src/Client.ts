@@ -802,13 +802,18 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           const media = this.deviceManager?.video.media;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-          const { stream, track } = media;
+          const { track } = media;
 
           const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
 
           if (prevTrack) throw Error("Track already added");
 
           this.currentCameraTrackId = track?.id;
+
+          const stream = new MediaStream();
+          stream.addTrack(track);
+
+          console.log({ _name: "adding new stream with track from media", streamId: stream.id, trackId: track?.id });
 
           return this.tsClient.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
         },
@@ -821,14 +826,67 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           return this.tsClient.removeTrack(prevTrack.trackId);
         },
-        replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
+        // user nie musi podawać strema bo go nie potrzebujemuy
+        // tracka tez nie musi podawać bo w tym miejscu dozowlone są tylko tracki obecne w store i zarazadne przez ten hook
+        replaceTrack: async (_newTrack: MediaStreamTrack, _stream: MediaStream, newTrackMetadata?: TrackMetadata) => {
           const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
 
-          this.currentCameraTrackId = newTrack.id;
+          const stream = prevTrack.stream;
+          const track = stream?.getTracks()[0] ?? null
 
-          return this.tsClient.replaceTrack(prevTrack.trackId, newTrack, newTrackMetadata);
+          if (!track) throw Error("Track is empty")
+          if (!stream) throw Error("Stream is empty")
+
+          console.log({ _name: "replace track - current broadcasted stream from local", streamId: stream.id, trackIdInThatStream: track?.id });
+
+          const broadcastedStream1 = this.devices.camera.broadcast?.stream
+          const broadcastedTrack1 = broadcastedStream1?.getVideoTracks()[0]
+
+          if (!broadcastedStream1) throw Error("New stream is empty")
+          if (!broadcastedTrack1) throw Error("New track is empty")
+
+          console.log({ _name: "replace track - current broadcasted stream from broadcasted", streamId: broadcastedStream1.id, trackIdInThatStream: broadcastedTrack1?.id });
+
+          const newStream = this.devices.camera.stream
+          const newTrack = newStream?.getVideoTracks()[0]
+
+          if (!newStream) throw Error("New stream is empty")
+          if (!newTrack) throw Error("New track is empty")
+
+          console.log({ _name: "replace track - new track to replace", streamId: newStream?.id, trackIdInThatStream: newTrack?.id });
+
+          // console.log({ name: "tracks before removing", count: stream?.getVideoTracks().length });
+          // stream?.removeTrack(stream?.getVideoTracks()[0]);
+          // console.log({ name: "tracks after removing", count: stream?.getVideoTracks().length });
+          //
+          // stream?.addTrack(track);
+          // console.log({ name: "tracks after adding", count: stream?.getVideoTracks().length });
+
+          this.currentCameraTrackId = track.id;
+
+          // console.log({ _name: "replacing old stream with track from media", streamId: stream.id, trackId: track?.id });
+
+          const promise = await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
+
+          const broadcastedStream = this.devices.camera.broadcast?.stream
+          const broadcastedTrack = broadcastedStream?.getVideoTracks()[0]
+
+          if (!broadcastedStream) throw Error("New stream is empty")
+          if (!broadcastedTrack) throw Error("New track is empty")
+
+
+          console.log({ name: "tracks before removing", count: broadcastedStream?.getVideoTracks().length });
+          broadcastedStream?.removeTrack(broadcastedStream?.getVideoTracks()[0]);
+          console.log({ name: "tracks after removing", count: broadcastedStream?.getVideoTracks().length });
+
+          broadcastedStream.addTrack(newTrack)
+          console.log({ name: "tracks after adding", count: broadcastedStream?.getVideoTracks().length });
+
+          console.log({ _name: "replace track - track replaced, current broadcasted", streamId: broadcastedStream.id, trackIdInThatStream: broadcastedTrack?.id });
+
+          return promise;
         },
         broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,

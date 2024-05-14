@@ -23,9 +23,10 @@ import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
+import * as stream from "node:stream";
 
 const tokenAtom = atomWithStorage("token", "");
 
@@ -46,6 +47,8 @@ const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<boolean | undefine
 
 const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { getOnInit: true });
 
+const secondMediaStream = new MediaStream();
+
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
 
@@ -54,6 +57,9 @@ export const MainControls = () => {
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
   const client = useClient();
+
+  const [showStreaming, setShowStreaming] = useState<boolean>(true);
+  const [originalStream, setOriginalStream] = useState<MediaStream | null>(null);
 
   const authError = useAuthErrorReason();
 
@@ -107,9 +113,159 @@ export const MainControls = () => {
   const screenShare = useScreenShare();
   const status = useStatus();
 
+  const laptopCameraId = "8591a9c5854b07ed08454cdad900509729b2d04916ad063e49f2f77734370e91";
+  const phoneCameraId = "a5c454626afda7f92f092de457cc06937b782e6b4db4bd58dfbe70593b8952bf";
+
   return (
     <div className="flex flex-row flex-wrap gap-2 p-2 md:grid md:grid-cols-2">
       <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
+          <button
+            className="btn btn-info btn-sm"
+            onClick={() => {
+              console.log({ client });
+            }}
+          >
+            Client
+          </button>
+
+          <button
+            className="btn btn-info btn-sm"
+            onClick={() => {
+              const trackFromClient = Object.values(client?.local?.tracks ?? {})[0];
+              const trackFromStream = trackFromClient.stream?.getVideoTracks()[0];
+
+              console.log("Broadcast");
+              console.log({
+                // track: trackFromClient.track,
+                stream: trackFromClient.stream?.id,
+                trackFromStream: trackFromStream?.id,
+                tracksInStream: trackFromClient.stream?.getVideoTracks().length,
+              });
+              console.log("");
+
+              console.log("Local device");
+              const localTrackFromStream = video.stream?.getVideoTracks()[0];
+              console.log({
+                // track: video.track,
+                stream: video.stream?.id,
+                trackFromStream: localTrackFromStream?.id,
+                tracksInStream: video.stream?.getVideoTracks().length,
+              });
+              console.log("");
+            }}
+          >
+            List local track and stream
+          </button>
+
+          {/*<button*/}
+          {/*  className="btn btn-info btn-sm"*/}
+          {/*  onClick={async () => {*/}
+          {/*    const mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();*/}
+
+          {/*    mediaDeviceInfos*/}
+          {/*      .filter((dev) => dev.kind === "videoinput")*/}
+          {/*      .forEach((device) => {*/}
+          {/*        console.log({ device });*/}
+          {/*      });*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  List devices*/}
+          {/*</button>*/}
+
+          {/*<button*/}
+          {/*  className="btn btn-info btn-sm"*/}
+          {/*  onClick={async () => {*/}
+          {/*    const stream = await navigator.mediaDevices.getUserMedia({*/}
+          {/*      video: { deviceId: laptopCameraId },*/}
+          {/*    });*/}
+          {/*    setOriginalStream(stream);*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  Start laptop camera*/}
+          {/*</button>*/}
+
+          {/*<button*/}
+          {/*  className="btn btn-info btn-sm"*/}
+          {/*  onClick={async () => {*/}
+          {/*    const stream = await navigator.mediaDevices.getUserMedia({*/}
+          {/*      video: { deviceId: phoneCameraId },*/}
+          {/*    });*/}
+          {/*    setOriginalStream(stream);*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  Start phone camera*/}
+          {/*</button>*/}
+
+          {/*<button*/}
+          {/*  className="btn btn-info btn-sm"*/}
+          {/*  onClick={async () => {*/}
+          {/*    if (!originalStream) throw Error("originalStream is null");*/}
+          {/*    console.log({ name: "Before add track", count: secondMediaStream.getVideoTracks().length });*/}
+          {/*    secondMediaStream.addTrack(originalStream.getVideoTracks()[0]);*/}
+          {/*    console.log({ name: "After add track", count: secondMediaStream.getVideoTracks().length });*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  Add track to media stream*/}
+          {/*</button>*/}
+
+          {/*<button*/}
+          {/*  className="btn btn-info btn-sm"*/}
+          {/*  onClick={async () => {*/}
+          {/*    if (!originalStream) throw Error("originalStream is null");*/}
+          {/*    originalStream.getVideoTracks().forEach((track) => {*/}
+          {/*      track.stop();*/}
+          {/*    });*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  Stop track*/}
+          {/*</button>*/}
+
+          {/*<button*/}
+          {/*  className="btn btn-info btn-sm"*/}
+          {/*  onClick={async () => {*/}
+          {/*    if (!originalStream) throw Error("originalStream is null");*/}
+
+          {/*    const track = originalStream.getVideoTracks()[0];*/}
+
+          {/*    console.log({ name: "Before remove track", count: secondMediaStream.getVideoTracks().length });*/}
+          {/*    secondMediaStream.removeTrack(track);*/}
+          {/*    console.log({ name: "After remove track", count: secondMediaStream.getVideoTracks().length });*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  Remove track from stream*/}
+          {/*</button>*/}
+
+          <button
+            className="btn btn-info btn-sm"
+            onClick={async () => {
+              const trackFromClient = Object.values(client?.local?.tracks ?? {})[0];
+
+              if (trackFromClient.stream) {
+                const prevTracks = trackFromClient.stream.getVideoTracks();
+
+                console.log({ name: "Active tracks", count: prevTracks.length });
+                prevTracks.forEach((track) => {
+                  console.log({ name: "Removing track", track });
+                  trackFromClient.stream?.removeTrack(track);
+                });
+
+                const trackToAdd = client?.media?.video?.media?.track ?? null;
+
+                console.log({ name: "Adding track", trackToAdd });
+
+                if (trackToAdd) {
+                  trackFromClient.stream.addTrack(trackToAdd);
+                }
+              }
+
+              console.log({ stream: trackFromClient.stream });
+            }}
+          >
+            Replace media stream
+          </button>
+        </div>
+
         <input
           type="text"
           className="input input-bordered w-full"
@@ -266,6 +422,13 @@ export const MainControls = () => {
       </div>
       <div>
         <div className="prose grid grid-rows-2">
+          {/*<div className="flex flex-col">*/}
+          {/*  Original stream*/}
+          {/*  {originalStream && <VideoPlayer stream={originalStream} />}*/}
+          {/*  secondMediaStream stream*/}
+          {/*  {secondMediaStream && <VideoPlayer stream={secondMediaStream} />}*/}
+          {/*</div>*/}
+
           <div>
             <h3>Local:</h3>
             <div className="max-w-[500px]">
@@ -274,17 +437,22 @@ export const MainControls = () => {
               {screenShare?.track?.kind === "video" && <VideoPlayer stream={screenShare?.stream} />}
             </div>
           </div>
-          <div>
-            <h3>Streaming:</h3>
-            {local.map(({ trackId, stream, track }) => (
-              <Fragment key={trackId}>
-                <div className="max-w-[500px]">
-                  {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
-                  {track?.kind === "audio" && <AudioVisualizer stream={stream} />}
-                </div>
-              </Fragment>
-            ))}
-          </div>
+          {showStreaming && (
+            <div>
+              <h3>Streaming:</h3>
+              {local.map(({ trackId, stream, track }) => {
+                // console.log({ trackId, stream, track });
+                return (
+                  <Fragment key={trackId}>
+                    <div className="max-w-[500px]">
+                      {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
+                      {track?.kind === "audio" && <AudioVisualizer stream={stream} />}
+                    </div>
+                  </Fragment>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

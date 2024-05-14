@@ -5,7 +5,6 @@ type Props = {
   defaultOptionText: string;
   devices: MediaDeviceInfo[] | null;
   setInput: (value: string | null) => void;
-  // inputValue: string | null;
 };
 
 export const DeviceSelector = ({ name, devices, setInput, defaultOptionText }: Props) => {
