@@ -98,6 +98,11 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
      */
     broadcastOnDeviceStart?: boolean;
+    /**
+     * Determines whether track should be replaced when the user requests a device.
+     * default: replace
+     */
+    broadcastOnDeviceChange?: "replace" | "stop";
 
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;

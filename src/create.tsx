@@ -471,29 +471,39 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     useEffect(() => {
-      let adding = false;
+      let pending = false;
 
       const broadcastOnMicrophoneStart = async (
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          !adding &&
-          !client.devices.microphone.broadcast?.stream &&
-          configRef.current.microphone.broadcastOnDeviceStart
-        ) {
-          adding = true;
+        const broadcastOnDeviceChange = configRef.current.microphone.broadcastOnDeviceChange ?? "replace";
 
-          await client.devices.microphone
-            .addTrack(
-              configRef.current.microphone.defaultTrackMetadata,
-              configRef.current.microphone.defaultMaxBandwidth,
-            )
-            .finally(() => {
-              adding = false;
+        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+          if (!client.devices.microphone.broadcast?.stream && configRef.current.microphone.broadcastOnDeviceStart) {
+            pending = true;
+
+            await client.devices.microphone
+              .addTrack(
+                configRef.current.microphone.defaultTrackMetadata,
+                configRef.current.microphone.defaultMaxBandwidth,
+              )
+              .finally(() => {
+                pending = false;
+              });
+          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "replace") {
+            pending = true;
+
+            await client.devices.microphone.replaceTrack().finally(() => {
+              pending = false;
             });
+          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "stop") {
+            pending = true;
+
+            await client.devices.microphone.removeTrack().finally(() => {
+              pending = false;
+            });
+          }
         }
       };
 

@@ -55,14 +55,8 @@ const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<boolean | undefine
   "broadcastScreenShareOnDeviceStart",
   undefined,
 );
-const broadcastScreenShareOnDeviceChangeAtom = atomWithStorage<RestartChange>(
-  "broadcastScreenShareOnDeviceChange",
-  undefined,
-);
 
 const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { getOnInit: true });
-
-const secondMediaStream = new MediaStream();
 
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
@@ -90,9 +84,6 @@ export const MainControls = () => {
   const [broadcastScreenShareOnDeviceStart, setBroadcastScreenShareOnDeviceStart] = useAtom(
     broadcastScreenShareOnDeviceStartAtom,
   );
-  const [broadcastScreenShareOnDeviceChange, setBroadcastScreenShareOnDeviceChange] = useAtom(
-    broadcastScreenShareOnDeviceChangeAtom,
-  );
 
   const [autostart, setAutostart] = useAtom(autostartAtom);
 
@@ -113,6 +104,7 @@ export const MainControls = () => {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
       broadcastOnConnect: broadcastAudioOnConnect,
       broadcastOnDeviceStart: broadcastAudioOnDeviceStart,
+      broadcastOnDeviceChange: broadcastAudioOnDeviceChange,
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
     screenShare: {
@@ -133,9 +125,6 @@ export const MainControls = () => {
   const audio = useMicrophone();
   const screenShare = useScreenShare();
   const status = useStatus();
-
-  const laptopCameraId = "8591a9c5854b07ed08454cdad900509729b2d04916ad063e49f2f77734370e91";
-  const phoneCameraId = "a5c454626afda7f92f092de457cc06937b782e6b4db4bd58dfbe70593b8952bf";
 
   return (
     <div className="flex flex-row flex-wrap gap-2 p-2 md:grid md:grid-cols-2">
@@ -376,14 +365,12 @@ export const MainControls = () => {
             set={setBroadcastVideoOnConnect}
             radioClass="radio-primary"
           />
-
           <ThreeStateRadio
             name="Broadcast video on device start (default false)"
             value={broadcastVideoOnDeviceStart}
             set={setBroadcastVideoOnDeviceStart}
             radioClass="radio-primary"
           />
-
           <Radio
             name='Broadcast video on device change (default "replace")'
             value={broadcastVideoOnDeviceChange}
@@ -410,14 +397,13 @@ export const MainControls = () => {
             set={setBroadcastAudioOnDeviceStart}
             radioClass="radio-secondary"
           />
-
           <Radio
             name='Broadcast audio on device change (default "replace")'
             value={broadcastAudioOnDeviceChange}
             set={(value) => {
               if (isRestartChange(value)) setBroadcastAudioOnDeviceChange(value);
             }}
-            radioClass="radio-primary"
+            radioClass="radio-secondary"
             options={[
               { value: undefined, key: "undefined" },
               { value: "stop", key: "stop" },
@@ -429,27 +415,13 @@ export const MainControls = () => {
             name="Broadcast screen share on connect (default false)"
             value={broadcastScreenShareOnConnect}
             set={setBroadcastScreenShareOnConnect}
-            radioClass="radio-secondary"
+            radioClass="radio-accent"
           />
           <ThreeStateRadio
             name="Broadcast screen share on device start (default false)"
             value={broadcastScreenShareOnDeviceStart}
             set={setBroadcastScreenShareOnDeviceStart}
-            radioClass="radio-secondary"
-          />
-
-          <Radio
-            name='Broadcast screen share on device change (default "replace")'
-            value={broadcastScreenShareOnDeviceChange}
-            set={(value) => {
-              if (isRestartChange(value)) setBroadcastScreenShareOnDeviceChange(value);
-            }}
-            radioClass="radio-primary"
-            options={[
-              { value: undefined, key: "undefined" },
-              { value: "stop", key: "stop" },
-              { value: "replace", key: "replace" },
-            ]}
+            radioClass="radio-accent"
           />
         </div>
         <DeviceSelector
