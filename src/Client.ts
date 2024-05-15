@@ -863,7 +863,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           const media = this.deviceManager?.audio.media;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-          const { stream, track } = media;
+          const { track } = media;
 
           const prevTrack = Object.values(localTracks).find(
             (track) => track.track?.id === this.currentMicrophoneTrackId,
@@ -872,6 +872,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           if (prevTrack) throw Error("Track already added");
 
           this.currentMicrophoneTrackId = track.id;
+
+          const stream = new MediaStream();
+          stream.addTrack(track);
 
           return this.tsClient.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
         },
@@ -893,9 +896,11 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (!prevTrack) throw Error("There is no audio track");
 
-          const track = this.devices.microphone.stream?.getVideoTracks()[0];
+          const track = this.devices.microphone.stream?.getAudioTracks()[0];
 
           if (!track) throw Error("New track is empty");
+
+          console.log({ name: "new track", trackId: track?.id });
 
           this.currentMicrophoneTrackId = track.id;
 
@@ -904,6 +909,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           // todo This is a temporary solution to address an issue with ts-client-sdk
           //  Currently, ts-client does not update the track in the stream during the execution of the replaceTrack method
           if (!this.devices.microphone.broadcast?.stream) throw Error("New stream is empty");
+
+          console.log({ name: "new track", trackId: track?.id });
 
           this.devices.microphone.broadcast?.stream?.removeTrack(
             this.devices.microphone.broadcast?.stream?.getAudioTracks()[0],

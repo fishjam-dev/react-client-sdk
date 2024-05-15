@@ -142,20 +142,23 @@ export const MainControls = () => {
           <button
             className="btn btn-info btn-sm"
             onClick={() => {
-              const trackFromClient = Object.values(client?.local?.tracks ?? {})[0];
-              const trackFromStream = trackFromClient.stream?.getVideoTracks()[0];
+              const trackFromClient = Object.values(client?.local?.tracks ?? {})
+                .find(
+                (track) => track.track?.kind === "audio"
+              )
+              const trackFromStream = trackFromClient?.stream?.getAudioTracks()[0];
 
               console.log("Broadcast");
               console.log({
-                track: trackFromClient.track,
-                stream: trackFromClient.stream?.id,
+                track: trackFromClient?.track,
+                stream: trackFromClient?.stream?.id,
                 trackFromStream: trackFromStream?.id,
-                tracksInStream: trackFromClient.stream?.getVideoTracks().length,
+                tracksInStream: trackFromClient?.stream?.getVideoTracks().length,
               });
               console.log("");
 
               console.log("Local device");
-              const localTrackFromStream = video.stream?.getVideoTracks()[0];
+              const localTrackFromStream = video.stream?.getAudioTracks()[0];
               console.log({
                 track: video.track,
                 stream: video.stream?.id,
@@ -476,7 +479,6 @@ export const MainControls = () => {
             <div>
               <h3>Streaming:</h3>
               {local.map(({ trackId, stream, track }) => {
-                // console.log({ trackId, stream, track });
                 return (
                   <Fragment key={trackId}>
                     <div className="max-w-[500px]">
