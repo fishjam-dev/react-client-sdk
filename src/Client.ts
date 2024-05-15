@@ -363,7 +363,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         start: NOOP,
         addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
         removeTrack: () => Promise.reject(),
-        replaceTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
         broadcast: null,
         status: null,
         stream: null,
@@ -832,8 +831,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           this.currentCameraTrackId = track.id;
 
-          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
-
           // todo This is a temporary solution to address an issue with ts-client-sdk
           //  Currently, ts-client does not update the track in the stream during the execution of the replaceTrack method
           if (!this.devices.camera.broadcast?.stream) throw Error("New stream is empty");
@@ -842,6 +839,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
             this.devices.camera.broadcast?.stream?.getVideoTracks()[0],
           );
           this.devices.camera.broadcast?.stream.addTrack(track);
+
+          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
         broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,
@@ -900,22 +899,19 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (!track) throw Error("New track is empty");
 
-          console.log({ name: "new track", trackId: track?.id });
-
           this.currentMicrophoneTrackId = track.id;
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
 
           // todo This is a temporary solution to address an issue with ts-client-sdk
           //  Currently, ts-client does not update the track in the stream during the execution of the replaceTrack method
           if (!this.devices.microphone.broadcast?.stream) throw Error("New stream is empty");
 
-          console.log({ name: "new track", trackId: track?.id });
-
           this.devices.microphone.broadcast?.stream?.removeTrack(
             this.devices.microphone.broadcast?.stream?.getAudioTracks()[0],
           );
+
           this.devices.microphone.broadcast?.stream.addTrack(track);
+
+          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
         broadcast: broadcastedAudioTrack ?? null,
         status: deviceManagerSnapshot?.audio?.devicesStatus || null,
@@ -962,30 +958,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           this.currentScreenShareTrackId = null;
 
           return this.tsClient.removeTrack(prevTrack.trackId);
-        },
-        replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
-          const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.currentScreenShareTrackId,
-          );
-
-          if (!prevTrack) throw Error("There is no video track");
-
-          const track = this.devices.screenShare.stream?.getVideoTracks()[0];
-
-          if (!track) throw Error("New track is empty");
-
-          this.currentScreenShareTrackId = track.id;
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
-
-          // todo This is a temporary solution to address an issue with ts-client-sdk
-          //  Currently, ts-client does not update the track in the stream during the execution of the replaceTrack method
-          if (!this.devices.screenShare.broadcast?.stream) throw Error("New stream is empty");
-
-          this.devices.screenShare.broadcast?.stream?.removeTrack(
-            this.devices.screenShare.broadcast?.stream?.getVideoTracks()[0],
-          );
-          this.devices.screenShare.broadcast?.stream.addTrack(track);
         },
         broadcast: screenShareVideoTrack ?? null,
         status: screenShareManager?.status || null,

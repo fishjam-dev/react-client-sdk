@@ -177,7 +177,6 @@ export type UseScreenShareResult<TrackMetadata> = {
   start: (config?: ScreenShareManagerConfig) => void;
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
-  replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;

@@ -23,7 +23,6 @@ import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
-import { Fragment, useState } from "react";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 import { Radio } from "./Radio";
@@ -38,10 +37,7 @@ const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnConnect", undefined);
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnDeviceStart", undefined);
-const broadcastVideoOnDeviceChangeAtom = atomWithStorage<RestartChange>(
-  "broadcastVideoOnDeviceChange",
-  undefined,
-);
+const broadcastVideoOnDeviceChangeAtom = atomWithStorage<RestartChange>("broadcastVideoOnDeviceChange", undefined);
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnConnect", undefined);
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnDeviceStart", undefined);
@@ -66,9 +62,6 @@ export const MainControls = () => {
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
   const client = useClient();
-
-  const [showStreaming, setShowStreaming] = useState<boolean>(true);
-  const [originalStream, setOriginalStream] = useState<MediaStream | null>(null);
 
   const authError = useAuthErrorReason();
 
@@ -129,156 +122,6 @@ export const MainControls = () => {
   return (
     <div className="flex flex-row flex-wrap gap-2 p-2 md:grid md:grid-cols-2">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-col">
-          <button
-            className="btn btn-info btn-sm"
-            onClick={() => {
-              console.log({ client });
-            }}
-          >
-            Client
-          </button>
-
-          <button
-            className="btn btn-info btn-sm"
-            onClick={() => {
-              const trackFromClient = Object.values(client?.local?.tracks ?? {})
-                .find(
-                (track) => track.track?.kind === "audio"
-              )
-              const trackFromStream = trackFromClient?.stream?.getAudioTracks()[0];
-
-              console.log("Broadcast");
-              console.log({
-                track: trackFromClient?.track,
-                stream: trackFromClient?.stream?.id,
-                trackFromStream: trackFromStream?.id,
-                tracksInStream: trackFromClient?.stream?.getVideoTracks().length,
-              });
-              console.log("");
-
-              console.log("Local device");
-              const localTrackFromStream = video.stream?.getAudioTracks()[0];
-              console.log({
-                track: video.track,
-                stream: video.stream?.id,
-                trackFromStream: localTrackFromStream?.id,
-                tracksInStream: video.stream?.getVideoTracks().length,
-              });
-              console.log("");
-            }}
-          >
-            List local track and stream
-          </button>
-
-          {/*<button*/}
-          {/*  className="btn btn-info btn-sm"*/}
-          {/*  onClick={async () => {*/}
-          {/*    const mediaDeviceInfos = await navigator.mediaDevices.enumerateDevices();*/}
-
-          {/*    mediaDeviceInfos*/}
-          {/*      .filter((dev) => dev.kind === "videoinput")*/}
-          {/*      .forEach((device) => {*/}
-          {/*        console.log({ device });*/}
-          {/*      });*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  List devices*/}
-          {/*</button>*/}
-
-          {/*<button*/}
-          {/*  className="btn btn-info btn-sm"*/}
-          {/*  onClick={async () => {*/}
-          {/*    const stream = await navigator.mediaDevices.getUserMedia({*/}
-          {/*      video: { deviceId: laptopCameraId },*/}
-          {/*    });*/}
-          {/*    setOriginalStream(stream);*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  Start laptop camera*/}
-          {/*</button>*/}
-
-          {/*<button*/}
-          {/*  className="btn btn-info btn-sm"*/}
-          {/*  onClick={async () => {*/}
-          {/*    const stream = await navigator.mediaDevices.getUserMedia({*/}
-          {/*      video: { deviceId: phoneCameraId },*/}
-          {/*    });*/}
-          {/*    setOriginalStream(stream);*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  Start phone camera*/}
-          {/*</button>*/}
-
-          {/*<button*/}
-          {/*  className="btn btn-info btn-sm"*/}
-          {/*  onClick={async () => {*/}
-          {/*    if (!originalStream) throw Error("originalStream is null");*/}
-          {/*    console.log({ name: "Before add track", count: secondMediaStream.getVideoTracks().length });*/}
-          {/*    secondMediaStream.addTrack(originalStream.getVideoTracks()[0]);*/}
-          {/*    console.log({ name: "After add track", count: secondMediaStream.getVideoTracks().length });*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  Add track to media stream*/}
-          {/*</button>*/}
-
-          {/*<button*/}
-          {/*  className="btn btn-info btn-sm"*/}
-          {/*  onClick={async () => {*/}
-          {/*    if (!originalStream) throw Error("originalStream is null");*/}
-          {/*    originalStream.getVideoTracks().forEach((track) => {*/}
-          {/*      track.stop();*/}
-          {/*    });*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  Stop track*/}
-          {/*</button>*/}
-
-          {/*<button*/}
-          {/*  className="btn btn-info btn-sm"*/}
-          {/*  onClick={async () => {*/}
-          {/*    if (!originalStream) throw Error("originalStream is null");*/}
-
-          {/*    const track = originalStream.getVideoTracks()[0];*/}
-
-          {/*    console.log({ name: "Before remove track", count: secondMediaStream.getVideoTracks().length });*/}
-          {/*    secondMediaStream.removeTrack(track);*/}
-          {/*    console.log({ name: "After remove track", count: secondMediaStream.getVideoTracks().length });*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  Remove track from stream*/}
-          {/*</button>*/}
-
-          <button
-            className="btn btn-info btn-sm"
-            onClick={async () => {
-              const trackFromClient = Object.values(client?.local?.tracks ?? {})[0];
-
-              if (trackFromClient.stream) {
-                const prevTracks = trackFromClient.stream.getVideoTracks();
-
-                console.log({ name: "Active tracks", count: prevTracks.length });
-                prevTracks.forEach((track) => {
-                  console.log({ name: "Removing track", track });
-                  trackFromClient.stream?.removeTrack(track);
-                });
-
-                const trackToAdd = client?.media?.video?.media?.track ?? null;
-
-                console.log({ name: "Adding track", trackToAdd });
-
-                if (trackToAdd) {
-                  trackFromClient.stream.addTrack(trackToAdd);
-                }
-              }
-
-              console.log({ stream: trackFromClient.stream });
-            }}
-          >
-            Replace media stream
-          </button>
-        </div>
-
         <input
           type="text"
           className="input input-bordered w-full"
@@ -429,6 +272,7 @@ export const MainControls = () => {
         </div>
         <DeviceSelector
           name="Video"
+          activeDevice={video?.deviceInfo?.label ?? null}
           devices={video?.devices || null}
           setInput={(id) => {
             if (!id) return;
@@ -439,6 +283,7 @@ export const MainControls = () => {
 
         <DeviceSelector
           name="Audio"
+          activeDevice={audio?.deviceInfo?.label ?? null}
           devices={audio?.devices || null}
           setInput={(id) => {
             if (!id) return;
@@ -460,36 +305,26 @@ export const MainControls = () => {
       </div>
       <div>
         <div className="prose grid grid-rows-2">
-          {/*<div className="flex flex-col">*/}
-          {/*  Original stream*/}
-          {/*  {originalStream && <VideoPlayer stream={originalStream} />}*/}
-          {/*  secondMediaStream stream*/}
-          {/*  {secondMediaStream && <VideoPlayer stream={secondMediaStream} />}*/}
-          {/*</div>*/}
-
           <div>
             <h3>Local:</h3>
             <div className="max-w-[500px]">
               {video?.track?.kind === "video" && <VideoPlayer stream={video?.stream} />}
-              {audio?.track?.kind === "audio" && <AudioVisualizer stream={audio?.stream} />}
+              {audio?.track?.kind === "audio" && (
+                <AudioVisualizer stream={audio?.stream} trackId={audio?.track?.id ?? null} />
+              )}
               {screenShare?.track?.kind === "video" && <VideoPlayer stream={screenShare?.stream} />}
             </div>
           </div>
-          {showStreaming && (
-            <div>
-              <h3>Streaming:</h3>
-              {local.map(({ trackId, stream, track }) => {
-                return (
-                  <Fragment key={trackId}>
-                    <div className="max-w-[500px]">
-                      {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
-                      {track?.kind === "audio" && <AudioVisualizer stream={stream} />}
-                    </div>
-                  </Fragment>
-                );
-              })}
-            </div>
-          )}
+
+          <div>
+            <h3>Streaming:</h3>
+            {local.map(({ trackId, stream, track }) => (
+              <div key={trackId} className="max-w-[500px]">
+                {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
+                {track?.kind === "audio" && <AudioVisualizer trackId={track.id} stream={stream} />}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
