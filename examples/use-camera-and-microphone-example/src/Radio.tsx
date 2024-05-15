@@ -3,7 +3,7 @@ export type Props = {
   value: undefined | string;
   name: string;
   radioClass?: string;
-  options: { value: string | undefined, key: string }[];
+  options: { value: string | undefined; key: string }[];
 };
 
 export const Radio = ({ set, value, name, radioClass, options }: Props) => {
