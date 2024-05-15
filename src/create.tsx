@@ -358,41 +358,18 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     useEffect(() => {
-      let adding = false;
-      const mediaStream = new MediaStream();
+      let pending = false;
 
       const broadcastOnCameraStart = async (
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          !adding &&
-          configRef.current.camera.broadcastOnDeviceStart
-        ) {
-          if (client.devices.camera.broadcast?.stream) {
-            const newTrack = client.devices.camera.stream?.getVideoTracks()[0];
+        const broadcastOnDeviceChange = configRef.current.camera.broadcastOnDeviceChange ?? "replace";
 
-            if (!newTrack || !client.devices.camera.stream) {
-              console.log("New track is empty");
-              return;
-            }
+        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+          if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
+            pending = true;
 
-            // if(mediaStream.getVideoTracks().length) {
-            //   console.log("Removing old tracks")
-            //   mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
-            // }
-            // mediaStream.addTrack(newTrack);
-            //
-            console.log("Replacing track");
-
-            await client.devices.camera.replaceTrack(newTrack, client.devices.camera.stream);
-
-          } else {
-            adding = true;
-
-            console.log("Adding track")
             await client.devices.camera
               .addTrack(
                 configRef.current.camera.defaultTrackMetadata,
@@ -400,11 +377,21 @@ export const create = <PeerMetadata, TrackMetadata>(
                 configRef.current.camera.defaultMaxBandwidth,
               )
               .finally(() => {
-                adding = false;
+                pending = false;
               });
+          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "replace") {
+            pending = true;
+
+            await client.devices.camera.replaceTrack().finally(() => {
+              pending = false;
+            });
+          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "stop") {
+            pending = true;
+
+            await client.devices.camera.removeTrack().finally(() => {
+              pending = false;
+            });
           }
-        } else {
-          console.log({ name: "ignoring" });
         }
       };
 
