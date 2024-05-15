@@ -1,7 +1,9 @@
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 import {
+  AuthErrorReason,
   BandwidthLimit,
+  Component,
   ConnectConfig,
   CreateConfig,
   JellyfishClient,
@@ -11,8 +13,6 @@ import {
   TrackBandwidthLimit,
   TrackContext,
   TrackEncoding,
-  Component,
-  AuthErrorReason,
 } from "@jellyfish-dev/ts-client-sdk";
 import { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
@@ -833,60 +833,20 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (!prevTrack) throw Error("There is no video track");
 
-          const stream = prevTrack.stream;
-          const track = stream?.getTracks()[0] ?? null
+          const track = this.devices.camera.stream?.getVideoTracks()[0];
 
-          if (!track) throw Error("Track is empty")
-          if (!stream) throw Error("Stream is empty")
-
-          console.log({ _name: "replace track - current broadcasted stream from local", streamId: stream.id, trackIdInThatStream: track?.id });
-
-          const broadcastedStream1 = this.devices.camera.broadcast?.stream
-          const broadcastedTrack1 = broadcastedStream1?.getVideoTracks()[0]
-
-          if (!broadcastedStream1) throw Error("New stream is empty")
-          if (!broadcastedTrack1) throw Error("New track is empty")
-
-          console.log({ _name: "replace track - current broadcasted stream from broadcasted", streamId: broadcastedStream1.id, trackIdInThatStream: broadcastedTrack1?.id });
-
-          const newStream = this.devices.camera.stream
-          const newTrack = newStream?.getVideoTracks()[0]
-
-          if (!newStream) throw Error("New stream is empty")
-          if (!newTrack) throw Error("New track is empty")
-
-          console.log({ _name: "replace track - new track to replace", streamId: newStream?.id, trackIdInThatStream: newTrack?.id });
-
-          // console.log({ name: "tracks before removing", count: stream?.getVideoTracks().length });
-          // stream?.removeTrack(stream?.getVideoTracks()[0]);
-          // console.log({ name: "tracks after removing", count: stream?.getVideoTracks().length });
-          //
-          // stream?.addTrack(track);
-          // console.log({ name: "tracks after adding", count: stream?.getVideoTracks().length });
+          if (!track) throw Error("New track is empty")
 
           this.currentCameraTrackId = track.id;
 
-          // console.log({ _name: "replacing old stream with track from media", streamId: stream.id, trackId: track?.id });
-
-          const promise = await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
+          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
 
           const broadcastedStream = this.devices.camera.broadcast?.stream
-          const broadcastedTrack = broadcastedStream?.getVideoTracks()[0]
 
           if (!broadcastedStream) throw Error("New stream is empty")
-          if (!broadcastedTrack) throw Error("New track is empty")
 
-
-          console.log({ name: "tracks before removing", count: broadcastedStream?.getVideoTracks().length });
           broadcastedStream?.removeTrack(broadcastedStream?.getVideoTracks()[0]);
-          console.log({ name: "tracks after removing", count: broadcastedStream?.getVideoTracks().length });
-
-          broadcastedStream.addTrack(newTrack)
-          console.log({ name: "tracks after adding", count: broadcastedStream?.getVideoTracks().length });
-
-          console.log({ _name: "replace track - track replaced, current broadcasted", streamId: broadcastedStream.id, trackIdInThatStream: broadcastedTrack?.id });
-
-          return promise;
+          broadcastedStream.addTrack(track)
         },
         broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,

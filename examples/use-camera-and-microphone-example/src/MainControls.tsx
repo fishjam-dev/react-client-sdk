@@ -137,7 +137,7 @@ export const MainControls = () => {
 
               console.log("Broadcast");
               console.log({
-                // track: trackFromClient.track,
+                track: trackFromClient.track,
                 stream: trackFromClient.stream?.id,
                 trackFromStream: trackFromStream?.id,
                 tracksInStream: trackFromClient.stream?.getVideoTracks().length,
@@ -147,7 +147,7 @@ export const MainControls = () => {
               console.log("Local device");
               const localTrackFromStream = video.stream?.getVideoTracks()[0];
               console.log({
-                // track: video.track,
+                track: video.track,
                 stream: video.stream?.id,
                 trackFromStream: localTrackFromStream?.id,
                 tracksInStream: video.stream?.getVideoTracks().length,
