@@ -6,10 +6,10 @@ import { JellyfishContextProvider } from "./jellyfishSetup";
 import AdditionalControls from "./AdditionalControls";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  // <React.StrictMode>
-  <JellyfishContextProvider>
-    <MainControls />
-    <AdditionalControls />
-  </JellyfishContextProvider>,
-  // </React.StrictMode>,
+  <React.StrictMode>
+    <JellyfishContextProvider>
+      <MainControls />
+      <AdditionalControls />
+    </JellyfishContextProvider>
+  </React.StrictMode>,
 );
