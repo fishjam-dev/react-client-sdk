@@ -22,18 +22,26 @@ import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
-import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, ClientEvents } from "@jellyfish-dev/react-client-sdk";
-import { Fragment } from "react";
+import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@jellyfish-dev/react-client-sdk";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
+import { Radio } from "./Radio";
+
+type RestartChange = "stop" | "replace" | undefined;
+
+const isRestartChange = (e: string | undefined): e is RestartChange => {
+  return e === undefined || e === "stop" || e === "replace";
+};
 
 const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnConnect", undefined);
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnDeviceStart", undefined);
+const broadcastVideoOnDeviceChangeAtom = atomWithStorage<RestartChange>("broadcastVideoOnDeviceChange", undefined);
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnConnect", undefined);
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnDeviceStart", undefined);
+const broadcastAudioOnDeviceChangeAtom = atomWithStorage<RestartChange>("broadcastAudioOnDeviceChange", undefined);
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
@@ -59,9 +67,11 @@ export const MainControls = () => {
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(broadcastVideoOnConnectAtom);
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(broadcastVideoOnDeviceStartAtom);
+  const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] = useAtom(broadcastVideoOnDeviceChangeAtom);
 
   const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(broadcastAudioOnConnectAtom);
   const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(broadcastAudioOnDeviceStartAtom);
+  const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] = useAtom(broadcastAudioOnDeviceChangeAtom);
 
   const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] = useAtom(broadcastScreenShareOnConnectAtom);
   const [broadcastScreenShareOnDeviceStart, setBroadcastScreenShareOnDeviceStart] = useAtom(
@@ -75,6 +85,7 @@ export const MainControls = () => {
       trackConstraints: VIDEO_TRACK_CONSTRAINTS,
       broadcastOnConnect: broadcastVideoOnConnect,
       broadcastOnDeviceStart: broadcastVideoOnDeviceStart,
+      broadcastOnDeviceChange: broadcastVideoOnDeviceChange,
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
@@ -86,6 +97,7 @@ export const MainControls = () => {
       trackConstraints: AUDIO_TRACK_CONSTRAINTS,
       broadcastOnConnect: broadcastAudioOnConnect,
       broadcastOnDeviceStart: broadcastAudioOnDeviceStart,
+      broadcastOnDeviceChange: broadcastAudioOnDeviceChange,
       defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
     screenShare: {
@@ -199,12 +211,24 @@ export const MainControls = () => {
             set={setBroadcastVideoOnConnect}
             radioClass="radio-primary"
           />
-
           <ThreeStateRadio
             name="Broadcast video on device start (default false)"
             value={broadcastVideoOnDeviceStart}
             set={setBroadcastVideoOnDeviceStart}
             radioClass="radio-primary"
+          />
+          <Radio
+            name='Broadcast video on device change (default "replace")'
+            value={broadcastVideoOnDeviceChange}
+            set={(value) => {
+              if (isRestartChange(value)) setBroadcastVideoOnDeviceChange(value);
+            }}
+            radioClass="radio-primary"
+            options={[
+              { value: undefined, key: "undefined" },
+              { value: "stop", key: "stop" },
+              { value: "replace", key: "replace" },
+            ]}
           />
 
           <ThreeStateRadio
@@ -219,22 +243,36 @@ export const MainControls = () => {
             set={setBroadcastAudioOnDeviceStart}
             radioClass="radio-secondary"
           />
+          <Radio
+            name='Broadcast audio on device change (default "replace")'
+            value={broadcastAudioOnDeviceChange}
+            set={(value) => {
+              if (isRestartChange(value)) setBroadcastAudioOnDeviceChange(value);
+            }}
+            radioClass="radio-secondary"
+            options={[
+              { value: undefined, key: "undefined" },
+              { value: "stop", key: "stop" },
+              { value: "replace", key: "replace" },
+            ]}
+          />
 
           <ThreeStateRadio
             name="Broadcast screen share on connect (default false)"
             value={broadcastScreenShareOnConnect}
             set={setBroadcastScreenShareOnConnect}
-            radioClass="radio-secondary"
+            radioClass="radio-accent"
           />
           <ThreeStateRadio
             name="Broadcast screen share on device start (default false)"
             value={broadcastScreenShareOnDeviceStart}
             set={setBroadcastScreenShareOnDeviceStart}
-            radioClass="radio-secondary"
+            radioClass="radio-accent"
           />
         </div>
         <DeviceSelector
           name="Video"
+          activeDevice={video?.deviceInfo?.label ?? null}
           devices={video?.devices || null}
           setInput={(id) => {
             if (!id) return;
@@ -245,6 +283,7 @@ export const MainControls = () => {
 
         <DeviceSelector
           name="Audio"
+          activeDevice={audio?.deviceInfo?.label ?? null}
           devices={audio?.devices || null}
           setInput={(id) => {
             if (!id) return;
@@ -270,19 +309,20 @@ export const MainControls = () => {
             <h3>Local:</h3>
             <div className="max-w-[500px]">
               {video?.track?.kind === "video" && <VideoPlayer stream={video?.stream} />}
-              {audio?.track?.kind === "audio" && <AudioVisualizer stream={audio?.stream} />}
+              {audio?.track?.kind === "audio" && (
+                <AudioVisualizer stream={audio?.stream} trackId={audio?.track?.id ?? null} />
+              )}
               {screenShare?.track?.kind === "video" && <VideoPlayer stream={screenShare?.stream} />}
             </div>
           </div>
+
           <div>
             <h3>Streaming:</h3>
             {local.map(({ trackId, stream, track }) => (
-              <Fragment key={trackId}>
-                <div className="max-w-[500px]">
-                  {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
-                  {track?.kind === "audio" && <AudioVisualizer stream={stream} />}
-                </div>
-              </Fragment>
+              <div key={trackId} className="max-w-[500px]">
+                {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
+                {track?.kind === "audio" && <AudioVisualizer trackId={track.id} stream={stream} />}
+              </div>
             ))}
           </div>
         </div>

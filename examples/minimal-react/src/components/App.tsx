@@ -1,7 +1,7 @@
 import VideoPlayer from "./VideoPlayer";
-import { JellyfishClient, SCREEN_SHARING_MEDIA_CONSTRAINTS, Client } from "@jellyfish-dev/react-client-sdk";
+import { SCREEN_SHARING_MEDIA_CONSTRAINTS, Client } from "@jellyfish-dev/react-client-sdk";
 import { useState } from "react";
-import { useConnect, useDisconnect, useClient, useStatus, useTracks, useSelector } from "./client";
+import { useConnect, useDisconnect, useClient, useStatus, useTracks } from "./client";
 
 // Example metadata types for peer and track
 // You can define your own metadata types just make sure they are serializable

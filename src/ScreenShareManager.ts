@@ -14,7 +14,7 @@ export type DisplayMediaManagerEvents = {
     event: {
       type: TrackType;
       error: DeviceError | null;
-      rawError: any;
+      rawError: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     },
     state: ScreenShareDeviceState,
   ) => void;

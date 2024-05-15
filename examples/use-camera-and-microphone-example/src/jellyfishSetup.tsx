@@ -85,7 +85,7 @@ export const useAuthErrorReason = () => {
       client.removeListener("authError", authError);
       client.removeListener("authSuccess", authSuccess);
     };
-  }, [setAuthError]);
+  }, [setAuthError, client]);
 
   return authError;
 };

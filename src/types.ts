@@ -78,6 +78,11 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
      */
     broadcastOnDeviceStart?: boolean;
+    /**
+     * Determines whether track should be replaced when the user requests a device.
+     * default: replace
+     */
+    broadcastOnDeviceChange?: "replace" | "stop";
 
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
@@ -93,6 +98,11 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
      */
     broadcastOnDeviceStart?: boolean;
+    /**
+     * Determines whether track should be replaced when the user requests a device.
+     * default: replace
+     */
+    broadcastOnDeviceChange?: "replace" | "stop";
 
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
@@ -131,7 +141,7 @@ export type UseCameraResult<TrackMetadata> = {
     maxBandwidth?: TrackBandwidthLimit,
   ) => Promise<string>;
   removeTrack: () => Promise<void>;
-  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
+  replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null; // todo how to remove null
   stream: MediaStream | null;
@@ -149,7 +159,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
   start: (deviceId?: string) => void;
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
-  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
+  replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;
@@ -167,7 +177,6 @@ export type UseScreenShareResult<TrackMetadata> = {
   start: (config?: ScreenShareManagerConfig) => void;
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
-  replaceTrack: (newTrack: MediaStreamTrack, stream: MediaStream, newTrackMetadata?: TrackMetadata) => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;

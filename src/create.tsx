@@ -78,7 +78,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     const subscribe = useCallback((cb: () => void) => {
       const client = clientRef.current;
 
-      const callback = (event: any) => {
+      const callback = () => {
         mutationRef.current = true;
         cb();
       };
@@ -275,7 +275,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       state.client.setDeviceManagerConfig({
         storage: config.storage,
       });
-    }, [config]);
+    }, [config, state.client]);
 
     useEffect(() => {
       if (configRef.current.startOnMount && state.deviceManager.getStatus() === "uninitialized") {
@@ -288,30 +288,40 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, []);
 
     useEffect(() => {
-      let adding = false;
+      let pending = false;
 
       const broadcastOnCameraStart = async (
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          !adding &&
-          !client.devices.camera.broadcast?.stream &&
-          configRef.current.camera.broadcastOnDeviceStart
-        ) {
-          adding = true;
+        const broadcastOnDeviceChange = configRef.current.camera.broadcastOnDeviceChange ?? "replace";
 
-          await client.devices.camera
-            .addTrack(
-              configRef.current.camera.defaultTrackMetadata,
-              configRef.current.camera.defaultSimulcastConfig,
-              configRef.current.camera.defaultMaxBandwidth,
-            )
-            .finally(() => {
-              adding = false;
+        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+          if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
+            pending = true;
+
+            await client.devices.camera
+              .addTrack(
+                configRef.current.camera.defaultTrackMetadata,
+                configRef.current.camera.defaultSimulcastConfig,
+                configRef.current.camera.defaultMaxBandwidth,
+              )
+              .finally(() => {
+                pending = false;
+              });
+          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "replace") {
+            pending = true;
+
+            await client.devices.camera.replaceTrack().finally(() => {
+              pending = false;
             });
+          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "stop") {
+            pending = true;
+
+            await client.devices.camera.removeTrack().finally(() => {
+              pending = false;
+            });
+          }
         }
       };
 
@@ -345,7 +355,7 @@ export const create = <PeerMetadata, TrackMetadata>(
         state.client.removeListener("devicesReady", devicesReady);
         state.client.removeListener("deviceReady", deviceReady);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       const removeOnCameraStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
@@ -367,7 +377,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("deviceStopped", removeOnCameraStopped);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
@@ -385,32 +395,42 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("joined", broadcastCameraOnConnect);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
-      let adding = false;
+      let pending = false;
 
       const broadcastOnMicrophoneStart = async (
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          !adding &&
-          !client.devices.microphone.broadcast?.stream &&
-          configRef.current.microphone.broadcastOnDeviceStart
-        ) {
-          adding = true;
+        const broadcastOnDeviceChange = configRef.current.microphone.broadcastOnDeviceChange ?? "replace";
 
-          await client.devices.microphone
-            .addTrack(
-              configRef.current.microphone.defaultTrackMetadata,
-              configRef.current.microphone.defaultMaxBandwidth,
-            )
-            .finally(() => {
-              adding = false;
+        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+          if (!client.devices.microphone.broadcast?.stream && configRef.current.microphone.broadcastOnDeviceStart) {
+            pending = true;
+
+            await client.devices.microphone
+              .addTrack(
+                configRef.current.microphone.defaultTrackMetadata,
+                configRef.current.microphone.defaultMaxBandwidth,
+              )
+              .finally(() => {
+                pending = false;
+              });
+          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "replace") {
+            pending = true;
+
+            await client.devices.microphone.replaceTrack().finally(() => {
+              pending = false;
             });
+          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "stop") {
+            pending = true;
+
+            await client.devices.microphone.removeTrack().finally(() => {
+              pending = false;
+            });
+          }
         }
       };
 
@@ -444,7 +464,7 @@ export const create = <PeerMetadata, TrackMetadata>(
         state.client.removeListener("deviceReady", deviceReady);
         state.client.removeListener("devicesReady", devicesReady);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       const removeOnMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
@@ -466,7 +486,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("deviceStopped", removeOnMicrophoneStopped);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
@@ -483,7 +503,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("joined", broadcastMicrophoneOnConnect);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       let adding = false;
@@ -517,7 +537,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("deviceReady", broadcastOnScreenShareStart);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       const removeOnScreenShareStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
@@ -538,7 +558,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("deviceStopped", removeOnScreenShareStopped);
       };
-    }, []);
+    }, [state.client]);
 
     useEffect(() => {
       const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
@@ -555,7 +575,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("joined", broadcastScreenShareOnConnect);
       };
-    }, []);
+    }, [state.client]);
 
     return useMemo(
       () => ({
