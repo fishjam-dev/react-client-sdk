@@ -1,12 +1,12 @@
 # Fishjam React client
 
-React client library for [Fishjam](https://github.com/jellyfish-dev/jellyfish).
+React client library for [Fishjam](https://github.com/fishjam-dev/fishjam).
 It is a wrapper around
-the [Fishjam TS client](https://github.com/jellyfish-dev/react-client-sdk/tree/main/src/jellyfish).
+the [Fishjam TS client](https://github.com/fishjam-dev/ts-client-sdk).
 
 ## Documentation
 
-Documentation is available [here](https://jellyfish-dev.github.io/react-client-sdk/) or you can generate it locally:
+Documentation is available [here](https://fishjam-dev.github.io/react-client-sdk/) or you can generate it locally:
 
 ```bash
 npm run docs
@@ -25,16 +25,16 @@ It was tested with `nodejs` version mentioned in `.tool-versions` file.
 ## Usage
 
 For pure TypeScript usage,
-see [Fishjam TS client](https://github.com/jellyfish-dev/react-client-sdk/tree/main/src/jellyfish).
+see [Fishjam TS client](https://github.com/fishjam-dev/ts-client-sdk).
 
 Prerequisites:
 
-- Running [Fishjam](https://github.com/jellyfish-dev/jellyfish) server.
+- Running [Fishjam](https://github.com/fishjam-dev/fishjam) server.
 - Created room and token of peer in that room.
-  You can use [dashboard](https://github.com/jellyfish-dev/jellyfish-dashboard) to create room and peer token.
+  You can use [dashboard](https://github.com/fishjam-dev/fishjam-dashboard) to create room and peer token.
 
 This snippet is based
-on [minimal-react](https://github.com/jellyfish-dev/react-client-sdk/tree/main/examples/minimal-react) example.
+on [minimal-react](https://github.com/fishjam-dev/react-client-sdk/tree/main/examples/minimal-react) example.
 
 ```tsx
 // main.tsx
@@ -137,27 +137,27 @@ Detailed information about contributing to Fishjam Dashboard can be found in [co
 
 ## Examples
 
-For examples, see [examples](https://github.com/jellyfish-dev/react-client-sdk/tree/main/examples) folder.
+For examples, see [examples](https://github.com/fishjam-dev/react-client-sdk/tree/main/examples) folder.
 
 More information about usage of webrtc can be found
-in [MembraneWebRTC documentation](https://jellyfish-dev.github.io/membrane-webrtc-js/).
+in [MembraneWebRTC documentation](https://fishjam-dev.github.io/membrane-webrtc-js/).
 
 ## Fishjam ecosystem
 
-|             |                                                                                                                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Client SDKs | [React](https://github.com/jellyfish-dev/react-client-sdk), [React Native](https://github.com/jellyfish-dev/react-native-client-sdk), [iOs](https://github.com/jellyfish-dev/ios-client-sdk), [Android](https://github.com/jellyfish-dev/android-client-sdk) |
-| Server SDKs | [Elixir](https://github.com/jellyfish-dev/elixir_server_sdk), [Python](https://github.com/jellyfish-dev/python-server-sdk), [OpenAPI](https://jellyfish-dev.github.io/jellyfish-docs/api_reference/rest_api)                                                 |
-| Services    | [Videoroom](https://github.com/jellyfish-dev/jellyfish_videoroom) - an example videoconferencing app written in elixir <br/> [Dashboard](https://github.com/jellyfish-dev/jellyfish-dashboard) - an internal tool used to showcase Fishjam's capabilities  |
-| Resources   | [Fishjam Book](https://jellyfish-dev.github.io/book/) - theory of the framework, [Docs](https://jellyfish-dev.github.io/jellyfish-docs/), [Tutorials](https://github.com/jellyfish-dev/jellyfish-clients-tutorials)                                        |
-| Membrane    | Fishjam is based on [Membrane](https://membrane.stream/), [Discord](https://discord.gg/nwnfVSY)                                                                                                                                                            |
-| Compositor  | [Compositor](https://github.com/membraneframework/membrane_video_compositor_plugin) - Membrane plugin to transform video                                                                                                                                     |
-| Protobufs   | If you want to use Fishjam on your own, you can use our [protobufs](https://github.com/jellyfish-dev/protos)                                                                                                                                               |
+|             |                                                                                                                                                                                                                                                      |
+| ----------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Client SDKs | [React](https://github.com/fishjam-dev/react-client-sdk), [React Native](https://github.com/fishjam-dev/react-native-client-sdk), [iOs](https://github.com/fishjam-dev/ios-client-sdk), [Android](https://github.com/fishjam-dev/android-client-sdk) |
+| Server SDKs | [Elixir](https://github.com/fishjam-dev/elixir_server_sdk), [Python](https://github.com/fishjam-dev/python-server-sdk), [OpenAPI](https://fishjam-dev.github.io/fishjam-docs/api_reference/rest_api)                                                                                                                  |
+| Services    | [Videoroom](https://github.com/fishjam-dev/fishjam-videoroom) - an example videoconferencing app written in elixir <br/> [Dashboard](https://github.com/fishjam-dev/fishjam-dashboard) - an internal tool used to showcase Fishjam's capabilities    |
+| Resources   | [Fishjam Book](https://fishjam-dev.github.io/book/) - theory of the framework, [Docs](https://fishjam-dev.github.io/fishjam-docs/), [Tutorials](https://github.com/fishjam-dev/fishjam-clients-tutorials)                                            |
+| Membrane    | Fishjam is based on [Membrane](https://membrane.stream/), [Discord](https://discord.gg/nwnfVSY)                                                                                                                                                      |
+| Compositor  | [Compositor](https://github.com/membraneframework/membrane_video_compositor_plugin) - Membrane plugin to transform video                                                                                                                             |
+| Protobufs   | If you want to use Fishjam on your own, you can use our [protobufs](https://github.com/fishjam-dev/protos)                                                                                                                                           |
 
 ## Copyright and License
 
-Copyright 2023, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=jellyfish)
+Copyright 2023, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=fishjam)
 
-[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=jellyfish)
+[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=fishjam)
 
 Licensed under the [Apache License, Version 2.0](LICENSE)
