@@ -1,4 +1,4 @@
-import { PeerStatus } from "@jellyfish-dev/react-client-sdk";
+import { PeerStatus } from "@fishjam-dev/react-client-sdk";
 
 type Props = {
   status: PeerStatus;
