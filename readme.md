@@ -17,7 +17,7 @@ npm run docs
 You can install the library using `npm`:
 
 ```bash
-npm install @fishjam-dev/react-client-sdk
+npm install @fishjam-dev/react-client
 ```
 
 It was tested with `nodejs` version mentioned in `.tool-versions` file.
@@ -52,8 +52,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
 // components/App.tsx
 import VideoPlayer from "./VideoPlayer";
-import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@fishjam-dev/react-client-sdk";
-import { create } from "@fishjam-dev/react-client-sdk";
+import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@fishjam-dev/react-client";
+import { create } from "@fishjam-dev/react-client";
 import { useState } from "react";
 
 // Example metadata types for peer and track

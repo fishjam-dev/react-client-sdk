@@ -1,5 +1,5 @@
 {
-  "name": "@fishjam-dev/react-client-sdk",
+  "name": "@fishjam-dev/react-client",
   "version": "0.3.1",
   "description": "React client library for Fishjam.",
   "license": "Apache-2.0",

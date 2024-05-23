@@ -9,7 +9,7 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
-    "@fishjam-dev/react-client-sdk": "file:../..",
+    "@fishjam-dev/react-client": "file:../..",
     "jotai": "^2.6.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

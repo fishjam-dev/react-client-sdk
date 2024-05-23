@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ClientEvents, create } from "@fishjam-dev/react-client-sdk";
+import { ClientEvents, create } from "@fishjam-dev/react-client";
 import { useEffect, useState } from "react";
 
 const peerMetadataSchema = z.object({
