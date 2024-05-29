@@ -1,6 +1,6 @@
 import type { TrackEncoding, VadStatus, SimulcastConfig } from "@fishjam-dev/ts-client";
-import { UseUserMediaState } from "./types";
-import { UseCameraAndMicrophoneResult } from "./types";
+import { MediaState } from "./types";
+import { Devices } from "./types";
 import { Client } from "./Client";
 import { DeviceManager } from "./DeviceManager";
 import { ScreenShareManager } from "./ScreenShareManager";
@@ -48,8 +48,8 @@ export type State<PeerMetadata, TrackMetadata> = {
   tracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
   bandwidthEstimation: bigint;
   status: PeerStatus;
-  media: UseUserMediaState | null;
-  devices: UseCameraAndMicrophoneResult<TrackMetadata>;
+  media: MediaState | null;
+  devices: Devices<TrackMetadata>;
   client: Client<PeerMetadata, TrackMetadata>;
   deviceManager: DeviceManager;
   screenShareManager: ScreenShareManager;

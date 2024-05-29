@@ -20,9 +20,9 @@ import { MediaDeviceType, ScreenShareManager, ScreenShareManagerConfig } from ".
 import {
   DeviceManagerConfig,
   DeviceState,
-  InitMediaConfig,
-  UseCameraAndMicrophoneResult,
-  UseUserMediaState,
+  DeviceManagerInitConfig,
+  Devices,
+  MediaState,
 } from "./types";
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
@@ -36,8 +36,8 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
 
   bandwidthEstimation: bigint;
   status: PeerStatus;
-  media: UseUserMediaState | null;
-  devices: UseCameraAndMicrophoneResult<TrackMetadata>;
+  media: MediaState | null;
+  devices: Devices<TrackMetadata>;
   deviceManager: DeviceManager;
   screenShareManager: ScreenShareManager;
 };
@@ -302,8 +302,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
   public bandwidthEstimation: bigint = BigInt(0);
   public status: PeerStatus = null;
-  public media: UseUserMediaState | null = null;
-  public devices: UseCameraAndMicrophoneResult<TrackMetadata>;
+  public media: MediaState | null = null;
+  public devices: Devices<TrackMetadata>;
 
   private currentMicrophoneTrackId: string | null = null;
   private currentCameraTrackId: string | null = null;
@@ -776,8 +776,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       (track) => track.track?.id === this.currentScreenShareTrackId,
     );
 
-    const devices: UseCameraAndMicrophoneResult<TrackMetadata> = {
-      init: (config?: InitMediaConfig) => {
+    const devices: Devices<TrackMetadata> = {
+      init: (config?: DeviceManagerInitConfig) => {
         this?.deviceManager?.init(config);
       },
       start: (config) => this?.deviceManager?.start(config),

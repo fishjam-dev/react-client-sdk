@@ -14,10 +14,10 @@ import { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import { ConnectConfig, CreateConfig } from "@fishjam-dev/ts-client";
 import {
   DeviceManagerConfig,
-  UseCameraAndMicrophoneResult,
-  UseCameraResult,
-  UseMicrophoneResult,
-  UseScreenShareResult,
+  Devices,
+  CameraAPI,
+  MicrophoneAPI,
+  ScreenShareAPI,
   UseSetupMediaConfig,
   UseSetupMediaResult,
 } from "./types";
@@ -42,9 +42,9 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
   useSetupMedia: (config: UseSetupMediaConfig<TrackMetadata>) => UseSetupMediaResult;
-  useCamera: () => UseCameraAndMicrophoneResult<TrackMetadata>["camera"];
-  useMicrophone: () => UseCameraAndMicrophoneResult<TrackMetadata>["microphone"];
-  useScreenShare: () => UseScreenShareResult<TrackMetadata>;
+  useCamera: () => Devices<TrackMetadata>["camera"];
+  useMicrophone: () => Devices<TrackMetadata>["microphone"];
+  useScreenShare: () => ScreenShareAPI<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
 };
 
@@ -249,13 +249,13 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useTracks = () => useSelector((s) => s.tracks);
   const useClient = () => useSelector((s) => s.client);
 
-  const useCamera = (): UseCameraResult<TrackMetadata> => {
+  const useCamera = (): CameraAPI<TrackMetadata> => {
     const { state } = useFishjamContext();
 
     return state.devices.camera;
   };
 
-  const useMicrophone = (): UseMicrophoneResult<TrackMetadata> => {
+  const useMicrophone = (): MicrophoneAPI<TrackMetadata> => {
     const { state } = useFishjamContext();
 
     return state.devices.microphone;
@@ -589,7 +589,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     );
   };
 
-  const useScreenShare = (): UseScreenShareResult<TrackMetadata> => {
+  const useScreenShare = (): ScreenShareAPI<TrackMetadata> => {
     const { state } = useFishjamContext();
     return state.devices.screenShare;
   };

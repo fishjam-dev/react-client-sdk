@@ -22,12 +22,12 @@ export type DeviceState = {
   error: DeviceError | null;
 };
 
-export type UseUserMediaState = {
+export type MediaState = {
   video: DeviceState;
   audio: DeviceState;
 };
 
-export type InitMediaConfig = {
+export type DeviceManagerInitConfig = {
   videoTrackConstraints?: boolean | MediaTrackConstraints;
   audioTrackConstraints?: boolean | MediaTrackConstraints;
 };
@@ -46,7 +46,7 @@ export type StorageConfig = {
   saveLastVideoDevice: (info: MediaDeviceInfo) => void;
 };
 
-export type UseUserMediaStartConfig = {
+export type DeviceManagerStartConfig = {
   audioDeviceId?: string | boolean;
   videoDeviceId?: string | boolean;
 };
@@ -131,7 +131,7 @@ export type UseSetupMediaResult = {
   init: () => void;
 };
 
-export type UseCameraResult<TrackMetadata> = {
+export type CameraAPI<TrackMetadata> = {
   stop: () => void;
   setEnable: (value: boolean) => void;
   start: (deviceId?: string) => void;
@@ -153,7 +153,7 @@ export type UseCameraResult<TrackMetadata> = {
   devices: MediaDeviceInfo[] | null;
 };
 
-export type UseMicrophoneResult<TrackMetadata> = {
+export type MicrophoneAPI<TrackMetadata> = {
   stop: () => void;
   setEnable: (value: boolean) => void;
   start: (deviceId?: string) => void;
@@ -171,7 +171,7 @@ export type UseMicrophoneResult<TrackMetadata> = {
   devices: MediaDeviceInfo[] | null;
 };
 
-export type UseScreenShareResult<TrackMetadata> = {
+export type ScreenShareAPI<TrackMetadata> = {
   stop: () => void;
   setEnable: (value: boolean) => void;
   start: (config?: ScreenShareManagerConfig) => void;
@@ -187,12 +187,12 @@ export type UseScreenShareResult<TrackMetadata> = {
   error: DeviceError | null;
 };
 
-export type UseCameraAndMicrophoneResult<TrackMetadata> = {
-  camera: UseCameraResult<TrackMetadata>;
-  microphone: UseMicrophoneResult<TrackMetadata>;
-  screenShare: UseScreenShareResult<TrackMetadata>;
+export type Devices<TrackMetadata> = {
+  camera: CameraAPI<TrackMetadata>;
+  microphone: MicrophoneAPI<TrackMetadata>;
+  screenShare: ScreenShareAPI<TrackMetadata>;
   init: (config?: DeviceManagerConfig) => void;
-  start: (config: UseUserMediaStartConfig) => void;
+  start: (config: DeviceManagerStartConfig) => void;
 };
 
 export const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };
