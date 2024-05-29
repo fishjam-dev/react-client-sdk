@@ -695,14 +695,13 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
   public addTrack(
     track: MediaStreamTrack,
-    stream: MediaStream,
     trackMetadata?: TrackMetadata,
     simulcastConfig: SimulcastConfig = { enabled: false, activeEncodings: [], disabledEncodings: [] },
     maxBandwidth: TrackBandwidthLimit = 0, // unlimited bandwidth
   ): Promise<string> {
     if (!this.tsClient) throw Error("Client not initialized");
 
-    return this.tsClient.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
+    return this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
   }
 
   public removeTrack(trackId: string): Promise<void> {
@@ -806,10 +805,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           this.currentCameraTrackId = track?.id;
 
-          const stream = new MediaStream();
-          stream.addTrack(track);
-
-          return this.tsClient.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
+          return this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
@@ -830,15 +826,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           if (!track) throw Error("New track is empty");
 
           this.currentCameraTrackId = track.id;
-
-          // todo This is a temporary solution to address an issue with ts-client
-          //  Currently, ts-client does not update the track in the stream during the execution of the replaceTrack method
-          if (!this.devices.camera.broadcast?.stream) throw Error("New stream is empty");
-
-          this.devices.camera.broadcast?.stream?.removeTrack(
-            this.devices.camera.broadcast?.stream?.getVideoTracks()[0],
-          );
-          this.devices.camera.broadcast?.stream.addTrack(track);
 
           await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
@@ -872,10 +859,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           this.currentMicrophoneTrackId = track.id;
 
-          const stream = new MediaStream();
-          stream.addTrack(track);
-
-          return this.tsClient.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
+          return this.tsClient.addTrack(track, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
@@ -900,16 +884,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           if (!track) throw Error("New track is empty");
 
           this.currentMicrophoneTrackId = track.id;
-
-          // todo This is a temporary solution to address an issue with ts-client
-          //  Currently, ts-client does not update the track in the stream during the execution of the replaceTrack method
-          if (!this.devices.microphone.broadcast?.stream) throw Error("New stream is empty");
-
-          this.devices.microphone.broadcast?.stream?.removeTrack(
-            this.devices.microphone.broadcast?.stream?.getAudioTracks()[0],
-          );
-
-          this.devices.microphone.broadcast?.stream.addTrack(track);
 
           await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
@@ -946,7 +920,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           this.currentScreenShareTrackId = track?.id;
 
-          return this.tsClient.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
+          return this.tsClient.addTrack(track, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
