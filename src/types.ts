@@ -99,10 +99,18 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      */
     broadcastOnDeviceStart?: boolean;
     /**
-     * Determines whether track should be replaced when the user requests a device.
+     * Determines whether currently broadcasted track should be replaced or stopped
+     * when the user changed a device.
      * default: replace
      */
-    broadcastOnDeviceChange?: "replace" | "stop";
+    onDeviceChange?: "replace" | "stop";
+
+    /**
+     * Determines whether currently broadcasted track should be removed or muted
+     * when the user stopped a device.
+     * default: replace
+     */
+    onDeviceStop?: "remove" | "mute";
 
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
@@ -160,6 +168,9 @@ export type MicrophoneAPI<TrackMetadata> = {
   addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
+  muteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
+  unmuteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
+  updateTrackMetadata: (newTrackMetadata: TrackMetadata) => void
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;
