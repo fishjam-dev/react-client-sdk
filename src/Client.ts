@@ -307,7 +307,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   public media: MediaState | null = null;
   public devices: Devices<TrackMetadata>;
 
-  // todo remove, use remoteTrackId
   private currentMicrophoneTrackId: string | null = null;
   private currentCameraTrackId: string | null = null;
   private currentScreenShareTrackId: string | null = null;
@@ -794,9 +793,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       ? Object.values(localTracks).find((track) => track.trackId === this.currentMicrophoneTrackId)
       : null;
 
-    const screenShareVideoTrack = Object.values(localTracks).find(
-      (track) => track.track?.id === this.currentScreenShareTrackId,
-    );
+    const screenShareVideoTrack = this.currentScreenShareTrackId
+      ? Object.values(localTracks).find((track) => track.trackId === this.currentScreenShareTrackId)
+      : null;
 
     const devices: Devices<TrackMetadata> = {
       init: (config?: DeviceManagerInitConfig) => {
@@ -956,29 +955,25 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         start: (config?: ScreenShareManagerConfig) => {
           this.screenShareManager?.start(config);
         },
-        addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
+        addTrack: async (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
           const media = this.screenShareManager?.getSnapshot().videoMedia;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
-          const { stream, track } = media;
+          if (this.currentScreenShareTrackId) throw Error("Screen share track already added");
 
-          const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.currentScreenShareTrackId,
-          );
+          const trackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 
-          if (prevTrack) throw Error("Track already added");
+          this.currentScreenShareTrackId = trackId;
 
-          this.currentScreenShareTrackId = track?.id;
-
-          return this.tsClient.addTrack(track, trackMetadata, undefined, maxBandwidth);
+          return trackId;
         },
         removeTrack: () => {
-          const prevTrack = Object.values(localTracks).find(
-            (track) => track.track?.id === this.currentScreenShareTrackId,
-          );
+          if (!this.currentScreenShareTrackId) throw Error("There is no screen share track id");
 
-          if (!prevTrack) throw Error("There is no video track");
+          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentScreenShareTrackId);
+
+          if (!prevTrack) throw Error("There is no screen share video track");
 
           this.currentScreenShareTrackId = null;
 

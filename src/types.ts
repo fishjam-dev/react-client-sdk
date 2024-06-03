@@ -170,7 +170,7 @@ export type MicrophoneAPI<TrackMetadata> = {
   replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
   muteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
   unmuteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  updateTrackMetadata: (newTrackMetadata: TrackMetadata) => void
+  updateTrackMetadata: (newTrackMetadata: TrackMetadata) => void;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;

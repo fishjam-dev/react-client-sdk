@@ -493,13 +493,13 @@ export const create = <PeerMetadata, TrackMetadata>(
         ) {
           const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
 
-          if(onDeviceStop === "mute") {
+          if (onDeviceStop === "mute") {
             console.log({ name: "removeOnMicrophoneStopped-replaceTrack" });
 
-            await client.devices.microphone.muteTrack()
+            await client.devices.microphone.muteTrack();
           } else {
             console.log({ name: "removeOnMicrophoneStopped-removeTrack" });
-            await client.devices.microphone.removeTrack()
+            await client.devices.microphone.removeTrack();
           }
         }
       };
