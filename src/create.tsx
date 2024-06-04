@@ -296,7 +296,7 @@ export const create = <PeerMetadata, TrackMetadata>(
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        const broadcastOnDeviceChange = configRef.current.camera.broadcastOnDeviceChange ?? "replace";
+        const broadcastOnDeviceChange = configRef.current.camera.onDeviceChange ?? "replace";
 
         if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
           if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
@@ -376,7 +376,13 @@ export const create = <PeerMetadata, TrackMetadata>(
           event.trackType === "video" &&
           client.devices.camera.broadcast?.stream
         ) {
-          await client.devices.camera.removeTrack();
+          const onDeviceStop = configRef.current.camera.onDeviceStop ?? "mute";
+
+          if (onDeviceStop === "mute") {
+            await client.devices.camera.muteTrack();
+          } else {
+            await client.devices.camera.removeTrack();
+          }
         }
       };
 
@@ -481,7 +487,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const removeOnMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
+      const onMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
         event,
         client,
       ) => {
@@ -494,20 +500,17 @@ export const create = <PeerMetadata, TrackMetadata>(
           const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
 
           if (onDeviceStop === "mute") {
-            console.log({ name: "removeOnMicrophoneStopped-replaceTrack" });
-
             await client.devices.microphone.muteTrack();
           } else {
-            console.log({ name: "removeOnMicrophoneStopped-removeTrack" });
             await client.devices.microphone.removeTrack();
           }
         }
       };
 
-      state.client.on("deviceStopped", removeOnMicrophoneStopped);
+      state.client.on("deviceStopped", onMicrophoneStopped);
 
       return () => {
-        state.client.removeListener("deviceStopped", removeOnMicrophoneStopped);
+        state.client.removeListener("deviceStopped", onMicrophoneStopped);
       };
     }, [state.client]);
 
@@ -563,7 +566,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const removeOnScreenShareStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
+      const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
         event,
         client,
       ) => {
@@ -576,10 +579,10 @@ export const create = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      state.client.on("deviceStopped", removeOnScreenShareStopped);
+      state.client.on("deviceStopped", onScreenShareStop);
 
       return () => {
-        state.client.removeListener("deviceStopped", removeOnScreenShareStopped);
+        state.client.removeListener("deviceStopped", onScreenShareStop);
       };
     }, [state.client]);
 

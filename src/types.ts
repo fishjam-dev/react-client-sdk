@@ -82,7 +82,13 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * Determines whether track should be replaced when the user requests a device.
      * default: replace
      */
-    broadcastOnDeviceChange?: "replace" | "stop";
+    onDeviceChange?: "replace" | "stop";
+    /**
+     * Determines whether currently broadcasted track should be removed or muted
+     * when the user stopped a device.
+     * default: replace
+     */
+    onDeviceStop?: "remove" | "mute";
 
     trackConstraints: boolean | MediaTrackConstraints;
     defaultTrackMetadata?: TrackMetadata;
@@ -150,6 +156,9 @@ export type CameraAPI<TrackMetadata> = {
   ) => Promise<string>;
   removeTrack: () => Promise<void>;
   replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
+  muteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
+  unmuteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
+  updateTrackMetadata: (newTrackMetadata: TrackMetadata) => void;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null; // todo how to remove null
   stream: MediaStream | null;

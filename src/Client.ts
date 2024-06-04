@@ -332,6 +332,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         ) => Promise.reject(),
         removeTrack: () => Promise.reject(),
         replaceTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
+        muteTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
+        unmuteTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
+        updateTrackMetadata: NOOP,
         broadcast: null,
         status: null,
         stream: null,
@@ -851,6 +854,37 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           this.currentCameraTrackId = track.id;
 
           await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
+        },
+        muteTrack: async (newTrackMetadata?: TrackMetadata) => {
+          if (!this.currentCameraTrackId) throw Error("There is no video track id");
+
+          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+
+          if (!prevTrack) throw Error("There is no video track");
+
+          await this.tsClient.replaceTrack(prevTrack.trackId, null, newTrackMetadata);
+        },
+        unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
+          if (!this.currentCameraTrackId) throw Error("There is no video track id");
+
+          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+
+          if (!prevTrack) throw Error("There is no video track");
+
+          const media = this.deviceManager?.video.media;
+
+          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
+
+          await this.tsClient.replaceTrack(prevTrack.trackId, media.track, newTrackMetadata);
+        },
+        updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
+          if (!this.currentCameraTrackId) throw Error("There is no video track id");
+
+          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+
+          if (!prevTrack) throw Error("There is no video track");
+
+          this.tsClient.updateTrackMetadata(this.currentCameraTrackId, newTrackMetadata);
         },
         broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,
