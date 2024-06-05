@@ -22,10 +22,6 @@ type DeviceControlsProps = {
 );
 
 export const DeviceControls = ({ device, type, status, metadata }: DeviceControlsProps) => {
-  useEffect(() => {
-    console.log({ device });
-  }, [device]);
-
   return (
     <div className="flex flex-col gap-2">
       <button
