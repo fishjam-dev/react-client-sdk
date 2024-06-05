@@ -315,7 +315,7 @@ export const MainControls = () => {
           }}
           defaultOptionText="Select video device"
           stop={() => {
-            video.stop()
+            video.stop();
           }}
         />
 
@@ -329,7 +329,7 @@ export const MainControls = () => {
           }}
           defaultOptionText="Select audio device"
           stop={() => {
-            audio.stop()
+            audio.stop();
           }}
         />
 
@@ -359,12 +359,15 @@ export const MainControls = () => {
 
           <div>
             <h3>Streaming:</h3>
-            {local.map(({ trackId, stream, track }) => (
-              <div key={trackId} className="max-w-[500px]">
-                {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
-                {track?.kind === "audio" && <AudioVisualizer trackId={track.id} stream={stream} />}
-              </div>
-            ))}
+            <div className="max-w-[500px] flex flex-col gap-2">
+              {local.map(({ trackId, stream, track }) => (
+                <div key={trackId} className="max-w-[500px] border">
+                  <span>trackId: {trackId}</span>
+                  {track?.kind === "audio" && <AudioVisualizer trackId={track.id} stream={stream} />}
+                  {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

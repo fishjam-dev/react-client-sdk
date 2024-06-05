@@ -813,6 +813,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     const broadcastedAudioTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
     const screenShareVideoTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
 
+    console.log({ broadcastedVideoTrack });
+
     const devices: Devices<TrackMetadata> = {
       init: (config?: DeviceManagerInitConfig) => {
         this?.deviceManager?.init(config);

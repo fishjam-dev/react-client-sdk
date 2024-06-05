@@ -1,6 +1,7 @@
 import { PeerStatus } from "@fishjam-dev/react-client";
 import { TrackMetadata } from "./fishjamSetup";
 import { CameraAPI, MicrophoneAPI, ScreenShareAPI } from "../../../src";
+import { useEffect } from "react";
 
 type DeviceControlsProps = {
   status: PeerStatus;
@@ -21,6 +22,10 @@ type DeviceControlsProps = {
 );
 
 export const DeviceControls = ({ device, type, status, metadata }: DeviceControlsProps) => {
+  useEffect(() => {
+    console.log({ device });
+  }, [device]);
+
   return (
     <div className="flex flex-col gap-2">
       <button
