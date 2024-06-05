@@ -772,6 +772,27 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     this.tsClient.updateTrackMetadata(trackId, trackMetadata);
   };
 
+  // In most cases, the track is identified by its remote track ID.
+  // This ID comes from the ts-client `addTrack` method.
+  // However, we don't have that ID before the `addTrack` method returns it.
+  //
+  // The `addTrack` method emits the `localTrackAdded` event.
+  // This event will refresh the internal state of this object.
+  // However, in that event handler, we don't yet have the remote track ID.
+  // Therefore, for that brief moment, we will use the local track ID from the MediaStreamTrack object to identify the track.
+  private getRemoteTrack = (remoteOrLocalTrackId: string | null): Track<TrackMetadata> | null => {
+    if (!remoteOrLocalTrackId) return null;
+
+    const tracks = this.tsClient?.getLocalEndpoint()?.tracks;
+    if (!tracks) return null;
+
+    const trackByRemoteId = tracks?.get(remoteOrLocalTrackId);
+    if (trackByRemoteId) return this.trackContextToTrack(trackByRemoteId);
+
+    const trackByLocalId = [...tracks.values()].find((track) => track.track?.id === remoteOrLocalTrackId);
+    return trackByLocalId ? this.trackContextToTrack(trackByLocalId) : null;
+  };
+
   private stateToSnapshot() {
     if (!this.deviceManager) Error("Device manager is null");
 
@@ -788,17 +809,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
-    const broadcastedVideoTrack = this.currentCameraTrackId
-      ? Object.values(localTracks).find((track) => track.trackId === this.currentCameraTrackId)
-      : null;
-
-    const broadcastedAudioTrack = this.currentMicrophoneTrackId
-      ? Object.values(localTracks).find((track) => track.trackId === this.currentMicrophoneTrackId)
-      : null;
-
-    const screenShareVideoTrack = this.currentScreenShareTrackId
-      ? Object.values(localTracks).find((track) => track.trackId === this.currentScreenShareTrackId)
-      : null;
+    const broadcastedVideoTrack = this.getRemoteTrack(this.currentCameraTrackId);
+    const broadcastedAudioTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
+    const screenShareVideoTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
 
     const devices: Devices<TrackMetadata> = {
       init: (config?: DeviceManagerInitConfig) => {
@@ -818,21 +831,25 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit,
         ) => {
+          if (this.currentCameraTrackId) throw Error("Track already added");
+
           const media = this.deviceManager?.video.media;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-          const { track } = media;
 
-          if (this.currentCameraTrackId) throw Error("Track already added");
+          // see `getRemoteTrack()` explanation
+          this.currentCameraTrackId = media.track.id;
 
-          const remoteTrackId = await this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
+          const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
 
           this.currentCameraTrackId = remoteTrackId;
 
           return remoteTrackId;
         },
         removeTrack: () => {
-          const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
+          if (!this.currentCameraTrackId) throw Error("There is no video track id");
+
+          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
 
@@ -843,7 +860,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
           if (!this.currentCameraTrackId) throw Error("There is no audio track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
 
@@ -851,14 +868,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (!track) throw Error("New track is empty");
 
-          this.currentCameraTrackId = track.id;
-
           await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
         muteTrack: async (newTrackMetadata?: TrackMetadata) => {
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
 
@@ -867,7 +882,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
 
@@ -880,7 +895,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentCameraTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
 
           if (!prevTrack) throw Error("There is no video track");
 
@@ -906,11 +921,13 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           const media = this.deviceManager?.audio.media;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-          const { track } = media;
 
           if (this.currentMicrophoneTrackId) throw Error("Track already added");
 
-          const remoteTrackId = await this.tsClient.addTrack(track, trackMetadata, undefined, maxBandwidth);
+          // see `getRemoteTrack()` explanation
+          this.currentMicrophoneTrackId = media.track.id;
+
+          const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 
           this.currentMicrophoneTrackId = remoteTrackId;
 
@@ -919,7 +936,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         removeTrack: () => {
           if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentMicrophoneTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
 
           if (!prevTrack) throw Error("There is no audio track");
 
@@ -930,7 +947,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
           if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentMicrophoneTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
 
           if (!prevTrack) throw Error("There is no audio track");
 
@@ -943,7 +960,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         muteTrack: async (newTrackMetadata?: TrackMetadata) => {
           if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentMicrophoneTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
 
           if (!prevTrack) throw Error("There is no audio track");
 
@@ -952,7 +969,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
           if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentMicrophoneTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
 
           if (!prevTrack) throw Error("There is no audio track");
 
@@ -965,7 +982,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
           if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentMicrophoneTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
 
           if (!prevTrack) throw Error("There is no audio track");
 
@@ -996,6 +1013,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (this.currentScreenShareTrackId) throw Error("Screen share track already added");
 
+          // see `getRemoteTrack()` explanation
+          this.currentScreenShareTrackId = media.track.id;
+
           const trackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 
           this.currentScreenShareTrackId = trackId;
@@ -1005,7 +1025,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         removeTrack: () => {
           if (!this.currentScreenShareTrackId) throw Error("There is no screen share track id");
 
-          const prevTrack = this.tsClient?.getLocalEndpoint()?.tracks?.get(this.currentScreenShareTrackId);
+          const prevTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
 
           if (!prevTrack) throw Error("There is no screen share video track");
 

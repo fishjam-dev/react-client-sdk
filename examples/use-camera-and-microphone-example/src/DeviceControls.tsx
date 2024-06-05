@@ -1,20 +1,21 @@
-import { PeerStatus, UseMicrophoneResult, UseCameraResult, UseScreenShareResult } from "@fishjam-dev/react-client";
+import { PeerStatus } from "@fishjam-dev/react-client";
 import { TrackMetadata } from "./fishjamSetup";
+import { CameraAPI, MicrophoneAPI, ScreenShareAPI } from "../../../src";
 
 type DeviceControlsProps = {
   status: PeerStatus;
   metadata: TrackMetadata;
 } & (
   | {
-      device: UseMicrophoneResult<TrackMetadata>;
+      device: MicrophoneAPI<TrackMetadata>;
       type: "audio";
     }
   | {
-      device: UseCameraResult<TrackMetadata>;
+      device: CameraAPI<TrackMetadata>;
       type: "video";
     }
   | {
-      device: UseScreenShareResult<TrackMetadata>;
+      device: ScreenShareAPI<TrackMetadata>;
       type: "screenshare";
     }
 );

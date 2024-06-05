@@ -174,6 +174,9 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("localTrackAdded", callback);
         client.removeListener("localTrackRemoved", callback);
         client.removeListener("localTrackReplaced", callback);
+        client.removeListener("localTrackMuted", callback);
+        client.removeListener("localTrackUnmuted", callback);
+
         client.removeListener("localTrackBandwidthSet", callback);
         client.removeListener("localTrackEncodingBandwidthSet", callback);
         client.removeListener("localTrackEncodingEnabled", callback);
@@ -300,8 +303,6 @@ export const create = <PeerMetadata, TrackMetadata>(
 
         if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
           if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
-            console.log({ name: "broadcastOnCameraStart-addTrack" });
-
             pending = true;
 
             await client.devices.camera
@@ -314,16 +315,12 @@ export const create = <PeerMetadata, TrackMetadata>(
                 pending = false;
               });
           } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "replace") {
-            console.log({ name: "broadcastOnCameraStart-replaceTrack" });
-
             pending = true;
 
             await client.devices.camera.replaceTrack().finally(() => {
               pending = false;
             });
           } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "stop") {
-            console.log({ name: "broadcastOnCameraStart-stop" });
-
             pending = true;
 
             await client.devices.camera.removeTrack().finally(() => {
@@ -422,8 +419,6 @@ export const create = <PeerMetadata, TrackMetadata>(
 
         if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
           if (!client.devices.microphone.broadcast?.stream && configRef.current.microphone.broadcastOnDeviceStart) {
-            console.log({ name: "broadcastOnMicrophoneStart-addTrack" });
-
             pending = true;
 
             await client.devices.microphone
@@ -435,16 +430,12 @@ export const create = <PeerMetadata, TrackMetadata>(
                 pending = false;
               });
           } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "replace") {
-            console.log({ name: "broadcastOnMicrophoneStart-replaceTrack" });
-
             pending = true;
 
             await client.devices.microphone.replaceTrack().finally(() => {
               pending = false;
             });
           } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "stop") {
-            console.log({ name: "broadcastOnMicrophoneStart-removeTrack" });
-
             pending = true;
 
             await client.devices.microphone.removeTrack().finally(() => {
