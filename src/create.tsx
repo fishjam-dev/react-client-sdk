@@ -478,10 +478,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const onMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
-        event,
-        client,
-      ) => {
+      const onMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
         if (
           client.status === "joined" &&
           event.mediaDeviceType === "userMedia" &&
@@ -557,10 +554,7 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
-        event,
-        client,
-      ) => {
+      const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
         if (
           client.status === "joined" &&
           event.mediaDeviceType === "displayMedia" &&

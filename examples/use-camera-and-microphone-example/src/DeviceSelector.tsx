@@ -44,7 +44,7 @@ export const DeviceSelector = ({ name, devices, setInput, defaultOptionText, act
           className="btn btn-error btn-sm"
           disabled={!selectedDevice}
           onClick={() => {
-            stop()
+            stop();
           }}
         >
           stop
