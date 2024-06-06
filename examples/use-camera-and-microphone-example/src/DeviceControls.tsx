@@ -1,7 +1,6 @@
 import { PeerStatus } from "@fishjam-dev/react-client";
 import { TrackMetadata } from "./fishjamSetup";
 import { CameraAPI, MicrophoneAPI, ScreenShareAPI } from "../../../src";
-import { useEffect } from "react";
 
 type DeviceControlsProps = {
   status: PeerStatus;
