@@ -46,6 +46,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useMicrophone: () => Devices<TrackMetadata>["microphone"];
   useScreenShare: () => ScreenShareAPI<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
+  client: Client<PeerMetadata, TrackMetadata>;
 };
 
 /**
@@ -61,22 +62,21 @@ export const create = <PeerMetadata, TrackMetadata>(
 ): CreateFishjamClient<PeerMetadata, TrackMetadata> => {
   const FishjamContext = createContext<FishjamContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
+  const client = new Client<PeerMetadata, TrackMetadata>({
+    clientConfig: config,
+    deviceManagerDefaultConfig,
+    screenShareManagerDefaultConfig,
+  });
+
   const FishjamContextProvider: ({ children }: FishjamContextProviderProps) => JSX.Element = ({
     children,
   }: FishjamContextProviderProps) => {
-    const memoClient = useMemo(() => {
-      return new Client<PeerMetadata, TrackMetadata>({
-        clientConfig: config,
-        deviceManagerDefaultConfig,
-        screenShareManagerDefaultConfig,
-      });
-    }, []);
-
-    const clientRef = useRef(memoClient);
     const mutationRef = useRef(false);
 
     const subscribe = useCallback((cb: () => void) => {
-      const client = clientRef.current;
+      if (!client) {
+        throw new Error("Client is null");
+      }
 
       const callback = () => {
         mutationRef.current = true;
@@ -193,16 +193,16 @@ export const create = <PeerMetadata, TrackMetadata>(
     const getSnapshot: () => State<PeerMetadata, TrackMetadata> = useCallback(() => {
       if (mutationRef.current || lastSnapshotRef.current === null) {
         const state = {
-          remote: clientRef.current.peers,
-          screenShareManager: clientRef.current.screenShareManager,
-          media: clientRef.current.media,
-          bandwidthEstimation: clientRef.current.bandwidthEstimation,
-          tracks: clientRef.current.peersTracks,
-          local: clientRef.current.local,
-          status: clientRef.current.status,
-          devices: clientRef.current.devices,
-          deviceManager: clientRef.current.deviceManager,
-          client: clientRef.current,
+          remote: client.peers,
+          screenShareManager: client.screenShareManager,
+          media: client.media,
+          bandwidthEstimation: client.bandwidthEstimation,
+          tracks: client.peersTracks,
+          local: client.local,
+          status: client.status,
+          devices: client.devices,
+          deviceManager: client.deviceManager,
+          client: client,
         };
 
         lastSnapshotRef.current = state;
@@ -617,5 +617,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useMicrophone,
     useScreenShare,
     useClient,
+    client
   };
 };

@@ -65,7 +65,7 @@
     "typescript": "5.4.2"
   },
   "dependencies": {
-    "@fishjam-dev/ts-client": "github:fishjam-dev/ts-client-sdk#mute-track",
+    "@fishjam-dev/ts-client": "github:fishjam-dev/ts-client-sdk#recover-from-rtc-errors-with-mute",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },

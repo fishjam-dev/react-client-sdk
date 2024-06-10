@@ -311,8 +311,11 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   private currentCameraTrackId: string | null = null;
   private currentScreenShareTrackId: string | null = null;
 
+  private removeEventListeners: () => void = () => {};
+
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
+    // console.log("React client constructor")
 
     this.tsClient = new FishjamClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
     this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
@@ -383,99 +386,121 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.stateToSnapshot();
 
-    this.tsClient.on("socketOpen", (event) => {
+    const socketOpen: MessageEvents<PeerMetadata, TrackMetadata>["socketOpen"] = (event) => {
       this.status = "connected";
       this.stateToSnapshot();
 
       this.emit("socketOpen", event, this);
-    });
+    };
+    this.tsClient.on("socketOpen", socketOpen);
 
-    this.tsClient.on("socketError", (event) => {
+    const socketError: MessageEvents<PeerMetadata, TrackMetadata>["socketError"] = (event) => {
       this.stateToSnapshot();
 
       this.emit("socketError", event, this);
-    });
+    };
+    this.tsClient.on("socketError", socketError);
 
-    this.tsClient.on("socketClose", (event) => {
+    const socketClose: MessageEvents<PeerMetadata, TrackMetadata>["socketClose"] = (event) => {
       this.stateToSnapshot();
 
       this.emit("socketClose", event, this);
-    });
+    };
+    this.tsClient.on("socketClose", socketClose);
 
-    this.tsClient.on("authSuccess", () => {
+    const authSuccess: MessageEvents<PeerMetadata, TrackMetadata>["authSuccess"] = () => {
       this.status = "authenticated";
       this.stateToSnapshot();
 
       this.emit("authSuccess", this);
-    });
+    };
+    this.tsClient.on("authSuccess", authSuccess);
 
-    this.tsClient.on("authError", (reason) => {
+    const authError: MessageEvents<PeerMetadata, TrackMetadata>["authError"] = (reason) => {
       this.stateToSnapshot();
       this.status = "error";
 
       this.emit("authError", reason, this);
-    });
+    };
+    this.tsClient.on("authError", authError);
 
-    this.tsClient.on("disconnected", () => {
+    const disconnected: MessageEvents<PeerMetadata, TrackMetadata>["disconnected"] = () => {
       this.status = null;
+      this.currentMicrophoneTrackId = null;
+      this.currentCameraTrackId = null;
+      this.currentScreenShareTrackId = null;
       this.stateToSnapshot();
 
       this.emit("disconnected", this);
-    });
+    };
+    this.tsClient.on("disconnected", disconnected);
 
-    this.tsClient.on("joined", (peerId, peers, components) => {
+    const joined: MessageEvents<PeerMetadata, TrackMetadata>["joined"] = (peerId, peers, components) => {
       this.status = "joined";
       this.stateToSnapshot();
 
       this.emit("joined", { peerId, peers, components }, this);
-    });
+    };
+    this.tsClient.on("joined", joined);
 
-    this.tsClient.on("joinError", (metadata) => {
+    const joinError: MessageEvents<PeerMetadata, TrackMetadata>["joinError"] = (metadata) => {
       this.status = "error";
       this.stateToSnapshot();
 
       this.emit("joinError", metadata, this);
-    });
-    this.tsClient.on("peerJoined", (peer) => {
+    };
+    this.tsClient.on("joinError", joinError);
+
+    const peerJoined: MessageEvents<PeerMetadata, TrackMetadata>["peerJoined"] = (peer) => {
       this.stateToSnapshot();
 
       this.emit("peerJoined", peer, this);
-    });
-    this.tsClient.on("peerUpdated", (peer) => {
+    };
+    this.tsClient.on("peerJoined", peerJoined);
+
+    const peerUpdated: MessageEvents<PeerMetadata, TrackMetadata>["peerUpdated"] = (peer) => {
       this.stateToSnapshot();
 
       this.emit("peerUpdated", peer, this);
-    });
-    this.tsClient.on("peerLeft", (peer) => {
+    };
+    this.tsClient.on("peerUpdated", peerUpdated);
+
+    const peerLeft: MessageEvents<PeerMetadata, TrackMetadata>["peerLeft"] = (peer) => {
       this.stateToSnapshot();
 
       this.emit("peerLeft", peer, this);
-    });
+    };
+    this.tsClient.on("peerLeft", peerLeft);
 
-    this.tsClient.on("componentAdded", (component) => {
+    const componentAdded: MessageEvents<PeerMetadata, TrackMetadata>["componentAdded"] = (component) => {
       this.stateToSnapshot();
 
       this.emit("componentAdded", component, this);
-    });
+    };
+    this.tsClient.on("componentAdded", componentAdded);
 
-    this.tsClient.on("componentUpdated", (component) => {
+    const componentUpdated: MessageEvents<PeerMetadata, TrackMetadata>["componentUpdated"] = (component) => {
       this.stateToSnapshot();
 
       this.emit("componentUpdated", component, this);
-    });
+    };
+    this.tsClient.on("componentUpdated", componentUpdated);
 
-    this.tsClient.on("componentRemoved", (component) => {
+    const componentRemoved: MessageEvents<PeerMetadata, TrackMetadata>["componentRemoved"] = (component) => {
       this.stateToSnapshot();
 
       this.emit("componentRemoved", component, this);
-    });
+    };
+    this.tsClient.on("componentRemoved", componentRemoved);
 
-    this.tsClient.on("trackReady", (ctx) => {
+    const trackReady: MessageEvents<PeerMetadata, TrackMetadata>["trackReady"] = (ctx) => {
       this.stateToSnapshot();
 
       this.emit("trackReady", ctx, this);
-    });
-    this.tsClient.on("trackAdded", (ctx) => {
+    };
+    this.tsClient.on("trackReady", trackReady);
+
+    const trackAdded: MessageEvents<PeerMetadata, TrackMetadata>["trackAdded"] = (ctx) => {
       this.stateToSnapshot();
 
       this.emit("trackAdded", ctx, this);
@@ -490,23 +515,32 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
         this.emit("voiceActivityChanged", ctx, this);
       });
-    });
-    this.tsClient.on("trackRemoved", (ctx) => {
+    };
+    this.tsClient.on("trackAdded", trackAdded);
+
+    const trackRemoved: MessageEvents<PeerMetadata, TrackMetadata>["trackRemoved"] = (ctx) => {
       this.stateToSnapshot();
 
       this.emit("trackRemoved", ctx, this);
       ctx.removeAllListeners();
-    });
-    this.tsClient.on("trackUpdated", (ctx) => {
+    };
+    this.tsClient.on("trackRemoved", trackRemoved);
+
+    const trackUpdated: MessageEvents<PeerMetadata, TrackMetadata>["trackUpdated"] = (ctx) => {
       this.stateToSnapshot();
 
       this.emit("trackUpdated", ctx, this);
-    });
-    this.tsClient.on("bandwidthEstimationChanged", (estimation) => {
+    };
+    this.tsClient.on("trackUpdated", trackUpdated);
+
+    const bandwidthEstimationChanged: MessageEvents<PeerMetadata, TrackMetadata>["bandwidthEstimationChanged"] = (
+      estimation,
+    ) => {
       this.stateToSnapshot();
 
       this.emit("bandwidthEstimationChanged", estimation, this);
-    });
+    };
+    this.tsClient.on("bandwidthEstimationChanged", bandwidthEstimationChanged);
 
     this.deviceManager.on("deviceDisabled", (event) => {
       this.stateToSnapshot();
@@ -679,6 +713,27 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
       this.emit("disconnectRequested", event, this);
     });
+
+    this.removeEventListeners = () => {
+      this.tsClient.off("socketError", socketError);
+      this.tsClient.off("socketClose", socketClose);
+      this.tsClient.off("authSuccess", authSuccess);
+      this.tsClient.off("authError", authError);
+      this.tsClient.off("disconnected", disconnected);
+      this.tsClient.off("joined", joined);
+      this.tsClient.off("joinError", joinError);
+      this.tsClient.off("peerJoined", peerJoined);
+      this.tsClient.off("peerUpdated", peerUpdated);
+      this.tsClient.off("peerLeft", peerLeft);
+      this.tsClient.off("componentAdded", componentAdded);
+      this.tsClient.off("componentUpdated", componentUpdated);
+      this.tsClient.off("componentRemoved", componentRemoved);
+      this.tsClient.off("trackReady", trackReady);
+      this.tsClient.off("trackAdded", trackAdded);
+      this.tsClient.off("trackRemoved", trackRemoved);
+      this.tsClient.off("trackUpdated", trackUpdated);
+      this.tsClient.off("bandwidthEstimationChanged", bandwidthEstimationChanged);
+    };
   }
 
   public setScreenManagerConfig(config: ScreenShareManagerConfig) {
@@ -831,6 +886,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit,
         ) => {
+          // console.log("Add track-video");
+
           if (this.currentCameraTrackId) throw Error("Track already added");
 
           const media = this.deviceManager?.video.media;
@@ -847,6 +904,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           return remoteTrackId;
         },
         removeTrack: () => {
+          // console.log("Remove track-video");
+
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -858,6 +917,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           return this.tsClient.removeTrack(prevTrack.trackId);
         },
         replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
+          // console.log("Replace track-video");
+
           if (!this.currentCameraTrackId) throw Error("There is no audio track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -871,6 +932,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
         muteTrack: async (newTrackMetadata?: TrackMetadata) => {
+          // console.log("Mute track-video");
+
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -880,6 +943,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           await this.tsClient.replaceTrack(prevTrack.trackId, null, newTrackMetadata);
         },
         unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
+          // console.log("Unmute track-video");
+
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -893,6 +958,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           await this.tsClient.replaceTrack(prevTrack.trackId, media.track, newTrackMetadata);
         },
         updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
+          // console.log("Update track metadata-video");
+
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -1112,5 +1179,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     this.components = components;
     this.bandwidthEstimation = this.tsClient.getBandwidthEstimation();
     this.devices = devices;
+  }
+
+  public cleanup() {
+    // console.log("React client cleanup")
+    this.removeEventListeners();
+    this.removeEventListeners = () => {};
+    this.tsClient.cleanup();
   }
 }
