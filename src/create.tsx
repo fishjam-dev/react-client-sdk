@@ -617,6 +617,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useMicrophone,
     useScreenShare,
     useClient,
-    client
+    client,
   };
 };

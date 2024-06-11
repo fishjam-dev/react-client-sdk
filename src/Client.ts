@@ -315,8 +315,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
-    // console.log("React client constructor")
-
     this.tsClient = new FishjamClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
     this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
     this.screenShareManager = new ScreenShareManager(config?.screenShareManagerDefaultConfig);
@@ -886,8 +884,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           simulcastConfig?: SimulcastConfig,
           maxBandwidth?: TrackBandwidthLimit,
         ) => {
-          // console.log("Add track-video");
-
           if (this.currentCameraTrackId) throw Error("Track already added");
 
           const media = this.deviceManager?.video.media;
@@ -904,8 +900,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           return remoteTrackId;
         },
         removeTrack: () => {
-          // console.log("Remove track-video");
-
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -917,8 +911,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           return this.tsClient.removeTrack(prevTrack.trackId);
         },
         replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
-          // console.log("Replace track-video");
-
           if (!this.currentCameraTrackId) throw Error("There is no audio track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -932,8 +924,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
         },
         muteTrack: async (newTrackMetadata?: TrackMetadata) => {
-          // console.log("Mute track-video");
-
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -943,8 +933,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           await this.tsClient.replaceTrack(prevTrack.trackId, null, newTrackMetadata);
         },
         unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
-          // console.log("Unmute track-video");
-
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -958,8 +946,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           await this.tsClient.replaceTrack(prevTrack.trackId, media.track, newTrackMetadata);
         },
         updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
-          // console.log("Update track metadata-video");
-
           if (!this.currentCameraTrackId) throw Error("There is no video track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
@@ -1182,7 +1168,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   }
 
   public cleanup() {
-    // console.log("React client cleanup")
     this.removeEventListeners();
     this.removeEventListeners = () => {};
     this.tsClient.cleanup();
