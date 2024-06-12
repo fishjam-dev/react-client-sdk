@@ -1,15 +1,5 @@
-import type {
-  JSX,
-  ReactNode} from "react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import type { JSX, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { Selector, State } from "./state.types";
 import type { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import type { ConnectConfig, CreateConfig } from "@fishjam-dev/ts-client";

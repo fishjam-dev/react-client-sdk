@@ -11,10 +11,9 @@ import type {
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
-  TrackEncoding} from "@fishjam-dev/ts-client";
-import {
-  FishjamClient
+  TrackEncoding,
 } from "@fishjam-dev/ts-client";
+import { FishjamClient } from "@fishjam-dev/ts-client";
 import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import type { DeviceManagerEvents } from "./DeviceManager";
 import { DeviceManager } from "./DeviceManager";

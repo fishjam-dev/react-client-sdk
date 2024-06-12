@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
-import type { AudioOrVideoType, DeviceError, DevicesStatus} from "./types";
+import type { AudioOrVideoType, DeviceError, DevicesStatus } from "./types";
 import { parseError } from "./types";
 
 export type TrackType = "audio" | "video" | "audiovideo";

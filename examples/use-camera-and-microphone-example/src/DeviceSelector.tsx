@@ -1,4 +1,4 @@
-import type { ChangeEvent} from "react";
+import type { ChangeEvent } from "react";
 import { useState } from "react";
 
 type Props = {

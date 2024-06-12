@@ -10,14 +10,9 @@ import type {
   InitMediaConfig,
   Media,
   StorageConfig,
-  UseUserMediaStartConfig} from "./types";
-import {
-  NOT_FOUND_ERROR,
-  OVERCONSTRAINED_ERROR,
-  parseError,
-  PERMISSION_DENIED,
-  UNHANDLED_ERROR
+  UseUserMediaStartConfig,
 } from "./types";
+import { NOT_FOUND_ERROR, OVERCONSTRAINED_ERROR, parseError, PERMISSION_DENIED, UNHANDLED_ERROR } from "./types";
 
 import { loadObject, saveObject } from "./localStorage";
 import {
