@@ -858,7 +858,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           return this.tsClient.removeTrack(prevTrack.trackId);
         },
         replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentCameraTrackId) throw Error("There is no audio track id");
+          if (!this.currentCameraTrackId) throw Error("There is no  track id");
 
           const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
 
