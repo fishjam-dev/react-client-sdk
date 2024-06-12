@@ -179,12 +179,21 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     const getSnapshot: () => State<PeerMetadata, TrackMetadata> = useCallback(() => {
       if (mutationRef.current || lastSnapshotRef.current === null) {
+
+        const tracks = clientRef.current.componentsTracks;
+
+        Object.values(clientRef.current.peersTracks).map((track) =>
+          {
+            console.log(`debug peer track: ${track.trackId}, origin: ${track.origin}`);
+            tracks[track.trackId] = track;
+          });
+
         const state = {
           remote: clientRef.current.peers,
           screenShareManager: clientRef.current.screenShareManager,
           media: clientRef.current.media,
           bandwidthEstimation: clientRef.current.bandwidthEstimation,
-          tracks: clientRef.current.peersTracks,
+          tracks: tracks,
           local: clientRef.current.local,
           status: clientRef.current.status,
           devices: clientRef.current.devices,

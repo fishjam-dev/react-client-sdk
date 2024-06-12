@@ -29,6 +29,11 @@ export const App = () => {
     (window as unknown as { client: Client<PeerMetadata, TrackMetadata> }).client = client!;
   }
 
+  Object.values(tracks).map(({ stream, trackId, origin }) =>
+      (
+        console.log(`debug track: ${trackId}, origin: ${origin}`)
+      ));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       <input value={token} onChange={(e) => setToken(() => e?.target?.value)} placeholder="token" />
@@ -68,7 +73,8 @@ export const App = () => {
         <span>Status: {status}</span>
       </div>
       {/* Render the remote tracks from other peers*/}
-      {Object.values(tracks).map(({ stream, trackId, origin }) => (
+      {Object.values(tracks).map(({ stream, trackId, origin }) =>
+      (
         <VideoPlayer key={trackId} stream={stream} peerId={origin.id} /> // Simple component to render a video element
       ))}
     </div>

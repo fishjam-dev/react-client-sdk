@@ -418,6 +418,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     });
 
     this.tsClient.on("joined", (peerId, peers, components) => {
+      console.log("debug joined");
       this.status = "joined";
       this.stateToSnapshot();
 
@@ -470,6 +471,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("trackReady", ctx, this);
     });
     this.tsClient.on("trackAdded", (ctx) => {
+      console.log("debug track added");
       this.stateToSnapshot();
 
       this.emit("trackAdded", ctx, this);
@@ -704,7 +706,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   ): Promise<string> {
     if (!this.tsClient) throw Error("Client not initialized");
 
-    return this.tsClient.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
+    return this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
   }
 
   public removeTrack(trackId: string): Promise<void> {
@@ -811,7 +813,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           const stream = new MediaStream();
           stream.addTrack(track);
 
-          return this.tsClient.addTrack(track, stream, trackMetadata, simulcastConfig, maxBandwidth);
+          return this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find((track) => track.track?.id === this.currentCameraTrackId);
@@ -877,7 +879,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           const stream = new MediaStream();
           stream.addTrack(track);
 
-          return this.tsClient.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
+          return this.tsClient.addTrack(track, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
@@ -948,7 +950,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           this.currentScreenShareTrackId = track?.id;
 
-          return this.tsClient.addTrack(track, stream, trackMetadata, undefined, maxBandwidth);
+          return this.tsClient.addTrack(track, trackMetadata, undefined, maxBandwidth);
         },
         removeTrack: () => {
           const prevTrack = Object.values(localTracks).find(
