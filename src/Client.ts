@@ -161,7 +161,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   /**
    * Called in case of errors related to multimedia session e.g. ICE connection.
    */
-  connectionError: (message: string, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  connectionError: (error: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["connectionError"]>[0], client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /**
    * Called every time the server estimates client's bandiwdth.
@@ -438,6 +438,14 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
       this.emit("joinError", metadata, this);
     });
+
+    this.tsClient.on("connectionError", (metadata) => {
+      this.status = "error";
+      this.stateToSnapshot();
+
+      this.emit("connectionError", metadata, this);
+    });
+
     this.tsClient.on("peerJoined", (peer) => {
       this.stateToSnapshot();
 
