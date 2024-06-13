@@ -1,6 +1,6 @@
-import { SimulcastConfig, TrackBandwidthLimit } from "@fishjam-dev/ts-client";
-import { ScreenShareManagerConfig } from "./ScreenShareManager";
-import { Track } from "./state.types";
+import type { SimulcastConfig, TrackBandwidthLimit } from "@fishjam-dev/ts-client";
+import type { ScreenShareManagerConfig } from "./ScreenShareManager";
+import type { Track } from "./state.types";
 
 export type AudioOrVideoType = "audio" | "video";
 
@@ -82,7 +82,7 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * Determines whether track should be replaced when the user requests a device.
      * default: replace
      */
-    onDeviceChange?: "replace" | "stop";
+    onDeviceChange?: "replace" | "remove";
     /**
      * Determines whether currently broadcasted track should be removed or muted
      * when the user stopped a device.
@@ -109,7 +109,7 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * when the user changed a device.
      * default: replace
      */
-    onDeviceChange?: "replace" | "stop";
+    onDeviceChange?: "replace" | "remove";
 
     /**
      * Determines whether currently broadcasted track should be removed or muted
