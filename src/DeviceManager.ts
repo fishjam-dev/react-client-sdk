@@ -9,7 +9,8 @@ import type {
   GetMedia,
   DeviceManagerInitConfig,
   Media,
-  StorageConfig, DeviceManagerStartConfig
+  StorageConfig,
+  DeviceManagerStartConfig,
 } from "./types";
 import { NOT_FOUND_ERROR, OVERCONSTRAINED_ERROR, parseError, PERMISSION_DENIED, UNHANDLED_ERROR } from "./types";
 

@@ -19,10 +19,7 @@ import type { DeviceManagerEvents } from "./DeviceManager";
 import { DeviceManager } from "./DeviceManager";
 import type { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
 import { ScreenShareManager } from "./ScreenShareManager";
-import type {
-  DeviceManagerConfig, DeviceManagerInitConfig, Devices,
-  DeviceState, MediaState
-} from "./types";
+import type { DeviceManagerConfig, DeviceManagerInitConfig, Devices, DeviceState, MediaState } from "./types";
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
   local: PeerState<PeerMetadata, TrackMetadata> | null;
