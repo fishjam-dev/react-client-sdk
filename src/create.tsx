@@ -312,7 +312,7 @@ export const create = <PeerMetadata, TrackMetadata>(
             await client.devices.camera.replaceTrack().finally(() => {
               pending = false;
             });
-          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "stop") {
+          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "remove") {
             pending = true;
 
             await client.devices.camera.removeTrack().finally(() => {
@@ -427,7 +427,7 @@ export const create = <PeerMetadata, TrackMetadata>(
             await client.devices.microphone.replaceTrack().finally(() => {
               pending = false;
             });
-          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "stop") {
+          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "remove") {
             pending = true;
 
             await client.devices.microphone.removeTrack().finally(() => {

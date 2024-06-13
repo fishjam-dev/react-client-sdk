@@ -27,11 +27,11 @@ import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 import { Radio } from "./Radio";
 
-type OnDeviceChange = "stop" | "replace" | undefined;
+type OnDeviceChange = "remove" | "replace" | undefined;
 type OnDeviceStop = "remove" | "mute" | undefined;
 
 const isDeviceChangeValue = (e: string | undefined): e is OnDeviceChange =>
-  e === undefined || e === "stop" || e === "replace";
+  e === undefined || e === "remove" || e === "replace";
 
 const isDeviceStopValue = (e: string | undefined): e is OnDeviceStop =>
   e === undefined || e === "remove" || e === "mute";
@@ -235,7 +235,7 @@ export const MainControls = () => {
             radioClass="radio-primary"
             options={[
               { value: undefined, key: "undefined" },
-              { value: "stop", key: "stop" },
+              { value: "remove", key: "remove" },
               { value: "replace", key: "replace" },
             ]}
           />
@@ -274,7 +274,7 @@ export const MainControls = () => {
             radioClass="radio-secondary"
             options={[
               { value: undefined, key: "undefined" },
-              { value: "stop", key: "stop" },
+              { value: "remove", key: "remove" },
               { value: "replace", key: "replace" },
             ]}
           />

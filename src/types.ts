@@ -82,7 +82,7 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * Determines whether track should be replaced when the user requests a device.
      * default: replace
      */
-    onDeviceChange?: "replace" | "stop";
+    onDeviceChange?: "replace" | "remove";
     /**
      * Determines whether currently broadcasted track should be removed or muted
      * when the user stopped a device.
@@ -109,7 +109,7 @@ export type UseSetupMediaConfig<TrackMetadata> = {
      * when the user changed a device.
      * default: replace
      */
-    onDeviceChange?: "replace" | "stop";
+    onDeviceChange?: "replace" | "remove";
 
     /**
      * Determines whether currently broadcasted track should be removed or muted
