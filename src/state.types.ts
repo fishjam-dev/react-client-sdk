@@ -1,9 +1,9 @@
 import type { TrackEncoding, VadStatus, SimulcastConfig } from "@fishjam-dev/ts-client";
-import { MediaState } from "./types";
-import { Devices } from "./types";
-import { Client } from "./Client";
-import { DeviceManager } from "./DeviceManager";
-import { ScreenShareManager } from "./ScreenShareManager";
+import type { MediaState } from "./types";
+import type { Devices } from "./types";
+import type { Client } from "./Client";
+import type { DeviceManager } from "./DeviceManager";
+import type { ScreenShareManager } from "./ScreenShareManager";
 
 export type TrackId = string;
 export type PeerId = string;
