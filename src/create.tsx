@@ -12,7 +12,7 @@ import type {
   UseSetupMediaConfig,
   UseSetupMediaResult,
 } from "./types";
-import type { ClientApi, ClientEvents } from "./Client";
+import type { ClientApi, ClientEvents } from "./Client.types";
 import { Client } from "./Client";
 import type { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
 
