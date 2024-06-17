@@ -2,7 +2,7 @@ export { create } from "./create";
 export type { CreateFishjamClient, UseConnect } from "./create";
 
 export { Client } from "./Client";
-export type { ClientEvents } from "./Client";
+export type { ClientEvents } from "./Client.types";
 
 export type {
   PeerState,
