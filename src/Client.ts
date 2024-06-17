@@ -36,6 +36,8 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
   devices: Devices<TrackMetadata>;
   deviceManager: DeviceManager;
   screenShareManager: ScreenShareManager;
+
+  isReconnecting: () => boolean;
 };
 
 export interface ClientEvents<PeerMetadata, TrackMetadata> {
@@ -161,7 +163,10 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   /**
    * Called in case of errors related to multimedia session e.g. ICE connection.
    */
-  connectionError: (error: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["connectionError"]>[0], client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  connectionError: (
+    error: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["connectionError"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
 
   /**
    * Called every time the server estimates client's bandiwdth.
@@ -420,6 +425,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.tsClient.on("disconnected", () => {
       this.status = null;
+      this.currentCameraTrackId = null;
+      this.currentMicrophoneTrackId = null;
+      this.currentScreenShareTrackId = null;
       this.stateToSnapshot();
 
       this.emit("disconnected", this);
@@ -782,6 +790,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     this.tsClient.updateTrackMetadata(trackId, trackMetadata);
   };
 
+  public isReconnecting = () => {
+    return this.tsClient.isReconnecting();
+  };
+
   // In most cases, the track is identified by its remote track ID.
   // This ID comes from the ts-client `addTrack` method.
   // However, we don't have that ID before the `addTrack` method returns it.
@@ -936,6 +948,22 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           // see `getRemoteTrack()` explanation
           this.currentMicrophoneTrackId = media.track.id;
+          // skip if current media device is already added
+          const track = [...(this.tsClient?.getLocalEndpoint()?.tracks?.values() ?? [])].find(
+            (track) => track.track?.id === media?.track?.id,
+          );
+
+          console.log({
+            currentTrackId: media.track.id,
+            track,
+            length: this.tsClient?.getLocalEndpoint()?.tracks.size,
+          });
+
+          if(track) {
+            console.log("Track already added")
+            return track.trackId
+          }
+
 
           const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 

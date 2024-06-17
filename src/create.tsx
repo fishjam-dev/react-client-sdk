@@ -409,7 +409,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       ) => {
         const broadcastOnDeviceChange = configRef.current.microphone.onDeviceChange ?? "replace";
 
-        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending && !client.isReconnecting()) {
           if (!client.devices.microphone.broadcast?.stream && configRef.current.microphone.broadcastOnDeviceStart) {
             pending = true;
 
