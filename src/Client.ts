@@ -71,6 +71,12 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   /** Emitted when the connection is closed */
   disconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
+  /** Emitted when on successful reconnection */
+  reconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
+  /** Emitted when the maximum number of reconnection retries has been reached */
+  reconnectionFailed: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
   /**
    * Called when peer was accepted.
    */
@@ -445,6 +451,18 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.stateToSnapshot();
 
       this.emit("joinError", metadata, this);
+    });
+
+    this.tsClient.on("reconnected", () => {
+      this.stateToSnapshot();
+
+      this.emit("reconnected", this);
+    });
+
+    this.tsClient.on("reconnectionFailed", () => {
+      this.stateToSnapshot();
+
+      this.emit("reconnectionFailed", this);
     });
 
     this.tsClient.on("connectionError", (metadata) => {
@@ -859,6 +877,13 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
+          const track = this.getRemoteTrack(media.track.id);
+
+          if (track) {
+            // console.log("Track already added")
+            return track.trackId;
+          }
+
           // see `getRemoteTrack()` explanation
           this.currentCameraTrackId = media.track.id;
 
@@ -949,13 +974,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           // see `getRemoteTrack()` explanation
           this.currentMicrophoneTrackId = media.track.id;
 
-          const track = this.getRemoteTrack(media.track.id)
+          const track = this.getRemoteTrack(media.track.id);
 
-          if(track) {
-            console.log("Track already added")
-            return track.trackId
+          if (track) {
+            // console.log("Track already added")
+            return track.trackId;
           }
-
 
           const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 
@@ -1042,6 +1066,13 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
           if (this.currentScreenShareTrackId) throw Error("Screen share track already added");
+
+          const track = this.getRemoteTrack(media.track.id);
+
+          if (track) {
+            // console.log("Track already added")
+            return track.trackId;
+          }
 
           // see `getRemoteTrack()` explanation
           this.currentScreenShareTrackId = media.track.id;
