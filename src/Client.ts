@@ -948,16 +948,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           // see `getRemoteTrack()` explanation
           this.currentMicrophoneTrackId = media.track.id;
-          // skip if current media device is already added
-          const track = [...(this.tsClient?.getLocalEndpoint()?.tracks?.values() ?? [])].find(
-            (track) => track.track?.id === media?.track?.id,
-          );
 
-          console.log({
-            currentTrackId: media.track.id,
-            track,
-            length: this.tsClient?.getLocalEndpoint()?.tracks.size,
-          });
+          const track = this.getRemoteTrack(media.track.id)
 
           if(track) {
             console.log("Track already added")
