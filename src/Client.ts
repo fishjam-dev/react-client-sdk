@@ -977,12 +977,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           if (this.currentMicrophoneTrackId) throw Error("Track already added");
 
-          // see `getRemoteTrack()` explanation
-          this.currentMicrophoneTrackId = media.track.id;
-
           const track = this.getRemoteTrack(media.track.id);
 
           if (track) return track.trackId;
+
+          // see `getRemoteTrack()` explanation
+          this.currentMicrophoneTrackId = media.track.id;
 
           const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 

@@ -301,7 +301,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       ) => {
         const broadcastOnDeviceChange = configRef.current.camera.onDeviceChange ?? "replace";
 
-        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending && !client.isReconnecting()) {
           if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
             pending = true;
 
@@ -531,7 +531,8 @@ export const create = <PeerMetadata, TrackMetadata>(
           event.mediaDeviceType === "displayMedia" &&
           !adding &&
           !client.devices.screenShare.broadcast?.stream &&
-          configRef.current.screenShare.broadcastOnDeviceStart
+          configRef.current.screenShare.broadcastOnDeviceStart &&
+          !client.isReconnecting()
         ) {
           adding = true;
 
