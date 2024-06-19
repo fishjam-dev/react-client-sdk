@@ -26,6 +26,7 @@ import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "@fishjam-dev/r
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 import { Radio } from "./Radio";
+import { useReconnectLogs } from "./utils/useReconnectLogs";
 
 type OnDeviceChange = "remove" | "replace" | undefined;
 type OnDeviceStop = "remove" | "mute" | undefined;
@@ -61,6 +62,7 @@ const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { 
 
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
+  useReconnectLogs();
 
   const connect = useConnect();
   const disconnect = useDisconnect();
@@ -169,6 +171,10 @@ export const MainControls = () => {
               connect({
                 peerMetadata: EXAMPLE_PEER_METADATA,
                 token: token,
+                signaling: {
+                  host: "cloud.fishjam.work/api/v1/jellyfish/manage/e2c492ffc99b4b4da951a87b6c1f171b/e94c089794e0493ca5af7f1abdeae814",
+                  protocol: "wss",
+                },
               });
             }}
           >
