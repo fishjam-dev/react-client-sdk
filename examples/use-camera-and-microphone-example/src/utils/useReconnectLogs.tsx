@@ -1,5 +1,5 @@
 import type { ClientEvents } from "@fishjam-dev/react-client";
-import type { PeerMetadata, TrackMetadata} from "../fishjamSetup";
+import type { PeerMetadata, TrackMetadata } from "../fishjamSetup";
 import { useClient } from "../fishjamSetup";
 import { useEffect } from "react";
 
