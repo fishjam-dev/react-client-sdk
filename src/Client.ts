@@ -74,6 +74,9 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   /** Emitted when on successful reconnection */
   reconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
+  /** Emitted when the process of reconnection starts */
+  reconnectionStarted: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
   /** Emitted when the maximum number of reconnection retries has been reached */
   reconnectionFailed: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
@@ -451,6 +454,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.stateToSnapshot();
 
       this.emit("joinError", metadata, this);
+    });
+
+    this.tsClient.on("reconnectionStarted", () => {
+      this.stateToSnapshot();
+
+      this.emit("reconnectionStarted", this);
     });
 
     this.tsClient.on("reconnected", () => {
@@ -879,10 +888,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           const track = this.getRemoteTrack(media.track.id);
 
-          if (track) {
-            // console.log("Track already added")
-            return track.trackId;
-          }
+          if (track) return track.trackId;
 
           // see `getRemoteTrack()` explanation
           this.currentCameraTrackId = media.track.id;
@@ -976,10 +982,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           const track = this.getRemoteTrack(media.track.id);
 
-          if (track) {
-            // console.log("Track already added")
-            return track.trackId;
-          }
+          if (track) return track.trackId;
 
           const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
 
@@ -1069,10 +1072,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           const track = this.getRemoteTrack(media.track.id);
 
-          if (track) {
-            // console.log("Track already added")
-            return track.trackId;
-          }
+          if (track) return track.trackId;
 
           // see `getRemoteTrack()` explanation
           this.currentScreenShareTrackId = media.track.id;

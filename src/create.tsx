@@ -87,6 +87,10 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("peerUpdated", callback);
       client.on("peerLeft", callback);
 
+      client.on("reconnected", callback);
+      client.on("reconnectionFailed", callback);
+      client.on("reconnectionStarted", callback);
+
       client.on("componentAdded", callback);
       client.on("componentUpdated", callback);
       client.on("componentRemoved", callback);
@@ -138,6 +142,10 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("peerJoined", callback);
         client.removeListener("peerUpdated", callback);
         client.removeListener("peerLeft", callback);
+
+        client.removeListener("reconnected", callback);
+        client.removeListener("reconnectionFailed", callback);
+        client.removeListener("reconnectionStarted", callback);
 
         client.removeListener("componentAdded", callback);
         client.removeListener("componentUpdated", callback);
