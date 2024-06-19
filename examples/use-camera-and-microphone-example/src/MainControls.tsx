@@ -11,6 +11,7 @@ import {
   useConnect,
   useDisconnect,
   useMicrophone,
+  useReconnection,
   useScreenShare,
   useSelector,
   useSetupMedia,
@@ -27,6 +28,7 @@ import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 import { Radio } from "./Radio";
 import { useReconnectLogs } from "./utils/useReconnectLogs";
+import { getPeerStatusBadgeColor, getReconnectionStatusBadgeColor } from "./utils/BadgeUtils";
 
 type OnDeviceChange = "remove" | "replace" | undefined;
 type OnDeviceStop = "remove" | "mute" | undefined;
@@ -62,10 +64,13 @@ const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, { 
 
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
+
+  // for debugging
   useReconnectLogs();
 
   const connect = useConnect();
   const disconnect = useDisconnect();
+  const reconnection = useReconnection();
 
   const local = useSelector((s) => Object.values(s.local?.tracks || {}));
   const client = useClient();
@@ -205,7 +210,13 @@ export const MainControls = () => {
         </div>
 
         <div className="flex w-full flex-row flex-wrap items-center gap-2">
-          <Badge status={status} />
+          <Badge name="Connection status:" status={status} className={getPeerStatusBadgeColor(status)} />
+
+          <Badge
+            name="Reconnection status:"
+            status={reconnection.status}
+            className={getReconnectionStatusBadgeColor(reconnection.status)}
+          />
 
           {authError && (
             <div className="flex items-center gap-1">

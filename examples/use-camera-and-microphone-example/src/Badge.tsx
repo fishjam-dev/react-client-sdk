@@ -1,26 +1,12 @@
-import type { PeerStatus } from "@fishjam-dev/react-client";
-
 type Props = {
-  status: PeerStatus;
+  name: string;
+  status: string | null;
+  className: string;
 };
 
-const getBadgeColor = (status: PeerStatus) => {
-  switch (status) {
-    case "joined":
-      return "badge-success";
-    case "error":
-      return "badge-error";
-    case "authenticated":
-    case "connected":
-      return "badge-info";
-    case "connecting":
-      return "badge-warning";
-  }
-};
-
-export const Badge = ({ status }: Props) => (
+export const Badge = ({ name, status, className }: Props) => (
   <div className="flex items-center gap-1">
-    <span>Status:</span>
-    <span className={`badge ${getBadgeColor(status)}`}>{status}</span>
+    <span>{name}</span>
+    <span className={`badge ${className}`}>{status}</span>
   </div>
 );

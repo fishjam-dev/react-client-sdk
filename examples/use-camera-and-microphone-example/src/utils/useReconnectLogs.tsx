@@ -18,8 +18,11 @@ export const useReconnectLogs = () => {
       console.log("%cReconnected", "color:green");
     };
 
-    const onReconnectionFailed: ClientEvents<PeerMetadata, TrackMetadata>["reconnectionFailed"] = () => {
-      console.log("%cReconnectionFailed", "color:red");
+    const onReconnectionRetriesLimitReached: ClientEvents<
+      PeerMetadata,
+      TrackMetadata
+    >["reconnectionRetriesLimitReached"] = () => {
+      console.log("%cReconnectionRetriesLimitReached", "color:red");
     };
 
     const onSocketError: ClientEvents<PeerMetadata, TrackMetadata>["socketError"] = (error: Event) => {
@@ -59,7 +62,7 @@ export const useReconnectLogs = () => {
 
     client.on("reconnectionStarted", onReconnectionStarted);
     client.on("reconnected", onReconnected);
-    client.on("reconnectionFailed", onReconnectionFailed);
+    client.on("reconnectionRetriesLimitReached", onReconnectionRetriesLimitReached);
 
     client.on("socketError", onSocketError);
     client.on("connectionError", onConnectionError);
@@ -70,7 +73,7 @@ export const useReconnectLogs = () => {
     return () => {
       client.off("reconnectionStarted", onReconnectionStarted);
       client.off("reconnected", onReconnected);
-      client.off("reconnectionFailed", onReconnectionFailed);
+      client.off("reconnectionRetriesLimitReached", onReconnectionRetriesLimitReached);
 
       client.off("socketError", onSocketError);
       client.off("connectionError", onConnectionError);

@@ -1,6 +1,6 @@
 import type { JSX, ReactNode } from "react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import type { Selector, State } from "./state.types";
+import { useEffect, createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
+import type { Selector, State, UseReconnection } from "./state.types";
 import type { PeerStatus, TrackId, TrackWithOrigin } from "./state.types";
 import type { ConnectConfig, CreateConfig } from "@fishjam-dev/ts-client";
 import type {
@@ -38,6 +38,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useMicrophone: () => Devices<TrackMetadata>["microphone"];
   useScreenShare: () => ScreenShareAPI<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
+  useReconnection: () => UseReconnection;
 };
 
 /**
@@ -88,7 +89,7 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("peerLeft", callback);
 
       client.on("reconnected", callback);
-      client.on("reconnectionFailed", callback);
+      client.on("reconnectionRetriesLimitReached", callback);
       client.on("reconnectionStarted", callback);
 
       client.on("componentAdded", callback);
@@ -144,7 +145,7 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("peerLeft", callback);
 
         client.removeListener("reconnected", callback);
-        client.removeListener("reconnectionFailed", callback);
+        client.removeListener("reconnectionRetriesLimitReached", callback);
         client.removeListener("reconnectionStarted", callback);
 
         client.removeListener("componentAdded", callback);
@@ -203,6 +204,7 @@ export const create = <PeerMetadata, TrackMetadata>(
           devices: clientRef.current.devices,
           deviceManager: clientRef.current.deviceManager,
           client: clientRef.current,
+          reconnectionStatus: clientRef.current.reconnectionStatus,
         };
 
         lastSnapshotRef.current = state;
@@ -616,6 +618,17 @@ export const create = <PeerMetadata, TrackMetadata>(
     return state.devices.screenShare;
   };
 
+  const useReconnection = (): UseReconnection => {
+    const { state } = useFishjamContext();
+
+    return {
+      status: state.reconnectionStatus,
+      isReconnecting: state.reconnectionStatus === "reconnecting",
+      isError: state.reconnectionStatus === "error",
+      isIdle: state.reconnectionStatus === "idle",
+    };
+  };
+
   return {
     FishjamContextProvider,
     useSelector,
@@ -628,5 +641,6 @@ export const create = <PeerMetadata, TrackMetadata>(
     useMicrophone,
     useScreenShare,
     useClient,
+    useReconnection,
   };
 };

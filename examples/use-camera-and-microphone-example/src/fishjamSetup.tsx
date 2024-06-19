@@ -61,6 +61,7 @@ export const {
   useScreenShare,
   useSelector,
   useClient,
+  useReconnection,
 } = create<PeerMetadata, TrackMetadata>({
   peerMetadataParser: (obj) => peerMetadataSchema.parse(obj),
   trackMetadataParser: (obj) => trackMetadataSchema.passthrough().parse(obj),

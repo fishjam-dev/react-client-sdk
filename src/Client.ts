@@ -8,6 +8,7 @@ import type {
   CreateConfig,
   MessageEvents,
   Peer,
+  ReconnectionStatus,
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
@@ -78,7 +79,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   reconnectionStarted: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /** Emitted when the maximum number of reconnection retries is reached */
-  reconnectionFailed: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  reconnectionRetriesLimitReached: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /**
    * Called when peer was accepted.
@@ -323,6 +324,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   public media: MediaState | null = null;
   public devices: Devices<TrackMetadata>;
 
+  public reconnectionStatus: ReconnectionStatus = "idle";
+
   private currentMicrophoneTrackId: string | null = null;
   private currentCameraTrackId: string | null = null;
   private currentScreenShareTrackId: string | null = null;
@@ -457,21 +460,24 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     });
 
     this.tsClient.on("reconnectionStarted", () => {
+      this.reconnectionStatus = "reconnecting";
       this.stateToSnapshot();
 
       this.emit("reconnectionStarted", this);
     });
 
     this.tsClient.on("reconnected", () => {
+      this.reconnectionStatus = "idle";
       this.stateToSnapshot();
 
       this.emit("reconnected", this);
     });
 
-    this.tsClient.on("reconnectionFailed", () => {
+    this.tsClient.on("reconnectionRetriesLimitReached", () => {
+      this.reconnectionStatus = "error";
       this.stateToSnapshot();
 
-      this.emit("reconnectionFailed", this);
+      this.emit("reconnectionRetriesLimitReached", this);
     });
 
     this.tsClient.on("connectionError", (metadata) => {
