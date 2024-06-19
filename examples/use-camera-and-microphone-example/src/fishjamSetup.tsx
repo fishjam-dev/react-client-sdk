@@ -64,6 +64,11 @@ export const {
 } = create<PeerMetadata, TrackMetadata>({
   peerMetadataParser: (obj) => peerMetadataSchema.parse(obj),
   trackMetadataParser: (obj) => trackMetadataSchema.passthrough().parse(obj),
+  reconnect: {
+    delay: 1000,
+    initialDelay: 500,
+    maxAttempts: 1000,
+  },
 });
 
 export const useAuthErrorReason = () => {

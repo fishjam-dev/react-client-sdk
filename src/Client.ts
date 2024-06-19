@@ -36,6 +36,8 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
   devices: Devices<TrackMetadata>;
   deviceManager: DeviceManager;
   screenShareManager: ScreenShareManager;
+
+  isReconnecting: () => boolean;
 };
 
 export interface ClientEvents<PeerMetadata, TrackMetadata> {
@@ -68,6 +70,15 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
 
   /** Emitted when the connection is closed */
   disconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
+  /** Emitted when on successful reconnection */
+  reconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
+  /** Emitted when the process of reconnection starts */
+  reconnectionStarted: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+
+  /** Emitted when the maximum number of reconnection retries has been reached */
+  reconnectionFailed: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /**
    * Called when peer was accepted.
@@ -161,7 +172,10 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   /**
    * Called in case of errors related to multimedia session e.g. ICE connection.
    */
-  connectionError: (message: string, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  connectionError: (
+    error: Parameters<MessageEvents<PeerMetadata, TrackMetadata>["connectionError"]>[0],
+    client: ClientApi<PeerMetadata, TrackMetadata>,
+  ) => void;
 
   /**
    * Called every time the server estimates client's bandiwdth.
@@ -420,6 +434,9 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.tsClient.on("disconnected", () => {
       this.status = null;
+      this.currentCameraTrackId = null;
+      this.currentMicrophoneTrackId = null;
+      this.currentScreenShareTrackId = null;
       this.stateToSnapshot();
 
       this.emit("disconnected", this);
@@ -438,6 +455,32 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
       this.emit("joinError", metadata, this);
     });
+
+    this.tsClient.on("reconnectionStarted", () => {
+      this.stateToSnapshot();
+
+      this.emit("reconnectionStarted", this);
+    });
+
+    this.tsClient.on("reconnected", () => {
+      this.stateToSnapshot();
+
+      this.emit("reconnected", this);
+    });
+
+    this.tsClient.on("reconnectionFailed", () => {
+      this.stateToSnapshot();
+
+      this.emit("reconnectionFailed", this);
+    });
+
+    this.tsClient.on("connectionError", (metadata) => {
+      this.status = "error";
+      this.stateToSnapshot();
+
+      this.emit("connectionError", metadata, this);
+    });
+
     this.tsClient.on("peerJoined", (peer) => {
       this.stateToSnapshot();
 
@@ -774,6 +817,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     this.tsClient.updateTrackMetadata(trackId, trackMetadata);
   };
 
+  public isReconnecting = () => {
+    return this.tsClient.isReconnecting();
+  };
+
   // In most cases, the track is identified by its remote track ID.
   // This ID comes from the ts-client `addTrack` method.
   // However, we don't have that ID before the `addTrack` method returns it.
@@ -838,6 +885,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           const media = this.deviceManager?.video.media;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
+
+          const track = this.getRemoteTrack(media.track.id);
+
+          if (track) return track.trackId;
 
           // see `getRemoteTrack()` explanation
           this.currentCameraTrackId = media.track.id;
@@ -925,6 +976,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
           if (this.currentMicrophoneTrackId) throw Error("Track already added");
+
+          const track = this.getRemoteTrack(media.track.id);
+
+          if (track) return track.trackId;
 
           // see `getRemoteTrack()` explanation
           this.currentMicrophoneTrackId = media.track.id;
@@ -1014,6 +1069,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
           if (this.currentScreenShareTrackId) throw Error("Screen share track already added");
+
+          const track = this.getRemoteTrack(media.track.id);
+
+          if (track) return track.trackId;
 
           // see `getRemoteTrack()` explanation
           this.currentScreenShareTrackId = media.track.id;

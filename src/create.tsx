@@ -87,6 +87,10 @@ export const create = <PeerMetadata, TrackMetadata>(
       client.on("peerUpdated", callback);
       client.on("peerLeft", callback);
 
+      client.on("reconnected", callback);
+      client.on("reconnectionFailed", callback);
+      client.on("reconnectionStarted", callback);
+
       client.on("componentAdded", callback);
       client.on("componentUpdated", callback);
       client.on("componentRemoved", callback);
@@ -138,6 +142,10 @@ export const create = <PeerMetadata, TrackMetadata>(
         client.removeListener("peerJoined", callback);
         client.removeListener("peerUpdated", callback);
         client.removeListener("peerLeft", callback);
+
+        client.removeListener("reconnected", callback);
+        client.removeListener("reconnectionFailed", callback);
+        client.removeListener("reconnectionStarted", callback);
 
         client.removeListener("componentAdded", callback);
         client.removeListener("componentUpdated", callback);
@@ -293,7 +301,12 @@ export const create = <PeerMetadata, TrackMetadata>(
       ) => {
         const broadcastOnDeviceChange = configRef.current.camera.onDeviceChange ?? "replace";
 
-        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+        if (
+          client.status === "joined" &&
+          event.mediaDeviceType === "userMedia" &&
+          !pending &&
+          !client.isReconnecting()
+        ) {
           if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
             pending = true;
 
@@ -409,7 +422,12 @@ export const create = <PeerMetadata, TrackMetadata>(
       ) => {
         const broadcastOnDeviceChange = configRef.current.microphone.onDeviceChange ?? "replace";
 
-        if (client.status === "joined" && event.mediaDeviceType === "userMedia" && !pending) {
+        if (
+          client.status === "joined" &&
+          event.mediaDeviceType === "userMedia" &&
+          !pending &&
+          !client.isReconnecting()
+        ) {
           if (!client.devices.microphone.broadcast?.stream && configRef.current.microphone.broadcastOnDeviceStart) {
             pending = true;
 
@@ -523,7 +541,8 @@ export const create = <PeerMetadata, TrackMetadata>(
           event.mediaDeviceType === "displayMedia" &&
           !adding &&
           !client.devices.screenShare.broadcast?.stream &&
-          configRef.current.screenShare.broadcastOnDeviceStart
+          configRef.current.screenShare.broadcastOnDeviceStart &&
+          !client.isReconnecting()
         ) {
           adding = true;
 
