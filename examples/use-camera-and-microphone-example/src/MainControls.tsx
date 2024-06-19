@@ -170,7 +170,7 @@ export const MainControls = () => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
                 peerMetadata: EXAMPLE_PEER_METADATA,
-                token: token
+                token: token,
               });
             }}
           >
