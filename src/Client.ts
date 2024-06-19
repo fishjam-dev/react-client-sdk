@@ -71,13 +71,13 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   /** Emitted when the connection is closed */
   disconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
-  /** Emitted when on successful reconnection */
+  /** Emitted on successful reconnection */
   reconnected: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /** Emitted when the process of reconnection starts */
   reconnectionStarted: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
-  /** Emitted when the maximum number of reconnection retries has been reached */
+  /** Emitted when the maximum number of reconnection retries is reached */
   reconnectionFailed: (client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
   /**
