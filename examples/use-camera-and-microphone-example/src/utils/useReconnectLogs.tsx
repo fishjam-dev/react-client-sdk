@@ -1,7 +1,9 @@
-import { ClientEvents } from "@fishjam-dev/react-client";
-import { PeerMetadata, TrackMetadata, useClient } from "../fishjamSetup";
+import type { ClientEvents } from "@fishjam-dev/react-client";
+import type { PeerMetadata, TrackMetadata} from "../fishjamSetup";
+import { useClient } from "../fishjamSetup";
 import { useEffect } from "react";
 
+/* eslint-disable no-console */
 export const useReconnectLogs = () => {
   const client = useClient();
 
@@ -44,7 +46,6 @@ export const useReconnectLogs = () => {
     const onAuthError: ClientEvents<PeerMetadata, TrackMetadata>["authError"] = (reason) => {
       if (client.isReconnecting()) {
         console.log("%c" + "During reconnection: authError: " + reason, "color:gray");
-      } else {
       }
     };
 
