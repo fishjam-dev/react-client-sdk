@@ -170,11 +170,7 @@ export const MainControls = () => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
                 peerMetadata: EXAMPLE_PEER_METADATA,
-                token: token,
-                signaling: {
-                  host: "cloud.fishjam.work/api/v1/jellyfish/manage/e2c492ffc99b4b4da951a87b6c1f171b/e94c089794e0493ca5af7f1abdeae814",
-                  protocol: "wss",
-                },
+                token: token
               });
             }}
           >
