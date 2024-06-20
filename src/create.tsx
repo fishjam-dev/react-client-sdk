@@ -14,7 +14,7 @@ import type {
 } from "./types";
 import type { ClientApi, ClientEvents } from "./Client";
 import { Client } from "./Client";
-import type { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
+import type { MediaDeviceType, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
 
 export type FishjamContextProviderProps = {
   children: ReactNode;
@@ -294,6 +294,14 @@ export const create = <PeerMetadata, TrackMetadata>(
       // eslint-disable-next-line
     }, []);
 
+    const isBroadcastedDeviceChanged = (
+      expectedMediaDeviceType: MediaDeviceType,
+      client: ClientApi<PeerMetadata, TrackMetadata>,
+      pending: boolean,
+      mediaDeviceType: MediaDeviceType,
+    ) =>
+      client.status === "joined" && mediaDeviceType === expectedMediaDeviceType && !pending && !client.isReconnecting();
+
     useEffect(() => {
       let pending = false;
 
@@ -301,36 +309,30 @@ export const create = <PeerMetadata, TrackMetadata>(
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        const broadcastOnDeviceChange = configRef.current.camera.onDeviceChange ?? "replace";
+        const config = configRef.current.camera;
+        const onDeviceChange = config.onDeviceChange ?? "replace";
+        const camera = client.devices.camera;
+        const stream = camera.broadcast?.stream;
 
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          !pending &&
-          !client.isReconnecting()
-        ) {
-          if (!client.devices.camera.broadcast?.stream && configRef.current.camera.broadcastOnDeviceStart) {
+        if (isBroadcastedDeviceChanged("userMedia", client, pending, event.mediaDeviceType)) {
+          if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
-            await client.devices.camera
-              .addTrack(
-                configRef.current.camera.defaultTrackMetadata,
-                configRef.current.camera.defaultSimulcastConfig,
-                configRef.current.camera.defaultMaxBandwidth,
-              )
+            await camera
+              .addTrack(config.defaultTrackMetadata, config.defaultSimulcastConfig, config.defaultMaxBandwidth)
               .finally(() => {
                 pending = false;
               });
-          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "replace") {
+          } else if (stream && onDeviceChange === "replace") {
             pending = true;
 
-            await client.devices.camera.replaceTrack().finally(() => {
+            await camera.replaceTrack().finally(() => {
               pending = false;
             });
-          } else if (client.devices.camera.broadcast?.stream && broadcastOnDeviceChange === "remove") {
+          } else if (stream && onDeviceChange === "remove") {
             pending = true;
 
-            await client.devices.camera.removeTrack().finally(() => {
+            await camera.removeTrack().finally(() => {
               pending = false;
             });
           }
@@ -374,18 +376,15 @@ export const create = <PeerMetadata, TrackMetadata>(
         event,
         client,
       ) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          event.trackType === "video" &&
-          client.devices.camera.broadcast?.stream
-        ) {
-          const onDeviceStop = configRef.current.camera.onDeviceStop ?? "mute";
+        const camera = client.devices.camera;
+        const stream = camera.broadcast?.stream;
+        const onDeviceStop = configRef.current.camera.onDeviceStop ?? "mute";
 
+        if (isBroadcastedTrackStopped("userMedia", "video", client.status, event, stream)) {
           if (onDeviceStop === "mute") {
-            await client.devices.camera.muteTrack();
+            await camera.muteTrack();
           } else {
-            await client.devices.camera.removeTrack();
+            await camera.removeTrack();
           }
         }
       };
@@ -399,12 +398,12 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-        if (client.devices.camera.stream && configRef.current.camera.broadcastOnConnect) {
-          await client.devices.camera.addTrack(
-            configRef.current.camera.defaultTrackMetadata,
-            configRef.current.camera.defaultSimulcastConfig,
-            configRef.current.camera.defaultMaxBandwidth,
-          );
+        const camera = client.devices.camera;
+        const stream = camera.stream;
+        const config = configRef.current.camera;
+
+        if (stream && config.broadcastOnConnect) {
+          await camera.addTrack(config.defaultTrackMetadata, config.defaultSimulcastConfig, config.defaultMaxBandwidth);
         }
       };
 
@@ -422,35 +421,28 @@ export const create = <PeerMetadata, TrackMetadata>(
         event: { mediaDeviceType: MediaDeviceType },
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
-        const broadcastOnDeviceChange = configRef.current.microphone.onDeviceChange ?? "replace";
+        const microphone = client.devices.microphone;
+        const stream = microphone.broadcast?.stream;
+        const config = configRef.current.microphone;
+        const onDeviceChange = config.onDeviceChange ?? "replace";
 
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          !pending &&
-          !client.isReconnecting()
-        ) {
-          if (!client.devices.microphone.broadcast?.stream && configRef.current.microphone.broadcastOnDeviceStart) {
+        if (isBroadcastedDeviceChanged("userMedia", client, pending, event.mediaDeviceType)) {
+          if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
-            await client.devices.microphone
-              .addTrack(
-                configRef.current.microphone.defaultTrackMetadata,
-                configRef.current.microphone.defaultMaxBandwidth,
-              )
-              .finally(() => {
-                pending = false;
-              });
-          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "replace") {
-            pending = true;
-
-            await client.devices.microphone.replaceTrack().finally(() => {
+            await microphone.addTrack(config.defaultTrackMetadata, config.defaultMaxBandwidth).finally(() => {
               pending = false;
             });
-          } else if (client.devices.microphone.broadcast?.stream && broadcastOnDeviceChange === "remove") {
+          } else if (stream && onDeviceChange === "replace") {
             pending = true;
 
-            await client.devices.microphone.removeTrack().finally(() => {
+            await microphone.replaceTrack().finally(() => {
+              pending = false;
+            });
+          } else if (stream && onDeviceChange === "remove") {
+            pending = true;
+
+            await microphone.removeTrack().finally(() => {
               pending = false;
             });
           }
@@ -489,20 +481,29 @@ export const create = <PeerMetadata, TrackMetadata>(
       };
     }, [state.client]);
 
+    const isBroadcastedTrackStopped = (
+      expectedMediaDeviceType: MediaDeviceType,
+      expectedTrackType: TrackType,
+      status: PeerStatus,
+      event: Parameters<ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"]>[0],
+      stream: MediaStream | undefined | null,
+    ) =>
+      status === "joined" &&
+      event.mediaDeviceType === expectedMediaDeviceType &&
+      event.trackType === expectedTrackType &&
+      stream;
+
     useEffect(() => {
       const onMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "userMedia" &&
-          event.trackType === "audio" &&
-          client.devices.microphone.broadcast?.stream
-        ) {
-          const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
+        const microphone = client.devices.microphone;
+        const stream = microphone.broadcast?.stream;
+        const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
 
+        if (isBroadcastedTrackStopped("userMedia", "audio", client.status, event, stream)) {
           if (onDeviceStop === "mute") {
-            await client.devices.microphone.muteTrack();
+            await microphone.muteTrack();
           } else {
-            await client.devices.microphone.removeTrack();
+            await microphone.removeTrack();
           }
         }
       };
@@ -516,11 +517,11 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
-        if (client.devices.microphone.stream && configRef.current.microphone.broadcastOnConnect) {
-          await client.devices.microphone.addTrack(
-            configRef.current.microphone.defaultTrackMetadata,
-            configRef.current.microphone.defaultMaxBandwidth,
-          );
+        const config = configRef.current.microphone;
+        const microphone = client.devices.microphone;
+
+        if (microphone.stream && config.broadcastOnConnect) {
+          await microphone.addTrack(config.defaultTrackMetadata, config.defaultMaxBandwidth);
         }
       };
 
@@ -532,30 +533,26 @@ export const create = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      let adding = false;
+      let pending = false;
 
       const broadcastOnScreenShareStart: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (
         event: { mediaDeviceType: MediaDeviceType },
         client,
       ) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "displayMedia" &&
-          !adding &&
-          !client.devices.screenShare.broadcast?.stream &&
-          configRef.current.screenShare.broadcastOnDeviceStart &&
-          !client.isReconnecting()
-        ) {
-          adding = true;
+        const screenShare = client.devices.screenShare;
+        const stream = screenShare.broadcast?.stream;
+        const { broadcastOnDeviceStart, defaultTrackMetadata, defaultMaxBandwidth } = configRef.current.screenShare;
 
-          await client.devices.screenShare
-            .addTrack(
-              configRef.current.screenShare.defaultTrackMetadata,
-              configRef.current.screenShare.defaultMaxBandwidth,
-            )
-            .finally(() => {
-              adding = false;
-            });
+        if (
+          isBroadcastedDeviceChanged("displayMedia", client, pending, event.mediaDeviceType) &&
+          !stream &&
+          broadcastOnDeviceStart
+        ) {
+          pending = true;
+
+          await screenShare.addTrack(defaultTrackMetadata, defaultMaxBandwidth).finally(() => {
+            pending = false;
+          });
         }
       };
 
@@ -568,11 +565,8 @@ export const create = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
-        if (
-          client.status === "joined" &&
-          event.mediaDeviceType === "displayMedia" &&
-          client.devices.screenShare.broadcast?.stream
-        ) {
+        const stream = client.devices.screenShare.broadcast?.stream;
+        if (isBroadcastedTrackStopped("displayMedia", "video", client.status, event, stream)) {
           await client.devices.screenShare.removeTrack();
         }
       };
