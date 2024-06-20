@@ -7,7 +7,7 @@ import type { PeerStatus } from "./state.types";
 export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
   useFishjamContext: () => FishjamContextType<PeerMetadata, TrackMetadata>,
 ) => {
-  const isBroadcastedDeviceChanged = (
+  const isBroadcastedTrackChanged = (
     expectedMediaDeviceType: MediaDeviceType,
     client: ClientApi<PeerMetadata, TrackMetadata>,
     pending: boolean,
@@ -65,7 +65,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const camera = client.devices.camera;
         const stream = camera.broadcast?.stream;
 
-        if (isBroadcastedDeviceChanged("userMedia", client, pending, event.mediaDeviceType)) {
+        if (isBroadcastedTrackChanged("userMedia", client, pending, event.mediaDeviceType)) {
           if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
@@ -177,7 +177,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const config = configRef.current.microphone;
         const onDeviceChange = config.onDeviceChange ?? "replace";
 
-        if (isBroadcastedDeviceChanged("userMedia", client, pending, event.mediaDeviceType)) {
+        if (isBroadcastedTrackChanged("userMedia", client, pending, event.mediaDeviceType)) {
           if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
@@ -283,7 +283,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const { broadcastOnDeviceStart, defaultTrackMetadata, defaultMaxBandwidth } = configRef.current.screenShare;
 
         if (
-          isBroadcastedDeviceChanged("displayMedia", client, pending, event.mediaDeviceType) &&
+          isBroadcastedTrackChanged("displayMedia", client, pending, event.mediaDeviceType) &&
           !stream &&
           broadcastOnDeviceStart
         ) {
