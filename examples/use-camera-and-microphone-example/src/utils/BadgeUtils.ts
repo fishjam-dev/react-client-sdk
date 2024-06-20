@@ -1,5 +1,5 @@
 import type { PeerStatus } from "@fishjam-dev/react-client";
-import type { ReconnectionStatus } from "../../../../../ts-client-sdk";
+import { ReconnectionStatus } from "@fishjam-dev/ts-client";
 
 export const getPeerStatusBadgeColor = (status: PeerStatus): string => {
   switch (status) {
