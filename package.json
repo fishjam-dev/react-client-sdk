@@ -65,7 +65,7 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "@fishjam-dev/ts-client": "github:fishjam-dev/ts-client-sdk#reconnect-on-network-change",
+    "@fishjam-dev/ts-client": "github:fishjam-dev/ts-client-sdk#debug_reconnect",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },
